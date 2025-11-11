@@ -24,17 +24,20 @@ export const NAVIGATION_LINKS: NavigationLink[] = [
 // Hero features
 export const HERO_FEATURES: Feature[] = [
   {
-    icon: <ShieldCheckIcon className="w-8 h-8" />,
+    icon: ShieldCheckIcon,
+    iconClassName: 'w-8 h-8',
     title: 'Verified Community',
     description: 'All users go through verification to ensure quality and trust',
   },
   {
-    icon: <BoltIcon className="w-8 h-8" />,
+    icon: BoltIcon,
+    iconClassName: 'w-8 h-8',
     title: 'Direct Connections',
     description: 'No middlemen. Hotels and creators connect and collaborate directly',
   },
   {
-    icon: <ChartBarIcon className="w-8 h-8" />,
+    icon: ChartBarIcon,
+    iconClassName: 'w-8 h-8',
     title: 'Measurable Results',
     description: 'Track bookings and engagement to build data-driven partnerships',
   },
@@ -46,22 +49,26 @@ export const HOTELS_SECTION: SectionContent = {
   subtitle: 'Reach new audiences through authentic creator-driven storytelling. Connect directly with verified travel influencers who align with your brand.',
   advantages: [
     {
-      icon: <UsersIcon className="w-6 h-6" />,
+      icon: UsersIcon,
+      iconClassName: 'w-6 h-6',
       title: 'Access Verified Creators',
       description: 'Browse and filter through a curated community of verified travel creators. Find influencers who match your property\'s vibe, location, and target audience.',
     },
     {
-      icon: <BoltIcon className="w-6 h-6" />,
+      icon: BoltIcon,
+      iconClassName: 'w-6 h-6',
       title: 'No Middlemen, Lower Costs',
       description: 'Cut out agencies and intermediaries. Work directly with creators, negotiate fair rates, and build lasting partnerships without hidden fees.',
     },
     {
-      icon: <ChartBarIcon className="w-6 h-6" />,
+      icon: ChartBarIcon,
+      iconClassName: 'w-6 h-6',
       title: 'Track Real Impact',
       description: 'Measure which creators drive actual bookings and engagement. Make data-driven decisions and invest in partnerships that deliver results.',
     },
     {
-      icon: <CurrencyDollarIcon className="w-6 h-6" />,
+      icon: CurrencyDollarIcon,
+      iconClassName: 'w-6 h-6',
       title: 'Transparent Pricing',
       description: 'See creator rates upfront. No surprise costs or hidden commissions. Build partnerships based on transparency and mutual respect.',
     },
@@ -98,22 +105,26 @@ export const CREATORS_SECTION: SectionContent = {
   subtitle: 'Earn fair compensation while building authentic relationships with travel brands. Discover exciting hotel collaborations that align with your content and values.',
   advantages: [
     {
-      icon: <CurrencyDollarIcon className="w-6 h-6" />,
+      icon: CurrencyDollarIcon,
+      iconClassName: 'w-6 h-6',
       title: 'Fair Compensation',
       description: 'Negotiate rates directly with hotels. No agencies taking cuts. Get paid what you\'re worth for your authentic content and influence.',
     },
     {
-      icon: <UserGroupIcon className="w-6 h-6" />,
+      icon: UserGroupIcon,
+      iconClassName: 'w-6 h-6',
       title: 'Direct Relationships',
       description: 'Build long-term partnerships with hotels. Work directly with decision-makers and create content that truly represents your brand and theirs.',
     },
     {
-      icon: <MagnifyingGlassIcon className="w-6 h-6" />,
+      icon: MagnifyingGlassIcon,
+      iconClassName: 'w-6 h-6',
       title: 'Curated Opportunities',
       description: 'Discover hotels that align with your niche and values. Filter by location, property type, and collaboration style to find perfect matches.',
     },
     {
-      icon: <ChartBarSquareIcon className="w-6 h-6" />,
+      icon: ChartBarSquareIcon,
+      iconClassName: 'w-6 h-6',
       title: 'Performance Tracking',
       description: 'Showcase your impact. Track bookings and engagement you drive, building your reputation and opening doors to better opportunities.',
     },

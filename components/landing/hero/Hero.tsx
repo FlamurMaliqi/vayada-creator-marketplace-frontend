@@ -31,15 +31,18 @@ export default function Hero() {
         </div>
 
         <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {HERO_FEATURES.map((feature, index) => (
-            <div key={index} className="text-center p-6 bg-white rounded-xl shadow-md">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-600">
-                {feature.icon}
+          {HERO_FEATURES.map((feature, index) => {
+            const IconComponent = feature.icon
+            return (
+              <div key={index} className="text-center p-6 bg-white rounded-xl shadow-md">
+                <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-600">
+                  <IconComponent className={feature.iconClassName} />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>
