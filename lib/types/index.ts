@@ -15,8 +15,11 @@ export interface NavigationLink {
 }
 
 // UI Components
+import type { ComponentType } from 'react'
+
 export interface Feature {
-  icon: React.ReactNode
+  icon: ComponentType<{ className?: string }>
+  iconClassName?: string
   title: string
   description: string
 }
@@ -28,7 +31,8 @@ export interface Step {
 }
 
 export interface Advantage {
-  icon: React.ReactNode
+  icon: ComponentType<{ className?: string }>
+  iconClassName?: string
   title: string
   description: string
 }

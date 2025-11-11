@@ -46,21 +46,24 @@ export default function CreatorsSection() {
               Why Join Vayada?
             </h3>
             <div className="space-y-6">
-              {CREATORS_SECTION.advantages.map((advantage, index) => (
-                <div key={index} className="flex items-start">
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600">
-                      {advantage.icon}
+              {CREATORS_SECTION.advantages.map((advantage, index) => {
+                const IconComponent = advantage.icon
+                return (
+                  <div key={index} className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600">
+                        <IconComponent className={advantage.iconClassName} />
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <h4 className="text-xl font-semibold text-gray-900 mb-2">
+                        {advantage.title}
+                      </h4>
+                      <p className="text-gray-600">{advantage.description}</p>
                     </div>
                   </div>
-                  <div className="ml-4">
-                    <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                      {advantage.title}
-                    </h4>
-                    <p className="text-gray-600">{advantage.description}</p>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </div>
