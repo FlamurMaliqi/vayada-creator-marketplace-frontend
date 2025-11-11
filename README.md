@@ -71,6 +71,19 @@ For detailed structure documentation, see [PROJECT_STRUCTURE.md](./PROJECT_STRUC
 - **Heroicons**: Icon library
 - **clsx & tailwind-merge**: Class name utilities
 
+## Deployment
+
+The project is ready to deploy to Vercel. See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
+### Quick Deploy
+
+1. Push your code to GitHub
+2. Go to [vercel.com/new](https://vercel.com/new)
+3. Import your repository
+4. Click Deploy!
+
+Your site will be live in minutes! 🚀
+
 ## Next Steps
 
 - Authentication system
