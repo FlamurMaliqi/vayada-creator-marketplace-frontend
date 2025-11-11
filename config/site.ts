@@ -1,0 +1,45 @@
+export const siteConfig = {
+  name: 'Vayada',
+  description: 'A transparent marketplace connecting hotels with verified travel influencers for authentic collaborations.',
+  url: 'https://vayada.com',
+  ogImage: '/og-image.jpg',
+  links: {
+    twitter: 'https://twitter.com/vayada',
+    github: 'https://github.com/vayada',
+  },
+  hero: {
+    title: 'Connect Hotels with Travel Creators',
+    subtitle: 'A transparent marketplace that replaces agencies and middlemen. Hotels and creators collaborate directly, building authentic partnerships that drive real results.',
+    cta: {
+      hotel: {
+        text: "I'm a Hotel",
+        href: '/signup?type=hotel',
+      },
+      creator: {
+        text: "I'm a Creator",
+        href: '/signup?type=creator',
+      },
+    },
+  },
+  footer: {
+    description: 'Connecting hotels with travel creators for authentic collaborations.',
+    links: {
+      hotels: [
+        { label: 'How It Works', href: '#hotels' },
+        { label: 'Sign Up', href: '/signup?type=hotel' },
+        { label: 'Pricing', href: '/pricing' },
+      ],
+      creators: [
+        { label: 'How It Works', href: '#creators' },
+        { label: 'Sign Up', href: '/signup?type=creator' },
+        { label: 'Benefits', href: '/creators/benefits' },
+      ],
+      company: [
+        { label: 'About', href: '/about' },
+        { label: 'Contact', href: '/contact' },
+        { label: 'Blog', href: '/blog' },
+      ],
+    },
+  },
+} as const
+
