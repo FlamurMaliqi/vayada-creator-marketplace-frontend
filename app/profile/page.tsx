@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { AuthenticatedNavigation, Footer, ProfileWarningBanner } from '@/components/layout'
 import { Button } from '@/components/ui'
 import { ROUTES } from '@/lib/constants/routes'
-import { hotelService, creatorService } from '@/services/api'
+// Removed API imports - using mock data only for frontend design
 import type { Hotel, Creator, UserType } from '@/lib/types'
 import { formatNumber, formatDate } from '@/lib/utils'
 import {
@@ -69,27 +69,12 @@ export default function ProfilePage() {
       }
       setProfileInfo(profileData)
 
+      // Use mock data directly for frontend design
       if (storedUserType === 'hotel') {
-        try {
-          const hotelData = await hotelService.getById(userId)
-          setHotel(hotelData)
-        } catch (error) {
-          console.error('Error loading hotel profile:', error)
-          // Use mock data for development
-          setHotel(getMockHotel(userId))
-        }
+        setHotel(getMockHotel(userId))
       } else {
-        try {
-          const creatorData = await creatorService.getById(userId)
-          setCreator(creatorData)
-        } catch (error) {
-          console.error('Error loading creator profile:', error)
-          // Use mock data for development
-          setCreator(getMockCreator(userId))
-        }
+        setCreator(getMockCreator(userId))
       }
-    } catch (error) {
-      console.error('Error loading profile:', error)
     } finally {
       setLoading(false)
     }

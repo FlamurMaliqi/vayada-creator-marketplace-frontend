@@ -43,14 +43,14 @@ export default function AuthenticatedNavigation() {
       icon: BuildingStorefrontIcon,
     },
     {
-      href: ROUTES.PROFILE,
-      label: 'My Profile',
-      icon: UserIcon,
-    },
-    {
       href: ROUTES.COLLABORATIONS,
       label: 'Collaborations',
       icon: UserGroupIcon,
+    },
+    {
+      href: ROUTES.PROFILE,
+      label: 'My Profile',
+      icon: UserIcon,
     },
   ]
 
