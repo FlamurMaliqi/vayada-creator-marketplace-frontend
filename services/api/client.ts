@@ -29,12 +29,35 @@ export class ApiClient {
       const response = await fetch(url, config)
       
       if (!response.ok) {
-        throw new Error(`API Error: ${response.statusText}`)
+        const errorText = await response.text()
+        let errorMessage = `API Error: ${response.status} ${response.statusText}`
+        
+        try {
+          const errorJson = JSON.parse(errorText)
+          errorMessage = errorJson.message || errorJson.error || errorMessage
+        } catch {
+          if (errorText) {
+            errorMessage = errorText
+          }
+        }
+        
+        throw new Error(errorMessage)
       }
 
       return await response.json()
     } catch (error) {
-      console.error('API request failed:', error)
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('API request failed - Network error:', {
+          url,
+          error: error.message,
+          hint: 'Check if backend is running and CORS is configured correctly'
+        })
+      } else {
+        console.error('API request failed:', {
+          url,
+          error: error instanceof Error ? error.message : String(error)
+        })
+      }
       throw error
     }
   }
