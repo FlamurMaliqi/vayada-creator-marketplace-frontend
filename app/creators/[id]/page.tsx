@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { AuthenticatedNavigation, Footer } from '@/components/layout'
-import { Button } from '@/components/ui'
-import { creatorService } from '@/services/api'
+import { Button, Input, Textarea } from '@/components/ui'
 import { ROUTES } from '@/lib/constants/routes'
 import type { Creator } from '@/lib/types'
 import { formatNumber } from '@/lib/utils'
@@ -17,6 +16,7 @@ import {
   ChartBarIcon,
   EnvelopeIcon,
   LinkIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 
 export default function CreatorDetailPage() {
@@ -24,25 +24,51 @@ export default function CreatorDetailPage() {
   const router = useRouter()
   const [creator, setCreator] = useState<Creator | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showRequestModal, setShowRequestModal] = useState(false)
+  const [requesting, setRequesting] = useState(false)
+  const [requestForm, setRequestForm] = useState({
+    message: '',
+    proposedDates: '',
+    collaborationType: '',
+  })
 
   useEffect(() => {
     loadCreator()
   }, [params.id])
 
-  const loadCreator = async () => {
-    if (!params.id || typeof params.id !== 'string') return
+  const loadCreator = () => {
+    const creatorId = Array.isArray(params.id) ? params.id[0] : params.id
+    if (!creatorId) return
     
     setLoading(true)
-    try {
-      const creatorData = await creatorService.getById(params.id)
-      setCreator(creatorData)
-    } catch (error) {
-      console.error('Error loading creator:', error)
-      // For development, use mock data
-      setCreator(getMockCreator(params.id))
-    } finally {
+    // Hardcoded mock data for frontend design
+    setTimeout(() => {
+      setCreator(getMockCreator(creatorId))
       setLoading(false)
-    }
+    }, 300)
+  }
+
+  const handleRequestCollaboration = () => {
+    if (!creator) return
+
+    setRequesting(true)
+
+    // Simulate collaboration request (frontend design only)
+    setTimeout(() => {
+      setRequesting(false)
+      setShowRequestModal(false)
+      // Reset form
+      setRequestForm({ message: '', proposedDates: '', collaborationType: '' })
+      // Redirect to collaborations page after a short delay
+      setTimeout(() => {
+        router.push(ROUTES.COLLABORATIONS)
+      }, 500)
+    }, 1000)
+  }
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setRequestForm(prev => ({ ...prev, [name]: value }))
   }
 
   if (loading) {
@@ -144,10 +170,7 @@ export default function CreatorDetailPage() {
                   <Button
                     variant="primary"
                     size="lg"
-                    onClick={() => {
-                      console.log('Request collaboration with', creator.id)
-                      // TODO: Implement collaboration request
-                    }}
+                    onClick={() => setShowRequestModal(true)}
                   >
                     Request Collaboration
                   </Button>
@@ -309,6 +332,115 @@ export default function CreatorDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Collaboration Request Modal */}
+      {showRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-primary-600 to-primary-700 px-8 py-6 rounded-t-3xl flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Request Collaboration</h2>
+                <p className="text-primary-100 mt-1">Send a collaboration request to {creator?.name}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowRequestModal(false)
+                  setRequestForm({ message: '', proposedDates: '', collaborationType: '' })
+                }}
+                className="p-2 rounded-lg hover:bg-white/20 transition-colors"
+              >
+                <XMarkIcon className="w-6 h-6 text-white" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleRequestCollaboration()
+              }}
+              className="p-8 space-y-6"
+            >
+              {/* Collaboration Type */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Collaboration Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="collaborationType"
+                  value={requestForm.collaborationType}
+                  onChange={handleFormChange}
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="">Select collaboration type</option>
+                  <option value="content-creation">Content Creation</option>
+                  <option value="social-media">Social Media Promotion</option>
+                  <option value="blog-post">Blog Post</option>
+                  <option value="video-production">Video Production</option>
+                  <option value="photography">Photography</option>
+                  <option value="influencer-stay">Influencer Stay</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              {/* Proposed Dates */}
+              <div>
+                <Input
+                  label="Proposed Dates"
+                  name="proposedDates"
+                  type="text"
+                  value={requestForm.proposedDates}
+                  onChange={handleFormChange}
+                  placeholder="e.g., March 15-20, 2024 or Flexible"
+                  helperText="When would you like to collaborate?"
+                />
+              </div>
+
+              {/* Message */}
+              <div>
+                <Textarea
+                  label="Message"
+                  name="message"
+                  value={requestForm.message}
+                  onChange={handleFormChange}
+                  required
+                  rows={6}
+                  placeholder="Tell the creator about your collaboration idea, what you can offer, and your expectations..."
+                  helperText="Describe your collaboration proposal in detail"
+                />
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex gap-4 pt-4 border-t border-gray-200">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowRequestModal(false)
+                    setRequestForm({ message: '', proposedDates: '', collaborationType: '' })
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  className="flex-1"
+                  isLoading={requesting}
+                  disabled={requesting}
+                >
+                  {requesting ? 'Sending...' : 'Send Request'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

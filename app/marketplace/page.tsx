@@ -7,7 +7,7 @@ import { MarketplaceFilters } from '@/components/marketplace/MarketplaceFilters'
 import { HotelCard } from '@/components/marketplace/HotelCard'
 import { CreatorCard } from '@/components/marketplace/CreatorCard'
 import { Button } from '@/components/ui'
-import { hotelService, creatorService } from '@/services/api'
+// Removed API imports - using mock data only for frontend design
 import { ROUTES } from '@/lib/constants/routes'
 import type { Hotel, Creator } from '@/lib/types'
 
@@ -30,32 +30,17 @@ export default function MarketplacePage() {
 
   const loadData = async () => {
     setLoading(true)
-    try {
+    // Use mock data directly for frontend design
+    setTimeout(() => {
       if (viewType === 'all' || viewType === 'hotels') {
-        const hotelsResponse = await hotelService.getAll({
-          page: 1,
-          limit: 50,
-        })
-        setHotels(hotelsResponse.data)
+        setHotels(getMockHotels())
       }
       
       if (viewType === 'all' || viewType === 'creators') {
-        const creatorsResponse = await creatorService.getAll({
-          page: 1,
-          limit: 50,
-          ...(filters.location && { location: filters.location }),
-          ...(filters.niche && { niche: filters.niche }),
-        })
-        setCreators(creatorsResponse.data)
+        setCreators(getMockCreators())
       }
-    } catch (error) {
-      console.error('Error loading data:', error)
-      // For development, use mock data
-      setHotels(getMockHotels())
-      setCreators(getMockCreators())
-    } finally {
       setLoading(false)
-    }
+    }, 300)
   }
 
   const filteredHotels = hotels.filter((hotel) => {

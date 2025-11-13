@@ -95,27 +95,15 @@ export function CreatorCard({ creator }: CreatorCardProps) {
 
       {/* Actions */}
       <div className="p-6 pt-4">
-        <div className="flex gap-2">
-          <Link href={`/creators/${creator.id}`} className="flex-1">
-            <Button
-              variant="primary"
-              size="sm"
-              className="w-full"
-            >
-              View Profile
-            </Button>
-          </Link>
+        <Link href={`/creators/${creator.id}`} className="block">
           <Button
-            variant="outline"
+            variant="primary"
             size="sm"
-            onClick={() => {
-              // Send collaboration request
-              console.log('Request collaboration with', creator.id)
-            }}
+            className="w-full"
           >
-            Connect
+            View Profile
           </Button>
-        </div>
+        </Link>
       </div>
     </div>
   )

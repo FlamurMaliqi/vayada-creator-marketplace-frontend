@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { AuthenticatedNavigation, Footer, ProfileWarningBanner } from '@/components/layout'
 import { CollaborationCard } from '@/components/marketplace'
 import { Button, Input } from '@/components/ui'
-import { collaborationService, hotelService, creatorService } from '@/services/api'
+// Removed API imports - using mock data only for frontend design
 import { ROUTES } from '@/lib/constants/routes'
 import type { Collaboration, CollaborationStatus, Hotel, Creator, UserType } from '@/lib/types'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
@@ -38,76 +38,25 @@ function CollaborationsPageContent() {
 
   const loadCollaborations = async () => {
     setLoading(true)
-    try {
-      // Filter by user type and ID
-      const apiParams: {
-        page: number
-        limit: number
-        status?: string
-        hotelId?: string
-        creatorId?: string
-      } = {
-        page: 1,
-        limit: 100,
-        ...(statusFilter !== 'all' && { status: statusFilter }),
-      }
-
-      // Add user-specific filter
-      if (userType === 'hotel' && currentUserId) {
-        apiParams.hotelId = currentUserId
-      } else if (userType === 'creator' && currentUserId) {
-        apiParams.creatorId = currentUserId
-      }
-
-      const response = await collaborationService.getAll(apiParams)
-
-      // Fetch hotel and creator details for each collaboration
-      const collaborationsWithDetails = await Promise.all(
-        response.data.map(async (collab) => {
-          try {
-            const [hotel, creator] = await Promise.all([
-              hotelService.getById(collab.hotelId).catch(() => null),
-              creatorService.getById(collab.creatorId).catch(() => null),
-            ])
-
-            return {
-              ...collab,
-              hotel: hotel || undefined,
-              creator: creator || undefined,
-            }
-          } catch (error) {
-            console.error('Error loading collaboration details:', error)
-            return {
-              ...collab,
-              hotel: undefined,
-              creator: undefined,
-            }
-          }
-        })
-      )
-
-      setCollaborations(collaborationsWithDetails)
-    } catch (error) {
-      console.error('Error loading collaborations:', error)
-      // For development, use mock data filtered by user type
+    // Use mock data directly for frontend design
+    setTimeout(() => {
       setCollaborations(getMockCollaborations(userType, currentUserId))
-    } finally {
       setLoading(false)
-    }
+    }, 300)
   }
 
   const handleStatusUpdate = async (id: string, newStatus: CollaborationStatus) => {
     setUpdatingId(id)
-    try {
-      await collaborationService.updateStatus(id, newStatus)
-      // Reload collaborations
-      await loadCollaborations()
-    } catch (error) {
-      console.error('Error updating collaboration status:', error)
-      alert('Failed to update collaboration status. Please try again.')
-    } finally {
+    // Simulate status update (frontend design only)
+    setTimeout(() => {
+      // Update local state
+      setCollaborations(prev => 
+        prev.map(collab => 
+          collab.id === id ? { ...collab, status: newStatus } : collab
+        )
+      )
       setUpdatingId(null)
-    }
+    }, 500)
   }
 
   const statusFilters: { value: StatusFilter; label: string }[] = [

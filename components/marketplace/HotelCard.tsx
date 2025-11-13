@@ -75,27 +75,15 @@ export function HotelCard({ hotel }: HotelCardProps) {
         )}
 
         {/* Actions */}
-        <div className="flex gap-2">
-          <Link href={`/hotels/${hotel.id}`} className="flex-1">
-            <Button
-              variant="primary"
-              size="sm"
-              className="w-full"
-            >
-              View Profile
-            </Button>
-          </Link>
+        <Link href={`/hotels/${hotel.id}`} className="block">
           <Button
-            variant="outline"
+            variant="primary"
             size="sm"
-            onClick={() => {
-              // Send collaboration request
-              console.log('Request collaboration with', hotel.id)
-            }}
+            className="w-full"
           >
-            Connect
+            View Profile
           </Button>
-        </div>
+        </Link>
       </div>
     </div>
   )
