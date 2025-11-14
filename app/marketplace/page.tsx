@@ -2,19 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { AuthenticatedNavigation, Footer, ProfileWarningBanner } from '@/components/layout'
 import { MarketplaceFilters } from '@/components/marketplace/MarketplaceFilters'
 import { HotelCard } from '@/components/marketplace/HotelCard'
 import { CreatorCard } from '@/components/marketplace/CreatorCard'
 import { Button } from '@/components/ui'
-// Removed API imports - using mock data only for frontend design
+import { hotelService } from '@/services/api/hotels'
+import { creatorService } from '@/services/api/creators'
 import { ROUTES } from '@/lib/constants/routes'
 import type { Hotel, Creator } from '@/lib/types'
 
-type ViewType = 'all' | 'hotels' | 'creators'
-
 export default function MarketplacePage() {
-  const [viewType, setViewType] = useState<ViewType>('all')
+  const router = useRouter()
+  const [userType, setUserType] = useState<'hotel' | 'creator' | null>(null)
   const [hotels, setHotels] = useState<Hotel[]>([])
   const [creators, setCreators] = useState<Creator[]>([])
   const [loading, setLoading] = useState(true)
@@ -25,22 +26,98 @@ export default function MarketplacePage() {
   })
 
   useEffect(() => {
-    loadData()
-  }, [filters, viewType])
-
-  const loadData = async () => {
-    setLoading(true)
-    // Use mock data directly for frontend design
-    setTimeout(() => {
-      if (viewType === 'all' || viewType === 'hotels') {
-        setHotels(getMockHotels())
+    // Get user type from localStorage
+    if (typeof window !== 'undefined') {
+      const storedUserType = localStorage.getItem('userType') as 'hotel' | 'creator' | null
+      const isLoggedIn = localStorage.getItem('isLoggedIn')
+      
+      console.log('Marketplace - userType from localStorage:', storedUserType)
+      console.log('Marketplace - isLoggedIn:', isLoggedIn)
+      
+      if (!isLoggedIn || !storedUserType) {
+        // Redirect to login if not logged in
+        router.push(ROUTES.LOGIN)
+        return
       }
       
-      if (viewType === 'all' || viewType === 'creators') {
-        setCreators(getMockCreators())
+      setUserType(storedUserType)
+    }
+  }, [router])
+
+  useEffect(() => {
+    if (userType) {
+      loadData()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, userType])
+
+  const loadData = async () => {
+    if (!userType) {
+      console.log('loadData: userType is null, skipping')
+      return
+    }
+    
+    console.log('loadData: Loading data for userType:', userType)
+    setLoading(true)
+    try {
+      // If user is a creator, show hotels
+      if (userType === 'creator') {
+        console.log('loadData: Fetching hotels for creator')
+        const response = await hotelService.getAll({ status: 'verified' })
+        console.log('loadData: Hotels response:', response)
+        // Map backend response to frontend format
+        const hotelsData = response.data.map((hotel: any) => ({
+          id: hotel.id,
+          name: hotel.name,
+          location: hotel.location,
+          description: hotel.description || '',
+          images: hotel.images || [],
+          amenities: hotel.amenities || [],
+          status: hotel.status,
+          createdAt: new Date(hotel.created_at),
+          updatedAt: new Date(hotel.updated_at),
+        }))
+        console.log('loadData: Setting hotels, clearing creators')
+        setHotels(hotelsData)
+        setCreators([])
       }
+      // If user is a hotel, show creators
+      else if (userType === 'hotel') {
+        console.log('loadData: Fetching creators for hotel')
+        const params: { niche?: string; location?: string; status?: string } = {
+          status: 'verified', // Only show verified creators
+        }
+        if (filters.niche) params.niche = filters.niche
+        if (filters.location) params.location = filters.location
+        
+        const response = await creatorService.getAll(params)
+        console.log('loadData: Creators response:', response)
+        // Map backend response to frontend format
+        const creatorsData = response.data.map((creator: any) => ({
+          id: creator.id,
+          name: creator.name,
+          niche: creator.niche || [],
+          platforms: (creator.platforms || []).map((p: any) => ({
+            name: p.name,
+            handle: p.handle,
+            followers: p.followers || 0,
+            engagementRate: p.engagement_rate || 0,
+          })),
+          audienceSize: creator.audience_size || 0,
+          location: creator.location || '',
+          status: creator.status,
+          createdAt: new Date(creator.created_at),
+          updatedAt: new Date(creator.updated_at),
+        }))
+        console.log('loadData: Setting creators, clearing hotels')
+        setCreators(creatorsData)
+        setHotels([])
+      }
+    } catch (error) {
+      console.error('Failed to load marketplace data:', error)
+    } finally {
       setLoading(false)
-    }, 300)
+    }
   }
 
   const filteredHotels = hotels.filter((hotel) => {
@@ -78,43 +155,11 @@ export default function MarketplacePage() {
               Marketplace
             </h1>
             <p className="text-lg text-gray-600">
-              Discover hotels and creators for authentic partnerships
+              {userType === 'creator' 
+                ? 'Discover hotels for authentic partnerships'
+                : 'Discover creators and influencers for authentic partnerships'}
             </p>
           </div>
-        </div>
-
-        {/* View Toggle */}
-        <div className="mb-6 flex gap-2">
-          <button
-            onClick={() => setViewType('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              viewType === 'all'
-                ? 'bg-primary-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setViewType('hotels')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              viewType === 'hotels'
-                ? 'bg-primary-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Hotels
-          </button>
-          <button
-            onClick={() => setViewType('creators')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              viewType === 'creators'
-                ? 'bg-primary-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Creators
-          </button>
         </div>
 
         {/* Filters */}
@@ -123,19 +168,23 @@ export default function MarketplacePage() {
           onSearchChange={setSearchQuery}
           filters={filters}
           onFiltersChange={setFilters}
-          viewType={viewType}
+          viewType={userType === 'creator' ? 'hotels' : 'creators'}
         />
 
         {/* Results */}
-        {loading ? (
+        {!userType ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          </div>
+        ) : loading ? (
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
           </div>
         ) : (
           <>
-            {/* Hotels Section */}
-            {(viewType === 'all' || viewType === 'hotels') && (
-              <div className="mb-12">
+            {/* Hotels Section - Only shown for creators */}
+            {userType === 'creator' && (
+              <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
                     Hotels {filteredHotels.length > 0 && `(${filteredHotels.length})`}
@@ -155,8 +204,8 @@ export default function MarketplacePage() {
               </div>
             )}
 
-            {/* Creators Section */}
-            {(viewType === 'all' || viewType === 'creators') && (
+            {/* Creators Section - Only shown for hotels */}
+            {userType === 'hotel' && (
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
@@ -183,166 +232,5 @@ export default function MarketplacePage() {
       <Footer />
     </main>
   )
-}
-
-// Mock data for development
-function getMockHotels(): Hotel[] {
-  return [
-    {
-      id: '1',
-      name: 'Sunset Beach Resort',
-      location: 'Bali, Indonesia',
-      description: 'Luxury beachfront resort with stunning ocean views and world-class amenities.',
-      images: ['/hotel1.jpg'],
-      amenities: ['Pool', 'Spa', 'Beach Access', 'Restaurant'],
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '2',
-      name: 'Mountain View Lodge',
-      location: 'Swiss Alps, Switzerland',
-      description: 'Cozy alpine lodge perfect for adventure seekers and nature lovers.',
-      images: ['/hotel2.jpg'],
-      amenities: ['Ski Access', 'Fireplace', 'Restaurant', 'Spa'],
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '3',
-      name: 'Urban Boutique Hotel',
-      location: 'Tokyo, Japan',
-      description: 'Modern boutique hotel in the heart of Tokyo with minimalist design.',
-      images: ['/hotel3.jpg'],
-      amenities: ['City View', 'Restaurant', 'Gym', 'Concierge'],
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '4',
-      name: 'Desert Oasis Resort',
-      location: 'Dubai, UAE',
-      description: 'Luxurious desert resort with traditional architecture and modern comforts.',
-      images: ['/hotel4.jpg'],
-      amenities: ['Pool', 'Spa', 'Camel Rides', 'Fine Dining'],
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '5',
-      name: 'Coastal Retreat',
-      location: 'Santorini, Greece',
-      description: 'Stunning cliffside hotel with breathtaking sunset views over the Aegean Sea.',
-      images: ['/hotel5.jpg'],
-      amenities: ['Infinity Pool', 'Spa', 'Beach Access', 'Wine Cellar'],
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '6',
-      name: 'Jungle Eco-Lodge',
-      location: 'Costa Rica',
-      description: 'Sustainable eco-lodge surrounded by tropical rainforest and wildlife.',
-      images: ['/hotel6.jpg'],
-      amenities: ['Eco Tours', 'Wildlife Viewing', 'Organic Restaurant', 'Yoga Deck'],
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ]
-}
-
-function getMockCreators(): Creator[] {
-  return [
-    {
-      id: '1',
-      name: 'Sarah Travels',
-      niche: ['Luxury Travel', 'Beach Destinations'],
-      platforms: [
-        { name: 'Instagram', handle: '@sarahtravels', followers: 125000, engagementRate: 4.2 },
-        { name: 'YouTube', handle: '@sarahtravels', followers: 45000, engagementRate: 6.8 },
-      ],
-      audienceSize: 170000,
-      location: 'Bali, Indonesia',
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '2',
-      name: 'Adventure Mike',
-      niche: ['Adventure Travel', 'Mountain Sports'],
-      platforms: [
-        { name: 'Instagram', handle: '@adventuremike', followers: 89000, engagementRate: 5.1 },
-        { name: 'TikTok', handle: '@adventuremike', followers: 120000, engagementRate: 8.5 },
-      ],
-      audienceSize: 209000,
-      location: 'Swiss Alps, Switzerland',
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '3',
-      name: 'Tokyo Explorer',
-      niche: ['City Travel', 'Food & Culture'],
-      platforms: [
-        { name: 'Instagram', handle: '@tokyoexplorer', followers: 156000, engagementRate: 4.8 },
-        { name: 'Blog', handle: 'tokyoexplorer.com', followers: 25000, engagementRate: 3.2 },
-      ],
-      audienceSize: 181000,
-      location: 'Tokyo, Japan',
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '4',
-      name: 'Luxury Wanderer',
-      niche: ['Luxury Travel', 'Resorts'],
-      platforms: [
-        { name: 'Instagram', handle: '@luxurywanderer', followers: 245000, engagementRate: 3.9 },
-        { name: 'YouTube', handle: '@luxurywanderer', followers: 98000, engagementRate: 5.5 },
-      ],
-      audienceSize: 343000,
-      location: 'Dubai, UAE',
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '5',
-      name: 'Island Dreams',
-      niche: ['Beach Destinations', 'Romantic Travel'],
-      platforms: [
-        { name: 'Instagram', handle: '@islanddreams', followers: 198000, engagementRate: 4.5 },
-        { name: 'Pinterest', handle: '@islanddreams', followers: 67000, engagementRate: 2.8 },
-      ],
-      audienceSize: 265000,
-      location: 'Santorini, Greece',
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: '6',
-      name: 'Eco Explorer',
-      niche: ['Eco Travel', 'Adventure Travel'],
-      platforms: [
-        { name: 'Instagram', handle: '@ecoexplorer', followers: 112000, engagementRate: 5.8 },
-        { name: 'Blog', handle: 'ecoexplorer.com', followers: 32000, engagementRate: 4.1 },
-      ],
-      audienceSize: 144000,
-      location: 'Costa Rica',
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ]
 }
 

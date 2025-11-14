@@ -5,17 +5,24 @@
 import { apiClient } from './client'
 import type { Hotel, PaginatedResponse } from '@/lib/types'
 
+// Backend response format
+interface HotelsListResponse {
+  data: Hotel[]
+  total: number
+}
+
 export const hotelService = {
   /**
    * Get all hotels
    */
-  getAll: async (params?: { page?: number; limit?: number }): Promise<PaginatedResponse<Hotel>> => {
+  getAll: async (params?: { page?: number; limit?: number; status?: string }): Promise<HotelsListResponse> => {
     const queryParams = new URLSearchParams()
     if (params?.page) queryParams.append('page', params.page.toString())
     if (params?.limit) queryParams.append('limit', params.limit.toString())
+    if (params?.status) queryParams.append('status', params.status)
     
     const query = queryParams.toString()
-    return apiClient.get<PaginatedResponse<Hotel>>(`/hotels${query ? `?${query}` : ''}`)
+    return apiClient.get<HotelsListResponse>(`/hotels${query ? `?${query}` : ''}`)
   },
 
   /**

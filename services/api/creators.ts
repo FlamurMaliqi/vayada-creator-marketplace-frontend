@@ -5,6 +5,12 @@
 import { apiClient } from './client'
 import type { Creator, PaginatedResponse } from '@/lib/types'
 
+// Backend response format
+interface CreatorsListResponse {
+  data: Creator[]
+  total: number
+}
+
 export const creatorService = {
   /**
    * Get all creators
@@ -14,15 +20,17 @@ export const creatorService = {
     limit?: number
     niche?: string
     location?: string
-  }): Promise<PaginatedResponse<Creator>> => {
+    status?: string
+  }): Promise<CreatorsListResponse> => {
     const queryParams = new URLSearchParams()
     if (params?.page) queryParams.append('page', params.page.toString())
     if (params?.limit) queryParams.append('limit', params.limit.toString())
     if (params?.niche) queryParams.append('niche', params.niche)
     if (params?.location) queryParams.append('location', params.location)
+    if (params?.status) queryParams.append('status', params.status)
     
     const query = queryParams.toString()
-    return apiClient.get<PaginatedResponse<Creator>>(`/creators${query ? `?${query}` : ''}`)
+    return apiClient.get<CreatorsListResponse>(`/creators${query ? `?${query}` : ''}`)
   },
 
   /**
