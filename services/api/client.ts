@@ -34,7 +34,8 @@ export class ApiClient {
         
         try {
           const errorJson = JSON.parse(errorText)
-          errorMessage = errorJson.message || errorJson.error || errorMessage
+          // Handle FastAPI error format (uses 'detail' field)
+          errorMessage = errorJson.detail || errorJson.message || errorJson.error || errorMessage
         } catch {
           if (errorText) {
             errorMessage = errorText

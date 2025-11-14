@@ -8,10 +8,23 @@ export interface RegisterRequest {
   email: string
   password: string
   type: 'hotel' | 'creator'
-  name?: string
 }
 
 export interface RegisterResponse {
+  id: string
+  email: string
+  name: string
+  type: string
+  status: string
+  message: string
+}
+
+export interface LoginRequest {
+  email: string
+  password: string
+}
+
+export interface LoginResponse {
   id: string
   email: string
   name: string
@@ -24,9 +37,11 @@ export const authService = {
   /**
    * Login user
    */
-  login: async (email: string, password: string) => {
-    // TODO: Implement authentication
-    throw new Error('Not implemented yet')
+  login: async (email: string, password: string): Promise<LoginResponse> => {
+    return apiClient.post<LoginResponse>('/auth/login', {
+      email,
+      password,
+    })
   },
 
   /**
@@ -37,7 +52,6 @@ export const authService = {
       email: data.email,
       password: data.password,
       type: data.type,
-      ...(data.name && { name: data.name }),
     })
   },
 

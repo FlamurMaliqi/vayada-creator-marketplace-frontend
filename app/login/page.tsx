@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ROUTES } from '@/lib/constants/routes'
 import { Button, Input } from '@/components/ui'
 import { Navigation, Footer } from '@/components/layout'
+import { authService } from '@/services/auth'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -13,6 +14,8 @@ export default function LoginPage() {
     email: '',
     password: '',
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -20,32 +23,52 @@ export default function LoginPage() {
       ...prev,
       [name]: value,
     }))
+    // Clear error when user starts typing
+    if (error) setError(null)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Form submission logic will be added later
-    console.log('Sign in:', formData)
-    
-    // For development: Set user as logged in and check profile status
-    // In production, this would come from the auth API response
-    if (typeof window !== 'undefined') {
-      // Check if user has a profile (for demo purposes, you can set this manually)
-      // In production, this would be checked via API
-      const hasProfile = localStorage.getItem('hasProfile') === 'true'
-      localStorage.setItem('isLoggedIn', 'true')
+    setError(null)
+    setIsLoading(true)
+
+    try {
+      console.log('Attempting login with:', { email: formData.email })
+      const response = await authService.login(formData.email, formData.password)
+      console.log('Login successful:', response)
       
-      // Set profile completion status
-      // In production, this would come from the user's profile data
-      if (hasProfile) {
-        localStorage.setItem('profileComplete', 'true')
-      } else {
-        localStorage.setItem('profileComplete', 'false')
+      // Validate response has required fields
+      if (!response || !response.id || !response.email) {
+        throw new Error('Invalid response from server')
       }
+      
+      // Store user data in localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('isLoggedIn', 'true')
+        localStorage.setItem('user', JSON.stringify({
+          id: response.id,
+          email: response.email,
+          name: response.name,
+          type: response.type,
+          status: response.status,
+        }))
+        
+        // Set profile completion status based on user status
+        // For now, we'll check if status is verified (you can enhance this later)
+        const profileComplete = response.status === 'verified'
+        localStorage.setItem('profileComplete', profileComplete.toString())
+      }
+      
+      // After successful login, redirect to marketplace
+      router.push(ROUTES.MARKETPLACE)
+    } catch (err) {
+      console.error('Login error details:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.'
+      setError(errorMessage)
+      // Don't redirect on error - stay on login page
+    } finally {
+      setIsLoading(false)
     }
-    
-    // After successful login, redirect to marketplace
-    router.push(ROUTES.MARKETPLACE)
   }
 
   return (
@@ -61,6 +84,12 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
               <Input
                 label="Email address"
                 type="email"
@@ -70,6 +99,7 @@ export default function LoginPage() {
                 required
                 placeholder="you@example.com"
                 autoComplete="email"
+                disabled={isLoading}
               />
 
               <div>
@@ -82,6 +112,7 @@ export default function LoginPage() {
                   required
                   placeholder="Enter your password"
                   autoComplete="current-password"
+                  disabled={isLoading}
                 />
                 <div className="mt-2 text-right">
                   <Link
@@ -98,8 +129,9 @@ export default function LoginPage() {
                 variant="primary"
                 size="lg"
                 className="w-full"
+                disabled={isLoading}
               >
-                Sign In
+                {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
 
