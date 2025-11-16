@@ -40,5 +40,10 @@ export const ROUTES = {
   ADMIN_USERS: '/admin/users',
   ADMIN_VERIFICATIONS: '/admin/verifications',
   ADMIN_SETTINGS: '/admin/settings',
+  
+  // Legal routes
+  PRIVACY: '/privacy',
+  TERMS: '/terms',
+  IMPRINT: '/imprint',
 } as const
 

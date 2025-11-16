@@ -8,7 +8,7 @@ export const siteConfig = {
     github: 'https://github.com/vayada',
   },
   hero: {
-    title: 'Connect Hotels with Travel Creators',
+    title: 'Where hotels and creators connect',
     subtitle: 'A transparent marketplace that replaces agencies and middlemen. Hotels and creators collaborate directly, building authentic partnerships that drive real results.',
     cta: {
       hotel: {
@@ -27,7 +27,7 @@ export const siteConfig = {
       hotels: [
         { label: 'How It Works', href: '#hotels' },
         { label: 'Sign Up', href: '/signup?type=hotel' },
-        { label: 'Pricing', href: '/pricing' },
+        { label: 'Benefits', href: '/pricing' },
       ],
       creators: [
         { label: 'How It Works', href: '#creators' },
@@ -36,8 +36,7 @@ export const siteConfig = {
       ],
       company: [
         { label: 'About', href: '/about' },
-        { label: 'Contact', href: '/contact' },
-        { label: 'Blog', href: '/blog' },
+        { label: 'Contact', href: '/contact' }
       ],
     },
   },

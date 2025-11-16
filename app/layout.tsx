@@ -5,7 +5,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'vayada - Connect Hotels with Travel Creators',
+  title: 'vayada - Where hotels and creators connect',
   description: 'A transparent marketplace connecting hotels with verified travel influencers for authentic collaborations.',
 }
 

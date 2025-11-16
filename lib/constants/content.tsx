@@ -81,8 +81,8 @@ export const HOTELS_SECTION: SectionContent = {
     },
     {
       number: 2,
-      title: 'Browse & Filter Creators',
-      description: 'Search verified creators by niche, audience size, location, and engagement metrics.',
+      title: 'Browse & filter creators',
+      description: 'Search verified creators by audience size, followers, and engagement metrics.',
     },
     {
       number: 3,
