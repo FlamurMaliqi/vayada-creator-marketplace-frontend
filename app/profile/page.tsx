@@ -96,7 +96,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50/30">
+      <div className="min-h-screen bg-white">
         <AuthenticatedNavigation />
         <div className={`transition-all duration-300 ${isCollapsed ? 'pl-20' : 'pl-64'} pt-16`}>
           <div className="pt-4">
@@ -116,7 +116,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50/30">
+    <main className="min-h-screen bg-white">
       <AuthenticatedNavigation />
       <div className={`transition-all duration-300 ${isCollapsed ? 'pl-20' : 'pl-64'} pt-16`}>
         <div className="pt-4">

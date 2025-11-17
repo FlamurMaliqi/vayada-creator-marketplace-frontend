@@ -114,7 +114,7 @@ function CollaborationsPageContent() {
   }, [collaborations, statusFilter, searchQuery, sortOption, userType])
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50/30">
+    <main className="min-h-screen bg-white">
       <AuthenticatedNavigation />
       <div className={`transition-all duration-300 ${isCollapsed ? 'pl-20' : 'pl-64'} pt-16`}>
         <div className="pt-4">
@@ -583,7 +583,7 @@ function getMockCollaborations(
 export default function CollaborationsPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen bg-white">
         <AuthenticatedNavigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="flex justify-center items-center py-20">
