@@ -24,7 +24,7 @@ export default function MarketplacePage() {
   const [sortOption, setSortOption] = useState<string>('relevance')
   const [filters, setFilters] = useState<{
     hotelType?: string | string[]
-    offering?: string
+    offering?: string | string[]
     availability?: string
     budget?: string
   }>({})
@@ -84,11 +84,24 @@ export default function MarketplacePage() {
       }
     }
 
-    // Offering filter
+    // Offering filter (multiselect)
     if (filters.offering) {
-      // Map English filter values to German data values
-      const expectedCollaborationType = filters.offering === 'Free' ? 'Kostenlos' : filters.offering === 'Paid' ? 'Bezahlt' : null
-      if (expectedCollaborationType && hotel.collaborationType !== expectedCollaborationType) {
+      const selectedOfferings = Array.isArray(filters.offering) 
+        ? filters.offering 
+        : [filters.offering]
+      
+      // Map filter values to data values
+      const offeringMap: Record<string, string[]> = {
+        'Free stay': ['Kostenlos'],
+        'Paid stay': ['Bezahlt'],
+        'Hybrid': ['Kostenlos', 'Bezahlt'], // Hybrid can be either
+      }
+      
+      // Get all possible collaboration types for selected filters
+      const allowedTypes = selectedOfferings.flatMap(offering => offeringMap[offering] || [])
+      
+      // Check if hotel's collaboration type matches any of the allowed types
+      if (!hotel.collaborationType || !allowedTypes.includes(hotel.collaborationType)) {
         return false
       }
     }
