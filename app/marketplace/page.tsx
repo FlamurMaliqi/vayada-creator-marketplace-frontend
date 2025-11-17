@@ -136,11 +136,11 @@ export default function MarketplacePage() {
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50/30">
       <AuthenticatedNavigation />
       <div className={`transition-all duration-300 ${isCollapsed ? 'pl-20' : 'pl-64'} pt-16`}>
-        <div className="pt-16">
+        <div className="pt-4">
           <ProfileWarningBanner />
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
         {/* Header */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>

@@ -99,10 +99,10 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50/30">
         <AuthenticatedNavigation />
         <div className={`transition-all duration-300 ${isCollapsed ? 'pl-20' : 'pl-64'} pt-16`}>
-          <div className="pt-16">
+          <div className="pt-4">
             <ProfileWarningBanner />
           </div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
             <div className="flex justify-center items-center py-20">
               <div className="relative">
                 <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary-100"></div>
@@ -119,11 +119,11 @@ export default function ProfilePage() {
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50/30">
       <AuthenticatedNavigation />
       <div className={`transition-all duration-300 ${isCollapsed ? 'pl-20' : 'pl-64'} pt-16`}>
-        <div className="pt-16">
+        <div className="pt-4">
           <ProfileWarningBanner />
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
         {/* Header */}
         <div className="mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
