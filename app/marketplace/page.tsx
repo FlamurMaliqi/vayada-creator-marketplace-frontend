@@ -144,7 +144,7 @@ export default function MarketplacePage() {
   return (
     <main className="min-h-screen bg-white">
       <AuthenticatedNavigation />
-      <div className={`transition-all duration-300 ${isCollapsed ? 'pl-20' : 'pl-64'} pt-16`}>
+      <div className={`transition-all duration-300 ${isCollapsed ? 'sm:pl-20' : 'sm:pl-64'} pt-16`}>
         <div className="pt-4">
           <ProfileWarningBanner />
         </div>

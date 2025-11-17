@@ -77,9 +77,9 @@ export default function AuthenticatedNavigation() {
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, toggleSidebar }}>
-      {/* Sidebar - Visible on all screen sizes */}
+      {/* Sidebar - Hidden on very small screens */}
       <aside
-        className={`fixed left-0 top-0 bottom-0 bg-primary-800 flex flex-col z-50 transition-all duration-300 ${
+        className={`hidden sm:flex fixed left-0 top-0 bottom-0 bg-primary-800 flex-col z-50 transition-all duration-300 ${
           isCollapsed ? 'w-20' : 'w-64'
         }`}
       >
@@ -124,12 +124,14 @@ export default function AuthenticatedNavigation() {
       </aside>
 
       {/* Top Header - Visible on all screen sizes */}
-      <header className={`fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-40 transition-all duration-300 ${isCollapsed ? 'pl-20' : 'pl-64'}`}>
+      <header className={`fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-40 transition-all duration-300 ${
+        isCollapsed ? 'sm:pl-20' : 'sm:pl-64'
+      }`}>
         <div className="flex items-center justify-between h-full w-full px-6">
-          {/* Toggle Button - Left */}
+          {/* Toggle Button - Left - Hidden on very small screens */}
           <button
             onClick={toggleSidebar}
-            className="p-2 rounded-md text-gray-700 hover:text-primary-600 hover:bg-gray-100 transition-all duration-200"
+            className="hidden sm:block p-2 rounded-md text-gray-700 hover:text-primary-600 hover:bg-gray-100 transition-all duration-200"
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <ViewColumnsIcon className="w-5 h-5" />
