@@ -25,7 +25,7 @@ export default function MarketplacePage() {
   const [filters, setFilters] = useState<{
     hotelType?: string | string[]
     offering?: string | string[]
-    availability?: string
+    availability?: string | string[]
     budget?: string
   }>({})
 
@@ -106,8 +106,12 @@ export default function MarketplacePage() {
       }
     }
 
-    // Availability filter
+    // Availability filter (multiselect)
     if (filters.availability && hotel.availability) {
+      const selectedMonths = Array.isArray(filters.availability) 
+        ? filters.availability 
+        : [filters.availability]
+      
       // Map English month names to German month names
       const monthMap: Record<string, string> = {
         'January': 'Januar',
@@ -123,8 +127,17 @@ export default function MarketplacePage() {
         'November': 'November',
         'December': 'Dezember',
       }
-      const germanMonth = monthMap[filters.availability] || filters.availability
-      const hasAvailability = hotel.availability.includes(germanMonth) || hotel.availability.includes(filters.availability)
+      
+      // Get all possible German month names for selected filters
+      const germanMonths = selectedMonths.map(month => monthMap[month] || month)
+      
+      // Check if hotel's availability includes any of the selected months
+      const hasAvailability = germanMonths.some(month => 
+        hotel.availability?.includes(month)
+      ) || selectedMonths.some(month => 
+        hotel.availability?.includes(month)
+      )
+      
       if (!hasAvailability) return false
     }
 

@@ -12,13 +12,13 @@ interface MarketplaceFiltersProps {
   filters: {
     hotelType?: string | string[]
     offering?: string | string[]
-    availability?: string
+    availability?: string | string[]
     budget?: string
   }
   onFiltersChange: (filters: {
     hotelType?: string | string[]
     offering?: string | string[]
-    availability?: string
+    availability?: string | string[]
     budget?: string
   }) => void
   viewType: 'all' | 'hotels' | 'creators'
@@ -41,7 +41,6 @@ const OFFERINGS = [
 ]
 
 const AVAILABILITY_OPTIONS = [
-  'All Months',
   'January',
   'February',
   'March',
@@ -55,6 +54,21 @@ const AVAILABILITY_OPTIONS = [
   'November',
   'December',
 ]
+
+const MONTH_ABBREVIATIONS: Record<string, string> = {
+  'January': 'Jan',
+  'February': 'Feb',
+  'March': 'Mar',
+  'April': 'Apr',
+  'May': 'May',
+  'June': 'Jun',
+  'July': 'Jul',
+  'August': 'Aug',
+  'September': 'Sep',
+  'October': 'Oct',
+  'November': 'Nov',
+  'December': 'Dec',
+}
 
 const BUDGET_OPTIONS = [
   'All Budgets',
@@ -77,11 +91,13 @@ export function MarketplaceFilters({
 }: MarketplaceFiltersProps) {
   const [isHotelTypeOpen, setIsHotelTypeOpen] = useState(false)
   const [isOfferingOpen, setIsOfferingOpen] = useState(false)
+  const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false)
   const hotelTypeButtonRef = useRef<HTMLButtonElement>(null)
   const hotelTypeDropdownRef = useRef<HTMLDivElement>(null)
   const offeringButtonRef = useRef<HTMLButtonElement>(null)
   const offeringDropdownRef = useRef<HTMLDivElement>(null)
-  const availabilityRef = useRef<HTMLSelectElement>(null)
+  const availabilityButtonRef = useRef<HTMLButtonElement>(null)
+  const availabilityDropdownRef = useRef<HTMLDivElement>(null)
   const budgetRef = useRef<HTMLSelectElement>(null)
 
   // Get selected hotel types as array
@@ -96,6 +112,13 @@ export function MarketplaceFilters({
     ? filters.offering 
     : filters.offering 
       ? [filters.offering] 
+      : []
+
+  // Get selected availability months as array
+  const selectedAvailability = Array.isArray(filters.availability) 
+    ? filters.availability 
+    : filters.availability 
+      ? [filters.availability] 
       : []
 
   // Close dropdown when clicking outside
@@ -117,16 +140,24 @@ export function MarketplaceFilters({
       ) {
         setIsOfferingOpen(false)
       }
+      if (
+        availabilityDropdownRef.current &&
+        availabilityButtonRef.current &&
+        !availabilityDropdownRef.current.contains(event.target as Node) &&
+        !availabilityButtonRef.current.contains(event.target as Node)
+      ) {
+        setIsAvailabilityOpen(false)
+      }
     }
 
-    if (isHotelTypeOpen || isOfferingOpen) {
+    if (isHotelTypeOpen || isOfferingOpen || isAvailabilityOpen) {
       document.addEventListener('mousedown', handleClickOutside)
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isHotelTypeOpen, isOfferingOpen])
+  }, [isHotelTypeOpen, isOfferingOpen, isAvailabilityOpen])
 
   const adjustSelectWidth = (ref: React.RefObject<HTMLSelectElement>) => {
     if (ref.current) {
@@ -153,7 +184,6 @@ export function MarketplaceFilters({
   }
 
   useEffect(() => {
-    adjustSelectWidth(availabilityRef)
     adjustSelectWidth(budgetRef)
   }, [filters])
 
@@ -187,9 +217,24 @@ export function MarketplaceFilters({
     onFiltersChange(newFilters)
   }
 
-  const handleFilterChange = (key: 'availability' | 'budget', value: string) => {
+  const handleAvailabilityToggle = (month: string) => {
+    const currentMonths = selectedAvailability
+    const newMonths = currentMonths.includes(month)
+      ? currentMonths.filter(m => m !== month)
+      : [...currentMonths, month]
+    
     const newFilters = { ...filters }
-    if (!value || value === 'All Months' || value === 'All Budgets') {
+    if (newMonths.length === 0) {
+      delete newFilters.availability
+    } else {
+      newFilters.availability = newMonths
+    }
+    onFiltersChange(newFilters)
+  }
+
+  const handleFilterChange = (key: 'budget', value: string) => {
+    const newFilters = { ...filters }
+    if (!value || value === 'All Budgets') {
       delete newFilters[key]
     } else {
       newFilters[key] = value
@@ -206,7 +251,7 @@ export function MarketplaceFilters({
     onFiltersChange(newFilters)
   }
 
-  const hasAnyFilters = selectedHotelTypes.length > 0 || selectedOfferings.length > 0 || filters.availability || filters.budget
+  const hasAnyFilters = selectedHotelTypes.length > 0 || selectedOfferings.length > 0 || selectedAvailability.length > 0 || filters.budget
 
   return (
     <div className="mb-8">
@@ -345,24 +390,46 @@ export function MarketplaceFilters({
             )}
           </div>
 
-          {/* Availability Filter */}
-          <select
-            ref={availabilityRef}
-            value={filters.availability || ''}
-            onChange={(e) => {
-              handleFilterChange('availability', e.target.value)
-              setTimeout(() => adjustSelectWidth(availabilityRef), 0)
-            }}
-            className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors appearance-none"
-            style={{ backgroundImage: 'none' }}
-          >
-            <option value="">Availability</option>
-            {AVAILABILITY_OPTIONS.slice(1).map((month) => (
-              <option key={month} value={month}>
-                {month}
-              </option>
-            ))}
-          </select>
+          {/* Availability Filter - Grid */}
+          <div className="relative">
+            <button
+              ref={availabilityButtonRef}
+              onClick={() => setIsAvailabilityOpen(!isAvailabilityOpen)}
+              className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
+            >
+              Availability
+            </button>
+            {isAvailabilityOpen && (
+              <div
+                ref={availabilityDropdownRef}
+                className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[280px] overflow-hidden"
+              >
+                <div className="px-5 py-2.5 text-gray-900 text-sm font-bold">
+                  Select Months
+                </div>
+                <div className="px-5 pb-4">
+                  <div className="grid grid-cols-3 gap-2">
+                    {AVAILABILITY_OPTIONS.map((month) => {
+                      const isSelected = selectedAvailability.includes(month)
+                      return (
+                        <button
+                          key={month}
+                          onClick={() => handleAvailabilityToggle(month)}
+                          className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                            isSelected
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                          }`}
+                        >
+                          {MONTH_ABBREVIATIONS[month]}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Budget Filter */}
           <select
@@ -438,21 +505,24 @@ export function MarketplaceFilters({
               </div>
             ))}
 
-            {/* Availability Chip */}
-            {filters.availability && (
-              <div className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg">
-                <span>{filters.availability}</span>
+            {/* Availability Chips */}
+            {selectedAvailability.map((month) => (
+              <div
+                key={month}
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg"
+              >
+                <span>{MONTH_ABBREVIATIONS[month]}</span>
                 <button
-                  onClick={() => handleFilterChange('availability', '')}
+                  onClick={() => handleAvailabilityToggle(month)}
                   className="hover:text-gray-900 transition-colors"
-                  aria-label={`Remove ${filters.availability}`}
+                  aria-label={`Remove ${month}`}
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
-            )}
+            ))}
 
             {/* Budget Chip */}
             {filters.budget && (
