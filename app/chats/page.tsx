@@ -562,6 +562,7 @@ function getMockConversations(userType: UserType): Conversation[] {
   const mockHotels: Hotel[] = [
     {
       id: '1',
+      hotelProfileId: 'profile-1',
       name: 'Sunset Beach Resort',
       location: 'Bali, Indonesia',
       description: 'Luxury beachfront resort',
@@ -572,6 +573,7 @@ function getMockConversations(userType: UserType): Conversation[] {
     },
     {
       id: '2',
+      hotelProfileId: 'profile-1',
       name: 'Mountain View Lodge',
       location: 'Swiss Alps, Switzerland',
       description: 'Cozy alpine lodge',

@@ -464,6 +464,7 @@ function getMockHotel(id: string): Hotel {
   const mockHotels: Record<string, Hotel> = {
     '1': {
       id: '1',
+      hotelProfileId: 'profile-1',
       name: 'Sunset Beach Resort',
       location: 'Bali, Indonesia',
       description: 'Luxury beachfront resort with stunning ocean views and world-class amenities. Nestled on the pristine beaches of Bali, our resort offers an unparalleled experience combining traditional Balinese hospitality with modern luxury. Each room features private balconies overlooking the Indian Ocean, and our award-winning spa provides rejuvenating treatments using local ingredients.',
@@ -474,6 +475,7 @@ function getMockHotel(id: string): Hotel {
     },
     '2': {
       id: '2',
+      hotelProfileId: 'profile-1',
       name: 'Mountain View Lodge',
       location: 'Swiss Alps, Switzerland',
       description: 'Cozy alpine lodge perfect for adventure seekers and nature lovers. Experience the magic of the Swiss Alps in our charming lodge, where traditional architecture meets modern comfort. Wake up to breathtaking mountain views, enjoy authentic Swiss cuisine, and explore endless hiking trails right from our doorstep.',

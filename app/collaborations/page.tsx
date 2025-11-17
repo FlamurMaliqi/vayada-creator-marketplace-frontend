@@ -238,6 +238,7 @@ function getMockCollaborations(
   const mockHotels: Hotel[] = [
     {
       id: '1',
+      hotelProfileId: 'profile-1',
       name: 'Sunset Beach Resort',
       location: 'Bali, Indonesia',
       description: 'Luxury beachfront resort',
@@ -248,6 +249,7 @@ function getMockCollaborations(
     },
     {
       id: '2',
+      hotelProfileId: 'profile-1',
       name: 'Mountain View Lodge',
       location: 'Swiss Alps, Switzerland',
       description: 'Cozy alpine lodge',
