@@ -95,13 +95,7 @@ export function MarketplaceFilters({
     filters.platform
 
   const clearFilters = () => {
-    onFiltersChange({
-      accommodationType: '',
-      collaborationType: '',
-      availability: '',
-      followerRange: '',
-      platform: '',
-    })
+    onFiltersChange({})
   }
 
   return (

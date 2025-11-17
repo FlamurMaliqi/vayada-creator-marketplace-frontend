@@ -21,13 +21,13 @@ export default function MarketplacePage() {
   const [creators, setCreators] = useState<Creator[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [filters, setFilters] = useState({
-    accommodationType: '',
-    collaborationType: '',
-    availability: '',
-    followerRange: '',
-    platform: '',
-  })
+  const [filters, setFilters] = useState<{
+    accommodationType?: string
+    collaborationType?: string
+    availability?: string
+    followerRange?: string
+    platform?: string
+  }>({})
 
   useEffect(() => {
     loadData()
