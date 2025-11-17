@@ -66,17 +66,32 @@ export default function MarketplacePage() {
 
     // Offering filter
     if (filters.offering) {
-      if (filters.offering === 'Free' && hotel.collaborationType !== 'Free') {
-        return false
-      }
-      if (filters.offering === 'Paid' && hotel.collaborationType !== 'Paid') {
+      // Map English filter values to German data values
+      const expectedCollaborationType = filters.offering === 'Free' ? 'Kostenlos' : filters.offering === 'Paid' ? 'Bezahlt' : null
+      if (expectedCollaborationType && hotel.collaborationType !== expectedCollaborationType) {
         return false
       }
     }
 
     // Availability filter
     if (filters.availability && hotel.availability) {
-      const hasAvailability = hotel.availability.includes(filters.availability)
+      // Map English month names to German month names
+      const monthMap: Record<string, string> = {
+        'January': 'Januar',
+        'February': 'Februar',
+        'March': 'März',
+        'April': 'April',
+        'May': 'Mai',
+        'June': 'Juni',
+        'July': 'Juli',
+        'August': 'August',
+        'September': 'September',
+        'October': 'Oktober',
+        'November': 'November',
+        'December': 'Dezember',
+      }
+      const germanMonth = monthMap[filters.availability] || filters.availability
+      const hasAvailability = hotel.availability.includes(germanMonth) || hotel.availability.includes(filters.availability)
       if (!hasAvailability) return false
     }
 
@@ -99,45 +114,8 @@ export default function MarketplacePage() {
       if (!matchesSearch) return false
     }
 
-    // Follower range filter
-    if (filters.followerRange) {
-      const range = filters.followerRange
-      const totalFollowers = creator.audienceSize
-      
-      let matchesRange = false
-      if (range === '1.000 - 10.000') {
-        matchesRange = totalFollowers >= 1000 && totalFollowers < 10000
-      } else if (range === '10.000 - 50.000') {
-        matchesRange = totalFollowers >= 10000 && totalFollowers < 50000
-      } else if (range === '50.000 - 100.000') {
-        matchesRange = totalFollowers >= 50000 && totalFollowers < 100000
-      } else if (range === '100.000 - 500.000') {
-        matchesRange = totalFollowers >= 100000 && totalFollowers < 500000
-      } else if (range === '500.000 - 1.000.000') {
-        matchesRange = totalFollowers >= 500000 && totalFollowers < 1000000
-      } else if (range === '1.000.000+') {
-        matchesRange = totalFollowers >= 1000000
-      }
-      
-      if (!matchesRange) return false
-    }
-
-    // Platform filter
-    if (filters.platform) {
-      // Map filter platform names to actual platform names
-      const platformMap: Record<string, string> = {
-        'YouTube': 'YouTube',
-        'YT': 'YouTube',
-        'Instagram': 'Instagram',
-        'TikTok': 'TikTok',
-        'Facebook': 'Facebook',
-      }
-      const filterPlatform = platformMap[filters.platform] || filters.platform
-      const hasPlatform = creator.platforms.some(
-        (p) => p.name.toLowerCase() === filterPlatform.toLowerCase()
-      )
-      if (!hasPlatform) return false
-    }
+    // Creator-specific filters can be added here when needed
+    // Currently, only hotel filters are implemented
 
     return true
   })
