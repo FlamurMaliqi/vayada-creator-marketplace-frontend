@@ -13,13 +13,13 @@ interface MarketplaceFiltersProps {
     hotelType?: string | string[]
     offering?: string | string[]
     availability?: string | string[]
-    budget?: string
+    budget?: number
   }
   onFiltersChange: (filters: {
     hotelType?: string | string[]
     offering?: string | string[]
     availability?: string | string[]
-    budget?: string
+    budget?: number
   }) => void
   viewType: 'all' | 'hotels' | 'creators'
 }
@@ -92,13 +92,16 @@ export function MarketplaceFilters({
   const [isHotelTypeOpen, setIsHotelTypeOpen] = useState(false)
   const [isOfferingOpen, setIsOfferingOpen] = useState(false)
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false)
+  const [isBudgetOpen, setIsBudgetOpen] = useState(false)
+  const [budgetValue, setBudgetValue] = useState<number>(filters.budget || 500)
   const hotelTypeButtonRef = useRef<HTMLButtonElement>(null)
   const hotelTypeDropdownRef = useRef<HTMLDivElement>(null)
   const offeringButtonRef = useRef<HTMLButtonElement>(null)
   const offeringDropdownRef = useRef<HTMLDivElement>(null)
   const availabilityButtonRef = useRef<HTMLButtonElement>(null)
   const availabilityDropdownRef = useRef<HTMLDivElement>(null)
-  const budgetRef = useRef<HTMLSelectElement>(null)
+  const budgetButtonRef = useRef<HTMLButtonElement>(null)
+  const budgetDropdownRef = useRef<HTMLDivElement>(null)
 
   // Get selected hotel types as array
   const selectedHotelTypes = Array.isArray(filters.hotelType) 
@@ -148,16 +151,24 @@ export function MarketplaceFilters({
       ) {
         setIsAvailabilityOpen(false)
       }
+      if (
+        budgetDropdownRef.current &&
+        budgetButtonRef.current &&
+        !budgetDropdownRef.current.contains(event.target as Node) &&
+        !budgetButtonRef.current.contains(event.target as Node)
+      ) {
+        setIsBudgetOpen(false)
+      }
     }
 
-    if (isHotelTypeOpen || isOfferingOpen || isAvailabilityOpen) {
+    if (isHotelTypeOpen || isOfferingOpen || isAvailabilityOpen || isBudgetOpen) {
       document.addEventListener('mousedown', handleClickOutside)
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isHotelTypeOpen, isOfferingOpen, isAvailabilityOpen])
+  }, [isHotelTypeOpen, isOfferingOpen, isAvailabilityOpen, isBudgetOpen])
 
   const adjustSelectWidth = (ref: React.RefObject<HTMLSelectElement>) => {
     if (ref.current) {
@@ -184,8 +195,10 @@ export function MarketplaceFilters({
   }
 
   useEffect(() => {
-    adjustSelectWidth(budgetRef)
-  }, [filters])
+    if (filters.budget !== undefined) {
+      setBudgetValue(filters.budget)
+    }
+  }, [filters.budget])
 
   const handleHotelTypeToggle = (hotelType: string) => {
     const currentTypes = selectedHotelTypes
@@ -232,14 +245,19 @@ export function MarketplaceFilters({
     onFiltersChange(newFilters)
   }
 
-  const handleFilterChange = (key: 'budget', value: string) => {
+  const handleBudgetChange = (value: number) => {
+    setBudgetValue(value)
     const newFilters = { ...filters }
-    if (!value || value === 'All Budgets') {
-      delete newFilters[key]
+    if (value === 500) {
+      delete newFilters.budget
     } else {
-      newFilters[key] = value
+      newFilters.budget = value
     }
     onFiltersChange(newFilters)
+  }
+
+  const formatBudget = (value: number) => {
+    return `€${value.toLocaleString()}`
   }
 
   const handleClearAll = () => {
@@ -251,7 +269,7 @@ export function MarketplaceFilters({
     onFiltersChange(newFilters)
   }
 
-  const hasAnyFilters = selectedHotelTypes.length > 0 || selectedOfferings.length > 0 || selectedAvailability.length > 0 || filters.budget
+  const hasAnyFilters = selectedHotelTypes.length > 0 || selectedOfferings.length > 0 || selectedAvailability.length > 0 || (filters.budget !== undefined && filters.budget > 500)
 
   return (
     <div className="mb-8">
@@ -431,24 +449,46 @@ export function MarketplaceFilters({
             )}
           </div>
 
-          {/* Budget Filter */}
-          <select
-            ref={budgetRef}
-            value={filters.budget || ''}
-            onChange={(e) => {
-              handleFilterChange('budget', e.target.value)
-              setTimeout(() => adjustSelectWidth(budgetRef), 0)
-            }}
-            className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors appearance-none"
-            style={{ backgroundImage: 'none' }}
-          >
-            <option value="">Budget</option>
-            {BUDGET_OPTIONS.slice(1).map((budget) => (
-              <option key={budget} value={budget}>
-                {budget}
-              </option>
-            ))}
-          </select>
+          {/* Budget Filter - Slider */}
+          <div className="relative">
+            <button
+              ref={budgetButtonRef}
+              onClick={() => setIsBudgetOpen(!isBudgetOpen)}
+              className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
+            >
+              Budget
+            </button>
+            {isBudgetOpen && (
+              <div
+                ref={budgetDropdownRef}
+                className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[320px] overflow-hidden"
+              >
+                <div className="px-5 py-3 text-gray-900 text-sm font-bold text-center">
+                  Budget Range (Paid/Hybrid)
+                </div>
+                <div className="px-5 pb-5">
+                  <div className="relative">
+                    <input
+                      type="range"
+                      min="500"
+                      max="10000"
+                      step="100"
+                      value={budgetValue}
+                      onChange={(e) => handleBudgetChange(Number(e.target.value))}
+                      className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer budget-slider"
+                      style={{
+                        background: `linear-gradient(to right, rgb(14, 165, 233) 0%, rgb(14, 165, 233) ${((budgetValue - 500) / (10000 - 500)) * 100}%, rgb(229, 231, 235) ${((budgetValue - 500) / (10000 - 500)) * 100}%, rgb(229, 231, 235) 100%)`
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-3 text-sm text-gray-700">
+                    <span>€500</span>
+                    <span>€10,000</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Clear All Button */}
           {hasAnyFilters && (
@@ -525,13 +565,13 @@ export function MarketplaceFilters({
             ))}
 
             {/* Budget Chip */}
-            {filters.budget && (
+            {filters.budget !== undefined && filters.budget > 500 && (
               <div className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg">
-                <span>{filters.budget}</span>
+                <span>{formatBudget(filters.budget)}</span>
                 <button
-                  onClick={() => handleFilterChange('budget', '')}
+                  onClick={() => handleBudgetChange(500)}
                   className="hover:text-gray-900 transition-colors"
-                  aria-label={`Remove ${filters.budget}`}
+                  aria-label="Remove budget"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -26,7 +26,7 @@ export default function MarketplacePage() {
     hotelType?: string | string[]
     offering?: string | string[]
     availability?: string | string[]
-    budget?: string
+    budget?: number
   }>({})
 
   useEffect(() => {

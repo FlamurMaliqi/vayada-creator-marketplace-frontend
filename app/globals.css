@@ -32,3 +32,23 @@ body {
   }
 }
 
+/* Budget Slider Styles */
+.budget-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid rgb(14, 165, 233);
+  cursor: pointer;
+}
+
+.budget-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid rgb(14, 165, 233);
+  cursor: pointer;
+}
+
