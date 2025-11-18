@@ -77,10 +77,19 @@ export default function AuthenticatedNavigation() {
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, toggleSidebar }}>
-      {/* Backdrop overlay when sidebar is expanded on small screens - click to collapse */}
+      {/* Backdrop overlay when sidebar is expanded on mobile - click to collapse */}
       {!isCollapsed && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={toggleSidebar}
+        />
+      )}
+      
+      {/* Transparent backdrop for desktop when sidebar is expanded - click to collapse */}
+      {!isCollapsed && (
+        <div
+          className="hidden md:block fixed inset-0 z-30"
+          style={{ left: '256px' }} // 64 * 4 = 256px (w-64)
           onClick={toggleSidebar}
         />
       )}
@@ -94,6 +103,7 @@ export default function AuthenticatedNavigation() {
             ? 'hidden md:flex' // Hidden on small screens when collapsed, visible on larger screens
             : 'flex' // Always visible when expanded
         }`}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Navigation Links */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
