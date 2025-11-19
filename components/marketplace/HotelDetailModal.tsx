@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Hotel } from '@/lib/types'
 import { Button } from '@/components/ui'
 import {
@@ -9,6 +10,7 @@ import {
   CalendarIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline'
+import { CollaborationApplicationModal, type CollaborationApplicationData } from './CollaborationApplicationModal'
 
 interface HotelDetailModalProps {
   hotel: Hotel | null
@@ -75,7 +77,21 @@ const formatNumber = (num: number): string => {
 }
 
 export function HotelDetailModal({ hotel, isOpen, onClose }: HotelDetailModalProps) {
+  const [showApplicationModal, setShowApplicationModal] = useState(false)
+
   if (!isOpen || !hotel) return null
+
+  const handleApplyClick = () => {
+    setShowApplicationModal(true)
+  }
+
+  const handleApplicationSubmit = (data: CollaborationApplicationData) => {
+    // TODO: Implement actual submission logic
+    console.log('Application submitted:', data)
+    // Close both modals
+    setShowApplicationModal(false)
+    onClose()
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
@@ -290,16 +306,21 @@ export function HotelDetailModal({ hotel, isOpen, onClose }: HotelDetailModalPro
               variant="primary"
               size="lg"
               className="w-full"
-              onClick={() => {
-                // TODO: Implement apply functionality
-                console.log('Apply clicked for hotel:', hotel.id)
-              }}
+              onClick={handleApplyClick}
             >
               Apply for Collaboration
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Collaboration Application Modal */}
+      <CollaborationApplicationModal
+        isOpen={showApplicationModal}
+        onClose={() => setShowApplicationModal(false)}
+        onSubmit={handleApplicationSubmit}
+        hotelName={hotel.name}
+      />
     </div>
   )
 }

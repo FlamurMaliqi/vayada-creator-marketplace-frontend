@@ -3,6 +3,7 @@ import { Hotel } from '@/lib/types'
 import { Button } from '@/components/ui'
 import { MapPinIcon } from '@heroicons/react/24/outline'
 import { HotelDetailModal } from './HotelDetailModal'
+import { CollaborationApplicationModal, type CollaborationApplicationData } from './CollaborationApplicationModal'
 
 interface HotelCardProps {
   hotel: Hotel
@@ -63,6 +64,13 @@ const getMonthAbbr = (month: string): string => {
 
 export function HotelCard({ hotel }: HotelCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [showApplicationModal, setShowApplicationModal] = useState(false)
+
+  const handleApplicationSubmit = (data: CollaborationApplicationData) => {
+    // TODO: Implement actual submission logic
+    console.log('Application submitted:', data)
+    setShowApplicationModal(false)
+  }
 
   return (
     <>
@@ -159,7 +167,7 @@ export function HotelCard({ hotel }: HotelCardProps) {
             className="flex-1"
             onClick={(e) => {
               e.preventDefault()
-              setIsModalOpen(true)
+              setShowApplicationModal(true)
             }}
           >
             Apply
@@ -171,6 +179,12 @@ export function HotelCard({ hotel }: HotelCardProps) {
       hotel={hotel}
       isOpen={isModalOpen}
       onClose={() => setIsModalOpen(false)}
+    />
+    <CollaborationApplicationModal
+      isOpen={showApplicationModal}
+      onClose={() => setShowApplicationModal(false)}
+      onSubmit={handleApplicationSubmit}
+      hotelName={hotel.name}
     />
     </>
   )
