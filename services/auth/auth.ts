@@ -1,23 +1,31 @@
 /**
  * Authentication service
- * 
- * This will be implemented when we add authentication
  */
 
+import { apiClient, ApiErrorResponse } from '../api/client'
+import type { RegisterRequest, RegisterResponse } from '@/lib/types'
+
 export const authService = {
+  /**
+   * Register user
+   */
+  register: async (data: RegisterRequest): Promise<RegisterResponse> => {
+    try {
+      const response = await apiClient.post<RegisterResponse>('/auth/register', data)
+      return response
+    } catch (error) {
+      if (error instanceof ApiErrorResponse) {
+        throw error
+      }
+      throw new Error('Registration failed: Network error')
+    }
+  },
+
   /**
    * Login user
    */
   login: async (email: string, password: string) => {
     // TODO: Implement authentication
-    throw new Error('Not implemented yet')
-  },
-
-  /**
-   * Register user
-   */
-  register: async (data: { email: string; password: string; type: 'hotel' | 'creator' }) => {
-    // TODO: Implement registration
     throw new Error('Not implemented yet')
   },
 

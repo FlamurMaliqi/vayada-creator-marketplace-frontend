@@ -136,3 +136,20 @@ export interface PaginatedResponse<T> {
     totalPages: number
   }
 }
+
+// Auth types
+export interface RegisterRequest {
+  email: string
+  password: string
+  type: 'creator' | 'hotel'
+  name?: string
+}
+
+export interface RegisterResponse {
+  id: string
+  email: string
+  name: string
+  type: 'creator' | 'hotel'
+  status: UserStatus
+  message: string
+}
