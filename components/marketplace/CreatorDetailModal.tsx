@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Creator } from '@/lib/types'
-import { Button } from '@/components/ui'
+import { Button, StarRating } from '@/components/ui'
 import { formatNumber } from '@/lib/utils'
 import {
   MapPinIcon,
@@ -159,6 +159,17 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
                 ))}
               </div>
 
+              {/* Rating */}
+              {creator.rating && (
+                <div className="mb-4">
+                  <StarRating
+                    rating={creator.rating.averageRating}
+                    totalReviews={creator.rating.totalReviews}
+                    size="lg"
+                  />
+                </div>
+              )}
+
               {/* Key Metrics */}
               <div className="flex items-center gap-6 mb-4">
                 <div>
@@ -263,6 +274,41 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
               </table>
             </div>
           </div>
+
+          {/* Reviews Section */}
+          {creator.rating && creator.rating.reviews && creator.rating.reviews.length > 0 && (
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">
+                Reviews ({creator.rating.totalReviews})
+              </h3>
+              <div className="space-y-4">
+                {creator.rating.reviews.map((review) => (
+                  <div
+                    key={review.id}
+                    className="p-4 bg-gray-50 rounded-lg border border-gray-200"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-semibold text-gray-900">{review.hotelName}</p>
+                        <p className="text-xs text-gray-500">
+                          {getTimeAgo(review.createdAt)}
+                        </p>
+                      </div>
+                      <StarRating
+                        rating={review.rating}
+                        size="sm"
+                        showNumber={false}
+                        showReviews={false}
+                      />
+                    </div>
+                    {review.comment && (
+                      <p className="text-sm text-gray-700 mt-2">{review.comment}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Footer with Last Updated and Button */}
           <div className="flex items-center justify-between pt-4 border-t border-gray-200">

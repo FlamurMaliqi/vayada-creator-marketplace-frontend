@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Creator } from '@/lib/types'
-import { Button } from '@/components/ui'
+import { Button, StarRating } from '@/components/ui'
 import { MapPinIcon, CheckBadgeIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { formatNumber } from '@/lib/utils'
 import { CreatorDetailModal } from './CreatorDetailModal'
@@ -82,6 +82,16 @@ export function CreatorCard({ creator }: CreatorCardProps) {
 
       {/* Stats */}
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+        {/* Rating */}
+        {creator.rating && (
+          <div className="mb-4 pb-4 border-b border-gray-200">
+            <StarRating
+              rating={creator.rating.averageRating}
+              totalReviews={creator.rating.totalReviews}
+              size="sm"
+            />
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <div className="flex items-center text-gray-600 text-xs mb-1">

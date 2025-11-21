@@ -461,6 +461,11 @@ function getMockHotels(): Hotel[] {
 }
 
 function getMockCreators(): Creator[] {
+  const now = new Date()
+  const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+  const twoMonthsAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
+  const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+
   return [
     {
       id: '1',
@@ -472,6 +477,36 @@ function getMockCreators(): Creator[] {
       audienceSize: 170000,
       location: 'Bali, Indonesia',
       portfolioLink: 'https://sarahtravels.com',
+      rating: {
+        averageRating: 4.8,
+        totalReviews: 12,
+        reviews: [
+          {
+            id: 'r1',
+            hotelId: 'h1',
+            hotelName: 'Sunset Beach Villa',
+            rating: 5,
+            comment: 'Excellent collaboration! Sarah delivered high-quality content and was very professional throughout the process.',
+            createdAt: oneMonthAgo,
+          },
+          {
+            id: 'r2',
+            hotelId: 'h2',
+            hotelName: 'Mountain View Lodge',
+            rating: 5,
+            comment: 'Amazing content creator. The photos and videos exceeded our expectations.',
+            createdAt: twoMonthsAgo,
+          },
+          {
+            id: 'r3',
+            hotelId: 'h3',
+            hotelName: 'Urban Boutique Hotel',
+            rating: 4,
+            comment: 'Great collaboration, very responsive and delivered on time.',
+            createdAt: threeMonthsAgo,
+          },
+        ],
+      },
       status: 'verified',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -486,6 +521,28 @@ function getMockCreators(): Creator[] {
       audienceSize: 209000,
       location: 'Swiss Alps, Switzerland',
       portfolioLink: 'https://adventuremike.com',
+      rating: {
+        averageRating: 4.6,
+        totalReviews: 8,
+        reviews: [
+          {
+            id: 'r4',
+            hotelId: 'h2',
+            hotelName: 'Mountain View Lodge',
+            rating: 5,
+            comment: 'Perfect fit for our brand! Mike captured the adventure spirit beautifully.',
+            createdAt: oneMonthAgo,
+          },
+          {
+            id: 'r5',
+            hotelId: 'h4',
+            hotelName: 'Desert Oasis Resort',
+            rating: 4,
+            comment: 'Great content creator, very creative and professional.',
+            createdAt: twoMonthsAgo,
+          },
+        ],
+      },
       status: 'verified',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -500,6 +557,28 @@ function getMockCreators(): Creator[] {
       audienceSize: 181000,
       location: 'Tokyo, Japan',
       portfolioLink: 'https://tokyoexplorer.com',
+      rating: {
+        averageRating: 4.9,
+        totalReviews: 15,
+        reviews: [
+          {
+            id: 'r6',
+            hotelId: 'h3',
+            hotelName: 'Urban Boutique Hotel',
+            rating: 5,
+            comment: 'Outstanding work! The content perfectly showcased our hotel and reached our target audience.',
+            createdAt: oneMonthAgo,
+          },
+          {
+            id: 'r7',
+            hotelId: 'h5',
+            hotelName: 'Santorini Blue Suites',
+            rating: 5,
+            comment: 'Highly recommend! Professional, creative, and delivered exceptional results.',
+            createdAt: twoMonthsAgo,
+          },
+        ],
+      },
       status: 'verified',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -514,6 +593,28 @@ function getMockCreators(): Creator[] {
       audienceSize: 343000,
       location: 'Dubai, UAE',
       portfolioLink: 'https://luxurywanderer.com',
+      rating: {
+        averageRating: 4.7,
+        totalReviews: 20,
+        reviews: [
+          {
+            id: 'r8',
+            hotelId: 'h4',
+            hotelName: 'Desert Oasis Resort',
+            rating: 5,
+            comment: 'Exceeded expectations! The luxury content perfectly aligned with our brand.',
+            createdAt: oneMonthAgo,
+          },
+          {
+            id: 'r9',
+            hotelId: 'h5',
+            hotelName: 'Santorini Blue Suites',
+            rating: 4,
+            comment: 'Great collaboration, very professional and delivered quality content.',
+            createdAt: twoMonthsAgo,
+          },
+        ],
+      },
       status: 'verified',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -528,6 +629,28 @@ function getMockCreators(): Creator[] {
       audienceSize: 265000,
       location: 'Santorini, Greece',
       portfolioLink: 'https://islanddreams.com',
+      rating: {
+        averageRating: 4.5,
+        totalReviews: 10,
+        reviews: [
+          {
+            id: 'r10',
+            hotelId: 'h5',
+            hotelName: 'Santorini Blue Suites',
+            rating: 5,
+            comment: 'Perfect match! The content beautifully captured the essence of our location.',
+            createdAt: oneMonthAgo,
+          },
+          {
+            id: 'r11',
+            hotelId: 'h1',
+            hotelName: 'Sunset Beach Villa',
+            rating: 4,
+            comment: 'Good collaboration, delivered as promised.',
+            createdAt: twoMonthsAgo,
+          },
+        ],
+      },
       status: 'verified',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -541,6 +664,28 @@ function getMockCreators(): Creator[] {
       ],
       audienceSize: 144000,
       location: 'Costa Rica',
+      rating: {
+        averageRating: 4.3,
+        totalReviews: 6,
+        reviews: [
+          {
+            id: 'r12',
+            hotelId: 'h6',
+            hotelName: 'Jungle Eco-Lodge',
+            rating: 4,
+            comment: 'Great partnership! The eco-friendly content resonated well with our values.',
+            createdAt: oneMonthAgo,
+          },
+          {
+            id: 'r13',
+            hotelId: 'h1',
+            hotelName: 'Sunset Beach Villa',
+            rating: 5,
+            comment: 'Excellent work! Very authentic and engaging content.',
+            createdAt: twoMonthsAgo,
+          },
+        ],
+      },
       status: 'verified',
       createdAt: new Date(),
       updatedAt: new Date(),

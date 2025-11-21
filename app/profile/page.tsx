@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { AuthenticatedNavigation, ProfileWarningBanner } from '@/components/layout'
 import { useSidebar } from '@/components/layout/AuthenticatedNavigation'
-import { Button, Input, Textarea } from '@/components/ui'
+import { Button, Input, Textarea, StarRating } from '@/components/ui'
 import { MapPinIcon, CheckBadgeIcon, StarIcon, PencilIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import { TrashIcon } from '@heroicons/react/24/outline'
 import { StarIcon as StarIconOutline } from '@heroicons/react/24/outline'
 import { formatNumber } from '@/lib/utils'
+import type { CreatorRating, CollaborationReview } from '@/lib/types'
 
 type UserType = 'hotel' | 'creator'
 
@@ -26,8 +27,7 @@ interface CreatorProfile {
   shortDescription: string
   location: string
   status: 'verified' | 'pending' | 'rejected'
-  rating: number // 1-5 stars
-  totalRatings: number
+  rating?: CreatorRating
   platforms: Platform[]
   portfolioLink?: string
   email: string
@@ -73,7 +73,7 @@ interface HotelProfile {
   listings: HotelListing[]
 }
 
-type CreatorTab = 'overview' | 'platforms'
+type CreatorTab = 'overview' | 'platforms' | 'reviews'
 type HotelTab = 'overview' | 'listings'
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -191,6 +191,12 @@ export default function ProfilePage() {
     // Simulate API call
     setTimeout(() => {
       if (userType === 'creator') {
+        const now = new Date()
+        const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        const twoMonthsAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
+        const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+        const fourMonthsAgo = new Date(now.getTime() - 120 * 24 * 60 * 60 * 1000)
+
         setCreatorProfile({
           id: '1',
           name: 'Sarah Travels',
@@ -198,8 +204,44 @@ export default function ProfilePage() {
           location: 'Los Angeles, USA',
           portfolioLink: 'https://sarahtravels.com',
           status: 'verified',
-          rating: 4.5,
-          totalRatings: 12,
+          rating: {
+            averageRating: 4.8,
+            totalReviews: 12,
+            reviews: [
+              {
+                id: 'r1',
+                hotelId: 'h1',
+                hotelName: 'Sunset Beach Villa',
+                rating: 5,
+                comment: 'Excellent collaboration! Sarah delivered high-quality content and was very professional throughout the process. The photos and videos exceeded our expectations.',
+                createdAt: oneMonthAgo,
+              },
+              {
+                id: 'r2',
+                hotelId: 'h2',
+                hotelName: 'Mountain View Lodge',
+                rating: 5,
+                comment: 'Amazing content creator. The photos and videos perfectly captured the essence of our lodge. Highly recommend!',
+                createdAt: twoMonthsAgo,
+              },
+              {
+                id: 'r3',
+                hotelId: 'h3',
+                hotelName: 'Urban Boutique Hotel',
+                rating: 4,
+                comment: 'Great collaboration, very responsive and delivered on time. The content was good quality.',
+                createdAt: threeMonthsAgo,
+              },
+              {
+                id: 'r4',
+                hotelId: 'h4',
+                hotelName: 'Desert Oasis Resort',
+                rating: 5,
+                comment: 'Outstanding work! Sarah perfectly showcased our resort and reached our target audience effectively.',
+                createdAt: fourMonthsAgo,
+              },
+            ],
+          },
           platforms: [
             {
               name: 'Instagram',
@@ -672,37 +714,6 @@ export default function ProfilePage() {
     })
   }
 
-  // Star Rating Component
-  const StarRating = ({ rating, totalRatings }: { rating: number; totalRatings: number }) => {
-    const fullStars = Math.floor(rating)
-    const hasHalfStar = rating % 1 >= 0.5
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0)
-
-    return (
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-0.5">
-          {[...Array(fullStars)].map((_, i) => (
-            <StarIcon key={i} className="w-5 h-5 text-yellow-400" />
-          ))}
-          {hasHalfStar && (
-            <div className="relative">
-              <StarIconOutline className="w-5 h-5 text-gray-300" />
-              <div className="absolute inset-0 overflow-hidden" style={{ width: '50%' }}>
-                <StarIcon className="w-5 h-5 text-yellow-400" />
-              </div>
-            </div>
-          )}
-          {[...Array(emptyStars)].map((_, i) => (
-            <StarIconOutline key={i} className="w-5 h-5 text-gray-300" />
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold text-gray-900">{rating.toFixed(1)}</span>
-          <span className="text-sm text-gray-600">({totalRatings} ratings)</span>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <main className="min-h-screen bg-white">
@@ -782,6 +793,16 @@ export default function ProfilePage() {
                           }`}
                         >
                           Social Media Platforms
+                        </button>
+                        <button
+                          onClick={() => setActiveCreatorTab('reviews')}
+                          className={`px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
+                            activeCreatorTab === 'reviews'
+                              ? 'bg-primary-600 text-white shadow-md'
+                              : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          Reviews & Ratings
                         </button>
                       </div>
                     </div>
@@ -870,9 +891,15 @@ export default function ProfilePage() {
                               </div>
 
                               {/* Rating */}
-                              <div className="mb-4">
-                                <StarRating rating={creatorProfile.rating} totalRatings={creatorProfile.totalRatings} />
-                              </div>
+                              {creatorProfile.rating && (
+                                <div className="mb-4">
+                                  <StarRating
+                                    rating={creatorProfile.rating.averageRating}
+                                    totalReviews={creatorProfile.rating.totalReviews}
+                                    size="md"
+                                  />
+                                </div>
+                              )}
 
                               {/* Short Description */}
                               <div className="mt-6">
@@ -1171,6 +1198,99 @@ export default function ProfilePage() {
                                 <p>No platforms added. Click "Add Platform" to get started.</p>
                               </div>
                             )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Reviews & Ratings Tab */}
+                    {activeCreatorTab === 'reviews' && (
+                      <div>
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-1 h-8 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
+                          <h2 className="text-2xl font-bold text-gray-900">Reviews & Ratings</h2>
+                        </div>
+
+                        {creatorProfile.rating && creatorProfile.rating.totalReviews > 0 ? (
+                          <div className="space-y-6">
+                            {/* Rating Summary */}
+                            <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6 border border-primary-200">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Overall Rating</h3>
+                                  <StarRating
+                                    rating={creatorProfile.rating.averageRating}
+                                    totalReviews={creatorProfile.rating.totalReviews}
+                                    size="lg"
+                                  />
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-4xl font-bold text-gray-900">
+                                    {creatorProfile.rating.averageRating.toFixed(1)}
+                                  </div>
+                                  <div className="text-sm text-gray-600">out of 5.0</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Reviews List */}
+                            {creatorProfile.rating.reviews && creatorProfile.rating.reviews.length > 0 ? (
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                  All Reviews ({creatorProfile.rating.reviews.length})
+                                </h3>
+                                <div className="space-y-4">
+                                  {creatorProfile.rating.reviews.map((review) => (
+                                    <div
+                                      key={review.id}
+                                      className="p-6 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
+                                    >
+                                      <div className="flex items-start justify-between mb-3">
+                                        <div className="flex-1">
+                                          <h4 className="font-semibold text-gray-900 mb-1">
+                                            {review.hotelName}
+                                          </h4>
+                                          <p className="text-sm text-gray-500">
+                                            {new Date(review.createdAt).toLocaleDateString('en-US', {
+                                              year: 'numeric',
+                                              month: 'long',
+                                              day: 'numeric',
+                                            })}
+                                          </p>
+                                        </div>
+                                        <StarRating
+                                          rating={review.rating}
+                                          size="sm"
+                                          showNumber={false}
+                                          showReviews={false}
+                                        />
+                                      </div>
+                                      {review.comment && (
+                                        <p className="text-gray-700 leading-relaxed mt-3">
+                                          {review.comment}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                                <StarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                                <p className="text-gray-600 font-medium">No reviews yet</p>
+                                <p className="text-sm text-gray-500 mt-2">
+                                  Reviews from hotels will appear here after collaborations
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                            <StarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                            <p className="text-gray-600 font-medium">No reviews yet</p>
+                            <p className="text-sm text-gray-500 mt-2">
+                              Reviews from hotels will appear here after collaborations
+                            </p>
                           </div>
                         )}
                       </div>

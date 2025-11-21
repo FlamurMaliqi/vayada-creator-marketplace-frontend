@@ -96,9 +96,25 @@ export interface Creator {
   audienceSize: number
   location: string
   portfolioLink?: string
+  rating?: CreatorRating
   status: UserStatus
   createdAt: Date
   updatedAt: Date
+}
+
+export interface CreatorRating {
+  averageRating: number // 1-5
+  totalReviews: number
+  reviews?: CollaborationReview[]
+}
+
+export interface CollaborationReview {
+  id: string
+  hotelId: string
+  hotelName: string
+  rating: number // 1-5
+  comment?: string
+  createdAt: Date
 }
 
 export interface Platform {
