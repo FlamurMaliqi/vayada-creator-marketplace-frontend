@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { AuthenticatedNavigation, ProfileWarningBanner } from '@/components/layout'
 import { useSidebar } from '@/components/layout/AuthenticatedNavigation'
-import { CollaborationCard } from '@/components/marketplace'
+import { CollaborationCard, CollaborationRejectedModal } from '@/components/marketplace'
 import { Button, Input } from '@/components/ui'
 // Removed API imports - using mock data only for frontend design
 import { ROUTES } from '@/lib/constants/routes'
@@ -25,6 +25,9 @@ function CollaborationsPageContent() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortOption, setSortOption] = useState<SortOption>('newest')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [rejectedCollaboration, setRejectedCollaboration] = useState<
+    (Collaboration & { hotel?: Hotel; creator?: Creator }) | null
+  >(null)
   
   // Initialize userType from searchParams (available on both server and client)
   // This ensures server and client render the same initial value
@@ -74,13 +77,25 @@ function CollaborationsPageContent() {
     setUpdatingId(id)
     // Simulate status update (frontend design only)
     setTimeout(() => {
+      // Find the collaboration being updated
+      const updatedCollaboration = collaborations.find(collab => collab.id === id)
+      
       // Update local state
       setCollaborations(prev => 
         prev.map(collab => 
-          collab.id === id ? { ...collab, status: newStatus } : collab
+          collab.id === id ? { ...collab, status: newStatus, updatedAt: new Date() } : collab
         )
       )
       setUpdatingId(null)
+      
+      // If rejected, show the modal
+      if (newStatus === 'rejected' && updatedCollaboration) {
+        setRejectedCollaboration({
+          ...updatedCollaboration,
+          status: 'rejected',
+          updatedAt: new Date(),
+        })
+      }
     }, 500)
   }
 
@@ -261,6 +276,14 @@ function CollaborationsPageContent() {
         )}
         </div>
       </div>
+
+      {/* Rejected Collaboration Modal */}
+      <CollaborationRejectedModal
+        isOpen={rejectedCollaboration !== null}
+        onClose={() => setRejectedCollaboration(null)}
+        collaboration={rejectedCollaboration}
+        currentUserType={userType}
+      />
     </main>
   )
 }
