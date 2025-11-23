@@ -10,13 +10,11 @@ import { CreatorCard } from '@/components/marketplace/CreatorCard'
 import { Button } from '@/components/ui'
 // Removed API imports - using mock data only for frontend design
 import { ROUTES } from '@/lib/constants/routes'
-import type { Hotel, Creator } from '@/lib/types'
-
-type ViewType = 'all' | 'hotels' | 'creators'
+import type { Hotel, Creator, UserType } from '@/lib/types'
 
 export default function MarketplacePage() {
   const { isCollapsed } = useSidebar()
-  const [viewType, setViewType] = useState<ViewType>('all')
+  const [userType, setUserType] = useState<UserType | null>(null)
   const [hotels, setHotels] = useState<Hotel[]>([])
   const [creators, setCreators] = useState<Creator[]>([])
   const [loading, setLoading] = useState(true)
@@ -29,20 +27,33 @@ export default function MarketplacePage() {
     budget?: number
   }>({})
 
+  // Get userType from localStorage on mount
   useEffect(() => {
-    loadData()
-  }, [filters, viewType])
+    if (typeof window !== 'undefined') {
+      const storedUserType = localStorage.getItem('userType') as UserType | null
+      setUserType(storedUserType)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (userType) {
+      loadData()
+    }
+  }, [filters, userType])
 
   const loadData = async () => {
+    if (!userType) return
+    
     setLoading(true)
     // Use mock data directly for frontend design
     setTimeout(() => {
-      if (viewType === 'all' || viewType === 'hotels') {
+      // If user is creator, show hotels. If user is hotel, show creators.
+      if (userType === 'creator') {
         setHotels(getMockHotels())
-      }
-      
-      if (viewType === 'all' || viewType === 'creators') {
+        setCreators([])
+      } else if (userType === 'hotel') {
         setCreators(getMockCreators())
+        setHotels([])
       }
       setLoading(false)
     }, 300)
@@ -207,39 +218,6 @@ export default function MarketplacePage() {
           </div>
         </div>
 
-        {/* View Toggle */}
-        <div className="mb-6 flex gap-2 bg-white/80 backdrop-blur-sm p-1 rounded-xl shadow-sm border border-gray-200/50 w-fit">
-          <button
-            onClick={() => setViewType('all')}
-            className={`px-6 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
-              viewType === 'all'
-                ? 'bg-primary-600 text-white shadow-md'
-                : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setViewType('hotels')}
-            className={`px-6 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
-              viewType === 'hotels'
-                ? 'bg-primary-600 text-white shadow-md'
-                : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-            }`}
-          >
-            Hotels
-          </button>
-          <button
-            onClick={() => setViewType('creators')}
-            className={`px-6 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
-              viewType === 'creators'
-                ? 'bg-primary-600 text-white shadow-md'
-                : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-            }`}
-          >
-            Creator
-          </button>
-        </div>
 
         {/* Filters */}
         <MarketplaceFilters
@@ -249,7 +227,7 @@ export default function MarketplacePage() {
           onSortChange={setSortOption}
           filters={filters}
           onFiltersChange={setFilters}
-          viewType={viewType}
+          viewType={userType === 'creator' ? 'hotels' : userType === 'hotel' ? 'creators' : 'all'}
         />
 
         {/* Results */}
@@ -262,8 +240,8 @@ export default function MarketplacePage() {
           </div>
         ) : (
           <>
-            {/* Hotels Section */}
-            {(viewType === 'all' || viewType === 'hotels') && (
+            {/* Hotels Section - Only show if user is creator */}
+            {userType === 'creator' && (
               <div className="mb-12">
                 {sortedHotels.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -279,13 +257,8 @@ export default function MarketplacePage() {
               </div>
             )}
 
-            {/* Divider between Hotels and Creators */}
-            {viewType === 'all' && sortedHotels.length > 0 && sortedCreators.length > 0 && (
-              <div className="my-12 border-t border-gray-200"></div>
-            )}
-
-            {/* Creators Section */}
-            {(viewType === 'all' || viewType === 'creators') && (
+            {/* Creators Section - Only show if user is hotel */}
+            {userType === 'hotel' && (
               <div>
                 {sortedCreators.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
