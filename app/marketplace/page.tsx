@@ -217,7 +217,7 @@ export default function MarketplacePage() {
                 : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
             }`}
           >
-            Alle
+            All
           </button>
           <button
             onClick={() => setViewType('hotels')}
