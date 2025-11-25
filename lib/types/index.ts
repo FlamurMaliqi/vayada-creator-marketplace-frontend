@@ -186,6 +186,9 @@ export interface RegisterResponse {
   name: string
   type: 'creator' | 'hotel'
   status: UserStatus
+  access_token: string
+  token_type: string
+  expires_in: number
   message: string
 }
 
@@ -200,5 +203,8 @@ export interface LoginResponse {
   name: string
   type: 'creator' | 'hotel'
   status: UserStatus
+  access_token: string
+  token_type: string
+  expires_in: number
   message: string
 }

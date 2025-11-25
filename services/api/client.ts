@@ -26,9 +26,58 @@ export class ApiErrorResponse extends Error {
 
 export class ApiClient {
   private baseURL: string
+  private TOKEN_KEY = 'access_token'
+  private EXPIRES_AT_KEY = 'token_expires_at'
 
   constructor(baseURL: string = API_BASE_URL) {
     this.baseURL = baseURL
+  }
+
+  /**
+   * Get JWT token from localStorage if not expired
+   */
+  private getToken(): string | null {
+    if (typeof window === 'undefined') return null
+
+    const token = localStorage.getItem(this.TOKEN_KEY)
+    const expiresAt = localStorage.getItem(this.EXPIRES_AT_KEY)
+
+    if (!token || !expiresAt) return null
+
+    // Check if token is expired
+    if (Date.now() >= parseInt(expiresAt)) {
+      this.clearToken()
+      return null
+    }
+
+    return token
+  }
+
+  /**
+   * Clear token from localStorage
+   */
+  private clearToken(): void {
+    if (typeof window === 'undefined') return
+    localStorage.removeItem(this.TOKEN_KEY)
+    localStorage.removeItem(this.EXPIRES_AT_KEY)
+  }
+
+  /**
+   * Handle 401 errors (token expired/invalid)
+   */
+  private handleUnauthorized(error: ApiErrorResponse): void {
+    this.clearToken()
+    
+    if (typeof window !== 'undefined') {
+      const errorMessage = error.data.detail as string || ''
+      const isExpired = errorMessage.includes('expired') || errorMessage.includes('Expired')
+      
+      if (isExpired) {
+        window.location.href = '/login?expired=true'
+      } else {
+        window.location.href = '/login'
+      }
+    }
   }
 
   private async request<T>(
@@ -37,12 +86,22 @@ export class ApiClient {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`
     
+    // Get token for authenticated requests (skip for auth endpoints)
+    const token = !endpoint.startsWith('/auth/') ? this.getToken() : null
+    
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    }
+
+    // Add Authorization header if token exists
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    
     const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
       ...options,
+      headers,
     }
 
     try {
@@ -51,7 +110,14 @@ export class ApiClient {
       const data = await response.json()
       
       if (!response.ok) {
-        throw new ApiErrorResponse(response.status, data as ApiError)
+        const error = new ApiErrorResponse(response.status, data as ApiError)
+        
+        // Handle 401 errors (token expired/invalid)
+        if (response.status === 401) {
+          this.handleUnauthorized(error)
+        }
+        
+        throw error
       }
 
       return data as T

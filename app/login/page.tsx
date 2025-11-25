@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants/routes'
 import { Button, Input } from '@/components/ui'
@@ -11,6 +11,8 @@ import { ApiErrorResponse } from '@/services/api/client'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const [tokenExpired, setTokenExpired] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -18,6 +20,13 @@ export default function LoginPage() {
   const [emailError, setEmailError] = useState('')
   const [submitError, setSubmitError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Check if token expired
+  useEffect(() => {
+    if (searchParams.get('expired') === 'true') {
+      setTokenExpired(true)
+    }
+  }, [searchParams])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -56,35 +65,11 @@ export default function LoginPage() {
     setIsSubmitting(true)
     
     try {
-      // Call login API
-      const response = await authService.login({
+      // Call login API (token is automatically stored by authService)
+      await authService.login({
         email: formData.email,
         password: formData.password,
       })
-      
-      // Store user data in localStorage (temporary until proper auth is implemented)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('isLoggedIn', 'true')
-        localStorage.setItem('userId', response.id)
-        localStorage.setItem('userEmail', response.email)
-        localStorage.setItem('userName', response.name)
-        localStorage.setItem('userType', response.type)
-        localStorage.setItem('userStatus', response.status)
-        
-        // Store full user object for easy access
-        localStorage.setItem('user', JSON.stringify({
-          id: response.id,
-          email: response.email,
-          name: response.name,
-          type: response.type,
-          status: response.status,
-        }))
-        
-        // Set profile completion status (will be updated when profile API is connected)
-        // For now, default to false
-        localStorage.setItem('profileComplete', 'false')
-        localStorage.setItem('hasProfile', 'false')
-      }
       
       // Redirect to marketplace on success
       router.push(ROUTES.MARKETPLACE)
@@ -145,6 +130,14 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
+              {tokenExpired && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-sm text-yellow-800 font-medium">
+                    Your session has expired. Please login again.
+                  </p>
+                </div>
+              )}
+
               <Input
                 label="Email address"
                 type="email"

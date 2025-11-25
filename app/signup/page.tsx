@@ -104,18 +104,8 @@ function SignUpForm() {
         ...(formData.name.trim() && { name: formData.name.trim() }),
       }
       
-      // Call registration API
-      const response = await authService.register(registrationData)
-      
-      // Store user data in localStorage (temporary until proper auth is implemented)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('isLoggedIn', 'true')
-        localStorage.setItem('userEmail', response.email)
-        localStorage.setItem('userType', response.type)
-        localStorage.setItem('userStatus', response.status)
-        localStorage.setItem('profileComplete', 'false')
-        localStorage.setItem('hasProfile', 'false')
-      }
+      // Call registration API (token is automatically stored by authService)
+      await authService.register(registrationData)
       
       // Redirect to marketplace on success
       router.push(ROUTES.MARKETPLACE)
