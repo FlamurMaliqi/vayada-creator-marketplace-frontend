@@ -257,18 +257,21 @@ export function CollaborationRequestDetailModal({
           {/* Social Media Platform Metrics */}
           {currentUserType === 'hotel' && collaboration.creator?.platforms && collaboration.creator.platforms.length > 0 && (
             <div>
-              <h5 className="font-bold text-gray-900 mb-4">Social Media Metrics</h5>
-              <div className="space-y-4">
+              <h5 className="font-bold text-gray-900 mb-4">Social Media Platforms</h5>
+              <div className="space-y-6">
                 {collaboration.creator.platforms.map((platform, index) => (
                   <div
                     key={index}
-                    className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                    className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm"
                   >
-                    <div className="flex items-center gap-3 mb-3">
-                      {getPlatformIcon(platform.name)}
+                    {/* Platform Header */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 flex items-center justify-center text-primary-600">
+                        {getPlatformIcon(platform.name)}
+                      </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <h6 className="font-semibold text-gray-900">
+                          <h6 className="text-lg font-bold text-gray-900">
                             {platform.name === 'YT' ? 'YouTube' : platform.name}
                           </h6>
                           {platform.handle && (
@@ -277,20 +280,96 @@ export function CollaborationRequestDetailModal({
                         </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+
+                    {/* Key Metrics */}
+                    <div className="grid grid-cols-2 gap-4 mb-6 pb-6 border-b border-gray-200">
                       <div>
                         <p className="text-sm text-gray-600 mb-1">Followers</p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-2xl font-bold text-gray-900">
                           {formatNumber(platform.followers)}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600 mb-1">Engagement Rate</p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-2xl font-bold text-gray-900">
                           {platform.engagementRate.toFixed(1)}%
                         </p>
                       </div>
                     </div>
+
+                    {/* Top Countries */}
+                    {platform.topCountries && platform.topCountries.length > 0 && (
+                      <div className="mb-6">
+                        <h6 className="text-sm font-semibold text-gray-900 mb-3">Top Countries</h6>
+                        <div className="space-y-2">
+                          {platform.topCountries.map((country, idx) => (
+                            <div key={idx} className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg">🏳️</span>
+                                <span className="text-sm text-gray-700">{country.country}</span>
+                              </div>
+                              <span className="text-sm font-semibold text-gray-900">
+                                {country.percentage}%
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Top Age Groups */}
+                    {platform.topAgeGroups && platform.topAgeGroups.length > 0 && (
+                      <div className="mb-6">
+                        <h6 className="text-sm font-semibold text-gray-900 mb-3">Top Age Groups</h6>
+                        <div className="space-y-2">
+                          {platform.topAgeGroups.map((ageGroup, idx) => (
+                            <div key={idx} className="flex items-center justify-between">
+                              <span className="text-sm text-gray-700">{ageGroup.ageRange}</span>
+                              <span className="text-sm font-semibold text-gray-900">
+                                {ageGroup.percentage}%
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Gender Split */}
+                    {platform.genderSplit && (
+                      <div>
+                        <h6 className="text-sm font-semibold text-gray-900 mb-3">Gender Split</h6>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm text-gray-700">Male</span>
+                              <span className="text-sm font-semibold text-gray-900">
+                                {platform.genderSplit.male}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-blue-600 h-2 rounded-full"
+                                style={{ width: `${platform.genderSplit.male}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm text-gray-700">Female</span>
+                              <span className="text-sm font-semibold text-gray-900">
+                                {platform.genderSplit.female}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-pink-600 h-2 rounded-full"
+                                style={{ width: `${platform.genderSplit.female}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -301,57 +380,78 @@ export function CollaborationRequestDetailModal({
           {currentUserType === 'hotel' && collaboration.creator?.rating && (
             <div>
               <h5 className="font-bold text-gray-900 mb-4">Reviews & Ratings</h5>
-              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex items-center gap-1">
-                    <StarIcon className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-                    <span className="text-2xl font-bold text-gray-900">
-                      {collaboration.creator.rating.averageRating.toFixed(1)}
-                    </span>
+              <div className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+                {/* Overall Rating Summary */}
+                <div className="flex items-center gap-6 mb-6 pb-6 border-b border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <StarIcon
+                          key={i}
+                          className={`w-8 h-8 ${
+                            i < Math.floor(collaboration.creator.rating.averageRating)
+                              ? 'text-yellow-400 fill-yellow-400'
+                              : i < collaboration.creator.rating.averageRating
+                              ? 'text-yellow-400 fill-yellow-400 opacity-50'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="ml-2">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-bold text-gray-900">
+                          {collaboration.creator.rating.averageRating.toFixed(1)}
+                        </span>
+                        <span className="text-lg text-gray-500">/ 5.0</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Based on {collaboration.creator.rating.totalReviews} review{collaboration.creator.rating.totalReviews !== 1 ? 's' : ''}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">
-                      Based on {collaboration.creator.rating.totalReviews} review{collaboration.creator.rating.totalReviews !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Star Rating Display */}
-                <div className="mb-4">
-                  <StarRating rating={collaboration.creator.rating.averageRating} />
                 </div>
 
                 {/* Individual Reviews */}
-                {collaboration.creator.rating.reviews && collaboration.creator.rating.reviews.length > 0 && (
-                  <div className="space-y-4 mt-4 pt-4 border-t border-gray-200">
-                    <h6 className="font-semibold text-gray-900 mb-2">Recent Reviews</h6>
-                    {collaboration.creator.rating.reviews.slice(0, 3).map((review) => (
-                      <div key={review.id} className="bg-white rounded-lg p-3 border border-gray-200">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <p className="font-semibold text-gray-900">{review.hotelName}</p>
-                            <p className="text-xs text-gray-500">
-                              {formatDate(review.createdAt)}
-                            </p>
+                {collaboration.creator.rating.reviews && collaboration.creator.rating.reviews.length > 0 ? (
+                  <div className="space-y-4">
+                    <h6 className="font-semibold text-gray-900 mb-3">Prior Reviews</h6>
+                    {collaboration.creator.rating.reviews.map((review) => (
+                      <div key={review.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-semibold text-gray-900">{review.hotelName}</p>
+                              <span className="text-xs text-gray-500">
+                                {formatDate(review.createdAt)}
+                              </span>
+                            </div>
                           </div>
                           <div className="flex items-center gap-1">
                             {[...Array(5)].map((_, i) => (
                               <StarIcon
                                 key={i}
-                                className={`w-4 h-4 ${
+                                className={`w-5 h-5 ${
                                   i < review.rating
                                     ? 'text-yellow-400 fill-yellow-400'
                                     : 'text-gray-300'
                                 }`}
                               />
                             ))}
+                            <span className="ml-2 text-sm font-semibold text-gray-900">
+                              {review.rating}.0
+                            </span>
                           </div>
                         </div>
                         {review.comment && (
-                          <p className="text-sm text-gray-700 mt-2">{review.comment}</p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{review.comment}</p>
                         )}
                       </div>
                     ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No reviews yet</p>
                   </div>
                 )}
               </div>
