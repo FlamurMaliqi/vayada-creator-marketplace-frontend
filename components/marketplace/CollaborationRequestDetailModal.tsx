@@ -385,18 +385,21 @@ export function CollaborationRequestDetailModal({
                 <div className="flex items-center gap-6 mb-6 pb-6 border-b border-gray-200">
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <StarIcon
-                          key={i}
-                          className={`w-8 h-8 ${
-                            i < Math.floor(collaboration.creator.rating.averageRating)
-                              ? 'text-yellow-400 fill-yellow-400'
-                              : i < collaboration.creator.rating.averageRating
-                              ? 'text-yellow-400 fill-yellow-400 opacity-50'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
+                      {[...Array(5)].map((_, i) => {
+                        const rating = collaboration.creator?.rating?.averageRating || 0
+                        return (
+                          <StarIcon
+                            key={i}
+                            className={`w-8 h-8 ${
+                              i < Math.floor(rating)
+                                ? 'text-yellow-400 fill-yellow-400'
+                                : i < rating
+                                ? 'text-yellow-400 fill-yellow-400 opacity-50'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        )
+                      })}
                     </div>
                     <div className="ml-2">
                       <div className="flex items-baseline gap-2">
