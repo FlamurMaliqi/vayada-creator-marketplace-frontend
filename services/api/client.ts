@@ -89,9 +89,9 @@ export class ApiClient {
     // Get token for authenticated requests (skip for auth endpoints)
     const token = !endpoint.startsWith('/auth/') ? this.getToken() : null
     
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     }
 
     // Add Authorization header if token exists
@@ -152,6 +152,62 @@ export class ApiClient {
 
   async delete<T>(endpoint: string, options?: RequestInit): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' })
+  }
+
+  /**
+   * Upload file(s) using multipart/form-data
+   */
+  async upload<T>(
+    endpoint: string,
+    formData: FormData,
+    options?: RequestInit
+  ): Promise<T> {
+    const url = `${this.baseURL}${endpoint}`
+    
+    // Get token for authenticated requests
+    const token = !endpoint.startsWith('/auth/') ? this.getToken() : null
+    
+    const headers: Record<string, string> = {
+      // Don't set Content-Type for FormData - browser will set it with boundary
+      ...(options?.headers as Record<string, string>),
+    }
+
+    // Add Authorization header if token exists
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    
+    const config: RequestInit = {
+      ...options,
+      method: 'POST',
+      headers,
+      body: formData,
+    }
+
+    try {
+      const response = await fetch(url, config)
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        const error = new ApiErrorResponse(response.status, data as ApiError)
+        
+        // Handle 401 errors (token expired/invalid)
+        if (response.status === 401) {
+          this.handleUnauthorized(error)
+        }
+        
+        throw error
+      }
+
+      return data as T
+    } catch (error) {
+      if (error instanceof ApiErrorResponse) {
+        throw error
+      }
+      console.error('API upload failed:', error)
+      throw error
+    }
   }
 }
 
