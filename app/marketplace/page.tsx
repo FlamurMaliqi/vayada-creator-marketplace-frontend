@@ -8,9 +8,10 @@ import { MarketplaceFilters } from '@/components/marketplace/MarketplaceFilters'
 import { HotelCard } from '@/components/marketplace/HotelCard'
 import { CreatorCard } from '@/components/marketplace/CreatorCard'
 import { Button } from '@/components/ui'
-// Removed API imports - using mock data only for frontend design
 import { ROUTES } from '@/lib/constants/routes'
 import type { Hotel, Creator, UserType } from '@/lib/types'
+import { hotelService } from '@/services/api/hotels'
+import { ApiErrorResponse } from '@/services/api/client'
 
 export default function MarketplacePage() {
   const { isCollapsed } = useSidebar()
@@ -45,18 +46,35 @@ export default function MarketplacePage() {
     if (!userType) return
     
     setLoading(true)
-    // Use mock data directly for frontend design
-    setTimeout(() => {
+    try {
       // If user is creator, show hotels. If user is hotel, show creators.
       if (userType === 'creator') {
-        setHotels(getMockHotels())
+        const response = await hotelService.getAll()
+        setHotels(response.data)
         setCreators([])
       } else if (userType === 'hotel') {
+        // TODO: Replace with creator service when available
         setCreators(getMockCreators())
         setHotels([])
       }
+    } catch (error) {
+      console.error('Failed to load data:', error)
+      if (error instanceof ApiErrorResponse) {
+        if (error.status === 401) {
+          // Token expired or invalid - redirect handled by API client
+          return
+        } else {
+          alert(`Failed to load data: ${error.data.detail}`)
+        }
+      } else {
+        alert('Failed to load data. Please check your connection and try again.')
+      }
+      // Set empty arrays on error
+      setHotels([])
+      setCreators([])
+    } finally {
       setLoading(false)
-    }, 300)
+    }
   }
 
   const filteredHotels = hotels.filter((hotel) => {

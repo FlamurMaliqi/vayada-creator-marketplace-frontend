@@ -8,6 +8,8 @@ import { AuthenticatedNavigation, Footer } from '@/components/layout'
 import { Button, Input, Textarea } from '@/components/ui'
 import { ROUTES } from '@/lib/constants/routes'
 import type { Hotel } from '@/lib/types'
+import { hotelService } from '@/services/api/hotels'
+import { ApiErrorResponse } from '@/services/api/client'
 import {
   MapPinIcon,
   CheckBadgeIcon,
@@ -47,16 +49,29 @@ export default function HotelDetailPage() {
     loadHotel()
   }, [params.id])
 
-  const loadHotel = () => {
+  const loadHotel = async () => {
     const hotelId = Array.isArray(params.id) ? params.id[0] : params.id
     if (!hotelId) return
     
     setLoading(true)
-    // Hardcoded mock data for frontend design
-    setTimeout(() => {
-      setHotel(getMockHotel(hotelId))
+    try {
+      const hotelData = await hotelService.getById(hotelId)
+      setHotel(hotelData)
+    } catch (error) {
+      console.error('Failed to load hotel:', error)
+      if (error instanceof ApiErrorResponse) {
+        if (error.status === 404) {
+          // Hotel not found - will be handled by the UI
+          setHotel(null)
+        } else {
+          alert(`Failed to load hotel: ${error.data.detail}`)
+        }
+      } else {
+        alert('Failed to load hotel. Please check your connection and try again.')
+      }
+    } finally {
       setLoading(false)
-    }, 300)
+    }
   }
 
   const handleRequestCollaboration = () => {
@@ -436,34 +451,5 @@ export default function HotelDetailPage() {
       <Footer />
     </div>
   )
-}
-
-// Mock data for development
-function getMockHotel(id: string): Hotel {
-  const mockHotels: Record<string, Hotel> = {
-    '1': {
-      id: '1',
-      hotelProfileId: 'profile-1',
-      name: 'Sunset Beach Resort',
-      location: 'Bali, Indonesia',
-      description: 'Luxury beachfront resort with stunning ocean views and world-class amenities. Nestled on the pristine beaches of Bali, our resort offers an unparalleled experience combining traditional Balinese hospitality with modern luxury. Each room features private balconies overlooking the Indian Ocean, and our award-winning spa provides rejuvenating treatments using local ingredients.',
-      images: ['/hotel1.jpg'],
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    '2': {
-      id: '2',
-      hotelProfileId: 'profile-1',
-      name: 'Mountain View Lodge',
-      location: 'Swiss Alps, Switzerland',
-      description: 'Cozy alpine lodge perfect for adventure seekers and nature lovers. Experience the magic of the Swiss Alps in our charming lodge, where traditional architecture meets modern comfort. Wake up to breathtaking mountain views, enjoy authentic Swiss cuisine, and explore endless hiking trails right from our doorstep.',
-      images: ['/hotel2.jpg'],
-      status: 'verified',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  }
-  return mockHotels[id] || mockHotels['1']
 }
 

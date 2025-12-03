@@ -4,6 +4,7 @@
 
 import { apiClient } from './client'
 import type { Hotel, PaginatedResponse, HotelProfile, HotelListing, CollaborationOffering, CreatorRequirements } from '@/lib/types'
+import { transformHotelListingToHotel } from '@/lib/utils'
 
 // Request/Response types for hotel profile endpoints
 export interface UpdateHotelProfileRequest {
@@ -61,14 +62,21 @@ export const hotelService = {
     if (params?.limit) queryParams.append('limit', params.limit.toString())
     
     const query = queryParams.toString()
-    return apiClient.get<PaginatedResponse<Hotel>>(`/hotels${query ? `?${query}` : ''}`)
+    const response = await apiClient.get<PaginatedResponse<HotelListing>>(`/hotels${query ? `?${query}` : ''}`)
+    
+    // Transform HotelListing[] to Hotel[]
+    return {
+      ...response,
+      data: response.data.map(transformHotelListingToHotel),
+    }
   },
 
   /**
    * Get hotel by ID (public)
    */
   getById: async (id: string): Promise<Hotel> => {
-    return apiClient.get<Hotel>(`/hotels/${id}`)
+    const listing = await apiClient.get<HotelListing>(`/hotels/${id}`)
+    return transformHotelListingToHotel(listing)
   },
 
   /**
