@@ -113,7 +113,8 @@ export class ApiClient {
         const error = new ApiErrorResponse(response.status, data as ApiError)
         
         // Handle 401 errors (token expired/invalid)
-        if (response.status === 401) {
+        // Skip redirect for auth endpoints (login/register) - let them handle errors
+        if (response.status === 401 && !endpoint.startsWith('/auth/')) {
           this.handleUnauthorized(error)
         }
         
@@ -193,7 +194,8 @@ export class ApiClient {
         const error = new ApiErrorResponse(response.status, data as ApiError)
         
         // Handle 401 errors (token expired/invalid)
-        if (response.status === 401) {
+        // Skip redirect for auth endpoints (login/register) - let them handle errors
+        if (response.status === 401 && !endpoint.startsWith('/auth/')) {
           this.handleUnauthorized(error)
         }
         
