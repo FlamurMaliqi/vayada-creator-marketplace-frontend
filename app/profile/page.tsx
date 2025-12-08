@@ -88,7 +88,6 @@ interface HotelProfile {
   id: string
   name: string
   picture?: string
-  category: string
   location: string
   status: 'verified' | 'pending' | 'rejected'
   website?: string
@@ -151,7 +150,6 @@ export default function ProfilePage() {
   const [hotelEditFormData, setHotelEditFormData] = useState({
     name: '',
     picture: '',
-    category: '',
     location: '',
     website: '',
     about: '',
@@ -316,7 +314,6 @@ export default function ProfilePage() {
       id: apiProfile.id,
       name: apiProfile.name,
       picture: apiProfile.picture || undefined,
-      category: apiProfile.category,
       location: apiProfile.location,
       status: apiProfile.status as 'verified' | 'pending' | 'rejected',
       website: apiProfile.website || undefined,
@@ -411,7 +408,6 @@ export default function ProfilePage() {
       setHotelEditFormData({
         name: hotelProfile.name,
         picture: hotelProfile.picture || '',
-        category: hotelProfile.category,
         location: hotelProfile.location,
         website: hotelProfile.website || '',
         about: hotelProfile.about || '',
@@ -594,7 +590,7 @@ export default function ProfilePage() {
     alert('Profile management is not available. Backend only supports authentication endpoints.')
     return
     
-    if (!hotelEditFormData.name || !hotelEditFormData.category || !hotelEditFormData.location) {
+    if (!hotelEditFormData.name || !hotelEditFormData.location) {
       return
     }
 
@@ -611,7 +607,6 @@ export default function ProfilePage() {
       // Update hotel profile
       const updateData: {
         name?: string
-        category?: string
         location?: string
         picture?: string
         website?: string
@@ -620,7 +615,6 @@ export default function ProfilePage() {
         phone?: string
       } = {
         name: hotelEditFormData.name,
-        category: hotelEditFormData.category,
         location: hotelEditFormData.location,
         website: hotelEditFormData.website || undefined,
         about: hotelEditFormData.about || undefined,
@@ -665,7 +659,6 @@ export default function ProfilePage() {
       setHotelEditFormData({
         name: hotelProfile.name,
         picture: hotelProfile.picture || '',
-        category: hotelProfile.category,
         location: hotelProfile.location,
         website: hotelProfile.website || '',
         about: hotelProfile.about || '',
@@ -1825,7 +1818,7 @@ export default function ProfilePage() {
                               variant="primary"
                               onClick={handleSaveHotelProfile}
                               isLoading={isSavingHotelProfile}
-                              disabled={!hotelEditFormData.name || !hotelEditFormData.category || !hotelEditFormData.location}
+                              disabled={!hotelEditFormData.name || !hotelEditFormData.location}
                             >
                               Save Changes
                             </Button>
@@ -1883,13 +1876,6 @@ export default function ProfilePage() {
                                       <span className="text-sm font-semibold">Verified</span>
                                     </div>
                                   )}
-                                </div>
-
-                                {/* Category */}
-                                <div className="mb-4">
-                                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary-100 text-primary-700 font-semibold text-sm">
-                                    {hotelProfile.category}
-                                  </span>
                                 </div>
 
                                 {/* Location */}
@@ -1985,24 +1971,6 @@ export default function ProfilePage() {
                                   required
                                   placeholder="Hotel name"
                                 />
-                              </div>
-                              <div>
-                                <label className="block text-base font-medium text-gray-900 mb-2">
-                                  Category <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                  value={hotelEditFormData.category}
-                                  onChange={(e) => setHotelEditFormData({ ...hotelEditFormData, category: e.target.value })}
-                                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                                  required
-                                >
-                                  <option value="">Select category</option>
-                                  {HOTEL_CATEGORIES.map((cat) => (
-                                    <option key={cat} value={cat}>
-                                      {cat}
-                                    </option>
-                                  ))}
-                                </select>
                               </div>
                             </div>
                             <div>

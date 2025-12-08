@@ -81,7 +81,6 @@ export default function ProfileCompletePage() {
   // Hotel form state
   const [hotelForm, setHotelForm] = useState({
     name: '',
-    category: 'Hotel',
     location: 'Not specified',
     email: '',
     about: '',
@@ -316,11 +315,6 @@ export default function ProfileCompletePage() {
   const validateHotelForm = (): boolean => {
     if (!hotelForm.name.trim() || hotelForm.name.trim().length < 2) {
       setError('Hotel name must be at least 2 characters')
-      return false
-    }
-    
-    if (!hotelForm.category || hotelForm.category === 'Hotel') {
-      setError('Category must be updated from default value. Please select a specific category.')
       return false
     }
     
@@ -559,7 +553,6 @@ export default function ProfileCompletePage() {
       // Update hotel profile
       await hotelService.updateMyProfile({
         name: hotelForm.name,
-        category: hotelForm.category,
         location: hotelForm.location,
         email: hotelForm.email,
         about: hotelForm.about || undefined,
@@ -684,7 +677,6 @@ export default function ProfileCompletePage() {
         return !!(
           hotelForm.name.trim() &&
           hotelForm.name.trim().length >= 2 &&
-          hotelForm.category !== 'Hotel' &&
           hotelForm.location.trim() &&
           hotelForm.location !== 'Not specified' &&
           hotelForm.email.trim() &&
@@ -1248,32 +1240,6 @@ export default function ProfileCompletePage() {
                     helperText="Pre-filled from registration"
                     className="pl-12"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Category <span className="text-red-500">*</span>
-                    {profileStatus && 'has_defaults' in profileStatus && profileStatus.has_defaults.category && (
-                      <span className="ml-2 text-red-600 text-xs font-semibold">⚠️ Must update from default</span>
-                    )}
-                  </label>
-                  <select
-                    value={hotelForm.category}
-                    onChange={(e) => setHotelForm({ ...hotelForm, category: e.target.value })}
-                    required
-                    className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white font-medium ${
-                      hotelForm.category === 'Hotel' ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
-                  >
-                    {HOTEL_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                  <p className={`mt-1 text-sm ${hotelForm.category === 'Hotel' ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
-                    {hotelForm.category === 'Hotel' ? '⚠️ Please select a specific category (not the default)' : 'Select your hotel category'}
-                  </p>
                 </div>
 
                 <div className="relative md:col-span-2">
