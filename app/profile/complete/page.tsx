@@ -21,6 +21,9 @@ import {
   EnvelopeIcon,
   SparklesIcon,
   GlobeAltIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline'
 
 const HOTEL_CATEGORIES = [
@@ -58,12 +61,14 @@ export default function ProfileCompletePage() {
 
   // Creator form state
   const [creatorForm, setCreatorForm] = useState({
+    name: '',
     location: '',
     short_description: '',
     portfolio_link: '',
     phone: '',
   })
   const [creatorPlatforms, setCreatorPlatforms] = useState<PlatformFormData[]>([])
+  const [expandedPlatforms, setExpandedPlatforms] = useState<Set<number>>(new Set())
 
   // Hotel form state
   const [hotelForm, setHotelForm] = useState({
@@ -76,20 +81,35 @@ export default function ProfileCompletePage() {
     phone: '',
   })
 
+  // Hotel listing form state
+  interface ListingFormData {
+    name: string
+    location: string
+    description: string
+    accommodation_type: string
+  }
+  const [hotelListings, setHotelListings] = useState<ListingFormData[]>([])
+
   useEffect(() => {
     // Get user type from localStorage
     if (typeof window !== 'undefined') {
       const storedUserType = localStorage.getItem('userType') as UserType | null
       setUserType(storedUserType)
       
-      // Pre-fill hotel form with user data
+      // Pre-fill forms with user data
+      const userName = localStorage.getItem('userName') || ''
+      const userEmail = localStorage.getItem('userEmail') || ''
+      
       if (storedUserType === 'hotel') {
-        const userName = localStorage.getItem('userName') || ''
-        const userEmail = localStorage.getItem('userEmail') || ''
         setHotelForm(prev => ({
           ...prev,
           name: userName,
           email: userEmail,
+        }))
+      } else if (storedUserType === 'creator') {
+        setCreatorForm(prev => ({
+          ...prev,
+          name: userName,
         }))
       }
       
@@ -142,7 +162,87 @@ export default function ProfileCompletePage() {
     setCreatorPlatforms(updated)
   }
 
+  const togglePlatformExpanded = (index: number) => {
+    const newExpanded = new Set(expandedPlatforms)
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index)
+    } else {
+      newExpanded.add(index)
+    }
+    setExpandedPlatforms(newExpanded)
+  }
+
+  const addTopCountry = (platformIndex: number) => {
+    const updated = [...creatorPlatforms]
+    if (!updated[platformIndex].top_countries) {
+      updated[platformIndex].top_countries = []
+    }
+    updated[platformIndex].top_countries!.push({ country: '', percentage: 0 })
+    setCreatorPlatforms(updated)
+  }
+
+  const removeTopCountry = (platformIndex: number, countryIndex: number) => {
+    const updated = [...creatorPlatforms]
+    if (updated[platformIndex].top_countries) {
+      updated[platformIndex].top_countries = updated[platformIndex].top_countries!.filter((_, i) => i !== countryIndex)
+    }
+    setCreatorPlatforms(updated)
+  }
+
+  const updateTopCountry = (platformIndex: number, countryIndex: number, field: 'country' | 'percentage', value: string | number) => {
+    const updated = [...creatorPlatforms]
+    if (updated[platformIndex].top_countries) {
+      updated[platformIndex].top_countries![countryIndex] = {
+        ...updated[platformIndex].top_countries![countryIndex],
+        [field]: value,
+      }
+    }
+    setCreatorPlatforms(updated)
+  }
+
+  const addTopAgeGroup = (platformIndex: number) => {
+    const updated = [...creatorPlatforms]
+    if (!updated[platformIndex].top_age_groups) {
+      updated[platformIndex].top_age_groups = []
+    }
+    updated[platformIndex].top_age_groups!.push({ ageRange: '', percentage: 0 })
+    setCreatorPlatforms(updated)
+  }
+
+  const removeTopAgeGroup = (platformIndex: number, ageGroupIndex: number) => {
+    const updated = [...creatorPlatforms]
+    if (updated[platformIndex].top_age_groups) {
+      updated[platformIndex].top_age_groups = updated[platformIndex].top_age_groups!.filter((_, i) => i !== ageGroupIndex)
+    }
+    setCreatorPlatforms(updated)
+  }
+
+  const updateTopAgeGroup = (platformIndex: number, ageGroupIndex: number, field: 'ageRange' | 'percentage', value: string | number) => {
+    const updated = [...creatorPlatforms]
+    if (updated[platformIndex].top_age_groups) {
+      updated[platformIndex].top_age_groups![ageGroupIndex] = {
+        ...updated[platformIndex].top_age_groups![ageGroupIndex],
+        [field]: value,
+      }
+    }
+    setCreatorPlatforms(updated)
+  }
+
+  const updateGenderSplit = (platformIndex: number, field: 'male' | 'female', value: number) => {
+    const updated = [...creatorPlatforms]
+    if (!updated[platformIndex].gender_split) {
+      updated[platformIndex].gender_split = { male: 0, female: 0 }
+    }
+    updated[platformIndex].gender_split![field] = value
+    setCreatorPlatforms(updated)
+  }
+
   const validateCreatorForm = (): boolean => {
+    if (!creatorForm.name.trim()) {
+      setError('Name is required')
+      return false
+    }
+    
     if (!creatorForm.location.trim()) {
       setError('Location is required')
       return false
@@ -178,12 +278,12 @@ export default function ProfileCompletePage() {
         setError(`Platform ${i + 1}: Handle is required`)
         return false
       }
-      if (platform.followers === '' || Number(platform.followers) < 0) {
-        setError(`Platform ${i + 1}: Followers must be 0 or greater`)
+      if (platform.followers === '' || Number(platform.followers) <= 0) {
+        setError(`Platform ${i + 1}: Followers must be greater than 0`)
         return false
       }
-      if (platform.engagement_rate === '' || Number(platform.engagement_rate) < 0 || Number(platform.engagement_rate) > 100) {
-        setError(`Platform ${i + 1}: Engagement rate must be between 0 and 100`)
+      if (platform.engagement_rate === '' || Number(platform.engagement_rate) <= 0 || Number(platform.engagement_rate) > 100) {
+        setError(`Platform ${i + 1}: Engagement rate must be greater than 0 and less than or equal to 100`)
         return false
       }
     }
@@ -197,6 +297,11 @@ export default function ProfileCompletePage() {
       return false
     }
     
+    if (!hotelForm.category || hotelForm.category === 'Hotel') {
+      setError('Category must be updated from default value. Please select a specific category.')
+      return false
+    }
+    
     if (!hotelForm.location.trim() || hotelForm.location === 'Not specified') {
       setError('Location must be updated from default value')
       return false
@@ -207,12 +312,70 @@ export default function ProfileCompletePage() {
       return false
     }
     
-    if (hotelForm.about && hotelForm.about.trim().length < 10) {
-      setError('About section must be at least 10 characters if provided')
+    if (!hotelForm.about.trim()) {
+      setError('About section is recommended. Please add a description about your hotel.')
       return false
     }
     
+    if (hotelForm.about.trim().length < 10) {
+      setError('About section must be at least 10 characters')
+      return false
+    }
+    
+    if (!hotelForm.website.trim()) {
+      setError('Website is recommended. Please add your hotel website URL.')
+      return false
+    }
+    
+    if (hotelListings.length === 0) {
+      setError('At least one property listing is required. Please add a listing.')
+      return false
+    }
+    
+    // Validate each listing
+    for (let i = 0; i < hotelListings.length; i++) {
+      const listing = hotelListings[i]
+      if (!listing.name.trim()) {
+        setError(`Listing ${i + 1}: Property name is required`)
+        return false
+      }
+      if (!listing.location.trim()) {
+        setError(`Listing ${i + 1}: Property location is required`)
+        return false
+      }
+      if (!listing.description.trim()) {
+        setError(`Listing ${i + 1}: Property description is required`)
+        return false
+      }
+      if (listing.description.trim().length < 10) {
+        setError(`Listing ${i + 1}: Property description must be at least 10 characters`)
+        return false
+      }
+    }
+    
     return true
+  }
+
+  const addListing = () => {
+    setHotelListings([
+      ...hotelListings,
+      {
+        name: '',
+        location: hotelForm.location || '',
+        description: '',
+        accommodation_type: '',
+      },
+    ])
+  }
+
+  const removeListing = (index: number) => {
+    setHotelListings(hotelListings.filter((_, i) => i !== index))
+  }
+
+  const updateListing = (index: number, field: keyof ListingFormData, value: string) => {
+    const updated = [...hotelListings]
+    updated[index] = { ...updated[index], [field]: value }
+    setHotelListings(updated)
   }
 
   const handleCreatorSubmit = async (e: React.FormEvent) => {
@@ -225,25 +388,33 @@ export default function ProfileCompletePage() {
     
     setSubmitting(true)
     try {
-      // Note: Profile update endpoints may not be available
-      // This is a placeholder for when endpoints are restored
-      console.log('Creator profile data:', {
-        ...creatorForm,
-        platforms: creatorPlatforms.map(p => ({
-          name: p.name,
-          handle: p.handle,
-          followers: Number(p.followers),
-          engagement_rate: Number(p.engagement_rate),
-          ...(p.top_countries && { top_countries: p.top_countries }),
-          ...(p.top_age_groups && { top_age_groups: p.top_age_groups }),
-          ...(p.gender_split && { gender_split: p.gender_split }),
-        })),
-      })
+      // Prepare platform data
+      const platforms = creatorPlatforms.map(p => ({
+        name: p.name,
+        handle: p.handle,
+        followers: Number(p.followers),
+        engagementRate: Number(p.engagement_rate),
+        ...(p.top_countries && { topCountries: p.top_countries }),
+        ...(p.top_age_groups && { topAgeGroups: p.top_age_groups }),
+        ...(p.gender_split && { genderSplit: p.gender_split }),
+      }))
+
+      // Calculate total audience size from platforms
+      const audienceSize = platforms.reduce((sum, p) => sum + p.followers, 0)
+
+      // Update creator profile
+      // Note: short_description and phone may not be in Creator type but are accepted by API
+      await creatorService.updateMyProfile({
+        name: creatorForm.name,
+        location: creatorForm.location,
+        portfolioLink: creatorForm.portfolio_link || undefined,
+        platforms: platforms,
+        audienceSize: audienceSize,
+        ...(creatorForm.short_description && { short_description: creatorForm.short_description }),
+        ...(creatorForm.phone && { phone: creatorForm.phone }),
+      } as any)
       
-      // TODO: Call API when endpoints are available
-      // await creatorService.updateMyProfile({ ... })
-      
-      // Check if profile is now complete
+      // Check if profile is now complete after successful update
       const isComplete = await isProfileComplete('creator')
       if (isComplete) {
         router.push(ROUTES.MARKETPLACE)
@@ -274,14 +445,34 @@ export default function ProfileCompletePage() {
     
     setSubmitting(true)
     try {
-      // Note: Profile update endpoints may not be available
-      // This is a placeholder for when endpoints are restored
-      console.log('Hotel profile data:', hotelForm)
+      // Update hotel profile
+      await hotelService.updateMyProfile({
+        name: hotelForm.name,
+        category: hotelForm.category,
+        location: hotelForm.location,
+        email: hotelForm.email,
+        about: hotelForm.about || undefined,
+        website: hotelForm.website || undefined,
+        phone: hotelForm.phone || undefined,
+      })
       
-      // TODO: Call API when endpoints are available
-      // await hotelService.updateMyProfile({ ... })
+      // Create listings
+      for (const listing of hotelListings) {
+        await hotelService.createListing({
+          name: listing.name,
+          location: listing.location,
+          description: listing.description,
+          accommodation_type: listing.accommodation_type || undefined,
+          images: [],
+          collaboration_offerings: [],
+          creator_requirements: {
+            platforms: [],
+            target_countries: [],
+          },
+        })
+      }
       
-      // Check if profile is now complete
+      // Check if profile is now complete after successful update
       const isComplete = await isProfileComplete('hotel')
       if (isComplete) {
         router.push(ROUTES.MARKETPLACE)
@@ -388,6 +579,17 @@ export default function ProfileCompletePage() {
               </h3>
               
               <Input
+                label="Name"
+                type="text"
+                value={creatorForm.name}
+                onChange={(e) => setCreatorForm({ ...creatorForm, name: e.target.value })}
+                required
+                placeholder="Your display name"
+                error={error && error.includes('Name') ? error : undefined}
+                helperText={profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('name') ? '⚠️ This field is required' : undefined}
+              />
+              
+              <Input
                 label="Location"
                 type="text"
                 value={creatorForm.location}
@@ -395,6 +597,7 @@ export default function ProfileCompletePage() {
                 required
                 placeholder="e.g., New York, USA"
                 error={error && error.includes('Location') ? error : undefined}
+                helperText={profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('location') ? '⚠️ This field is required' : undefined}
               />
 
               <Textarea
@@ -406,7 +609,7 @@ export default function ProfileCompletePage() {
                 rows={4}
                 maxLength={500}
                 error={error && error.includes('description') ? error : undefined}
-                helperText={`${creatorForm.short_description.length}/500 characters`}
+                helperText={`${creatorForm.short_description.length}/500 characters${profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('short_description') ? ' ⚠️ Required' : ''}`}
               />
 
               <Input
@@ -443,6 +646,9 @@ export default function ProfileCompletePage() {
                   </div>
                   <p className="text-sm text-gray-500 mt-1">
                     Add at least one platform <span className="font-semibold text-red-600">(required)</span>
+                    {profileStatus && 'missing_platforms' in profileStatus && profileStatus.missing_platforms && (
+                      <span className="ml-2 text-red-600 font-semibold">⚠️ Missing platforms</span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -514,7 +720,8 @@ export default function ProfileCompletePage() {
                       onChange={(e) => updatePlatform(index, 'followers', e.target.value === '' ? '' : parseInt(e.target.value))}
                       required
                       placeholder="0"
-                      min={0}
+                      min={1}
+                      helperText="Must be greater than 0"
                     />
 
                     <Input
@@ -524,10 +731,178 @@ export default function ProfileCompletePage() {
                       onChange={(e) => updatePlatform(index, 'engagement_rate', e.target.value === '' ? '' : parseFloat(e.target.value))}
                       required
                       placeholder="0.00"
-                      min={0}
+                      min={0.01}
                       max={100}
                       step="0.01"
+                      helperText="Must be greater than 0"
                     />
+                  </div>
+
+                  {/* Optional Analytics Section */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <button
+                      type="button"
+                      onClick={() => togglePlatformExpanded(index)}
+                      className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <ChartBarIcon className="w-5 h-5 text-gray-600" />
+                        <span className="font-semibold text-gray-700">Analytics Data (Optional)</span>
+                      </div>
+                      {expandedPlatforms.has(index) ? (
+                        <ChevronUpIcon className="w-5 h-5 text-gray-600" />
+                      ) : (
+                        <ChevronDownIcon className="w-5 h-5 text-gray-600" />
+                      )}
+                    </button>
+
+                    {expandedPlatforms.has(index) && (
+                      <div className="mt-4 space-y-6">
+                        {/* Top Countries */}
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <label className="block text-sm font-semibold text-gray-700">
+                              Top Countries
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => addTopCountry(index)}
+                              className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+                            >
+                              <PlusIcon className="w-4 h-4" />
+                              Add Country
+                            </button>
+                          </div>
+                          {platform.top_countries && platform.top_countries.length > 0 ? (
+                            <div className="space-y-3">
+                              {platform.top_countries.map((country, countryIndex) => (
+                                <div key={countryIndex} className="flex gap-3 items-end">
+                                  <div className="flex-1">
+                                    <Input
+                                      label="Country"
+                                      type="text"
+                                      value={country.country}
+                                      onChange={(e) => updateTopCountry(index, countryIndex, 'country', e.target.value)}
+                                      placeholder="e.g., United States"
+                                    />
+                                  </div>
+                                  <div className="w-32">
+                                    <Input
+                                      label="%"
+                                      type="number"
+                                      value={country.percentage}
+                                      onChange={(e) => updateTopCountry(index, countryIndex, 'percentage', parseFloat(e.target.value) || 0)}
+                                      placeholder="0"
+                                      min={0}
+                                      max={100}
+                                      step="0.1"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeTopCountry(index, countryIndex)}
+                                    className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors mb-1"
+                                  >
+                                    <XMarkIcon className="w-5 h-5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 italic">No countries added. Click "Add Country" to add one.</p>
+                          )}
+                        </div>
+
+                        {/* Top Age Groups */}
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <label className="block text-sm font-semibold text-gray-700">
+                              Top Age Groups
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => addTopAgeGroup(index)}
+                              className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+                            >
+                              <PlusIcon className="w-4 h-4" />
+                              Add Age Group
+                            </button>
+                          </div>
+                          {platform.top_age_groups && platform.top_age_groups.length > 0 ? (
+                            <div className="space-y-3">
+                              {platform.top_age_groups.map((ageGroup, ageGroupIndex) => (
+                                <div key={ageGroupIndex} className="flex gap-3 items-end">
+                                  <div className="flex-1">
+                                    <Input
+                                      label="Age Range"
+                                      type="text"
+                                      value={ageGroup.ageRange}
+                                      onChange={(e) => updateTopAgeGroup(index, ageGroupIndex, 'ageRange', e.target.value)}
+                                      placeholder="e.g., 18-24, 25-34"
+                                    />
+                                  </div>
+                                  <div className="w-32">
+                                    <Input
+                                      label="%"
+                                      type="number"
+                                      value={ageGroup.percentage}
+                                      onChange={(e) => updateTopAgeGroup(index, ageGroupIndex, 'percentage', parseFloat(e.target.value) || 0)}
+                                      placeholder="0"
+                                      min={0}
+                                      max={100}
+                                      step="0.1"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeTopAgeGroup(index, ageGroupIndex)}
+                                    className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors mb-1"
+                                  >
+                                    <XMarkIcon className="w-5 h-5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 italic">No age groups added. Click "Add Age Group" to add one.</p>
+                          )}
+                        </div>
+
+                        {/* Gender Split */}
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-3">
+                            Gender Split (%)
+                          </label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <Input
+                              label="Male"
+                              type="number"
+                              value={platform.gender_split?.male || 0}
+                              onChange={(e) => updateGenderSplit(index, 'male', parseFloat(e.target.value) || 0)}
+                              placeholder="0"
+                              min={0}
+                              max={100}
+                              step="0.1"
+                              helperText="Percentage of male audience"
+                            />
+                            <Input
+                              label="Female"
+                              type="number"
+                              value={platform.gender_split?.female || 0}
+                              onChange={(e) => updateGenderSplit(index, 'female', parseFloat(e.target.value) || 0)}
+                              placeholder="0"
+                              min={0}
+                              max={100}
+                              step="0.1"
+                              helperText="Percentage of female audience"
+                            />
+                          </div>
+                          {platform.gender_split && (platform.gender_split.male + platform.gender_split.female) > 100 && (
+                            <p className="text-sm text-red-600 mt-2">⚠️ Total percentage should not exceed 100%</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -604,12 +979,17 @@ export default function ProfileCompletePage() {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Category <span className="text-red-500">*</span>
+                    {profileStatus && 'has_defaults' in profileStatus && profileStatus.has_defaults.category && (
+                      <span className="ml-2 text-red-600 text-xs font-semibold">⚠️ Must update from default</span>
+                    )}
                   </label>
                   <select
                     value={hotelForm.category}
                     onChange={(e) => setHotelForm({ ...hotelForm, category: e.target.value })}
                     required
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white font-medium"
+                    className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white font-medium ${
+                      hotelForm.category === 'Hotel' ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                   >
                     {HOTEL_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -617,7 +997,9 @@ export default function ProfileCompletePage() {
                       </option>
                     ))}
                   </select>
-                  <p className="mt-1 text-sm text-gray-500">Default: Hotel (can be updated)</p>
+                  <p className={`mt-1 text-sm ${hotelForm.category === 'Hotel' ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                    {hotelForm.category === 'Hotel' ? '⚠️ Please select a specific category (not the default)' : 'Select your hotel category'}
+                  </p>
                 </div>
 
                 <div className="relative md:col-span-2">
@@ -630,8 +1012,14 @@ export default function ProfileCompletePage() {
                     required
                     placeholder="Enter your hotel location"
                     error={error && error.includes('Location') ? error : undefined}
-                    helperText={hotelForm.location === 'Not specified' ? '⚠️ Must be updated from default value' : undefined}
-                    className="pl-12"
+                    helperText={
+                      hotelForm.location === 'Not specified' 
+                        ? '⚠️ Must be updated from default value' 
+                        : profileStatus && 'has_defaults' in profileStatus && profileStatus.has_defaults.location
+                        ? '⚠️ Please update from default value'
+                        : undefined
+                    }
+                    className={`pl-12 ${hotelForm.location === 'Not specified' ? 'border-red-300' : ''}`}
                   />
                 </div>
 
@@ -670,8 +1058,9 @@ export default function ProfileCompletePage() {
                 placeholder="Describe your hotel, amenities, unique features, and what makes it special (10-5000 characters)"
                 rows={6}
                 maxLength={5000}
-                helperText={`${hotelForm.about.length}/5000 characters (optional but recommended)`}
+                helperText={`${hotelForm.about.length}/5000 characters${profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('about') ? ' ⚠️ Recommended' : ' (recommended)'}`}
                 className="resize-none"
+                error={error && error.includes('About') ? error : undefined}
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -683,8 +1072,9 @@ export default function ProfileCompletePage() {
                     value={hotelForm.website}
                     onChange={(e) => setHotelForm({ ...hotelForm, website: e.target.value })}
                     placeholder="https://your-hotel.com"
-                    helperText="Optional - Your hotel website URL"
+                    helperText={profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('website') ? '⚠️ Recommended' : 'Recommended - Your hotel website URL'}
                     className="pl-12"
+                    error={error && error.includes('Website') ? error : undefined}
                   />
                 </div>
 
@@ -701,6 +1091,118 @@ export default function ProfileCompletePage() {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Property Listings Section - REQUIRED */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <BuildingOfficeIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-2xl font-bold text-gray-900">Property Listings</h3>
+                    <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
+                      {hotelListings.length} listing{hotelListings.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Add at least one property listing <span className="font-semibold text-red-600">(required)</span>
+                    {profileStatus && 'missing_fields' in profileStatus && (profileStatus.missing_fields.includes('listings') || hotelListings.length === 0) && (
+                      <span className="ml-2 text-red-600 font-semibold">⚠️ Missing listings</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {hotelListings.length === 0 && (
+                <div className="border-2 border-dashed border-red-300 rounded-2xl p-8 text-center bg-red-50/50">
+                  <BuildingOfficeIcon className="w-12 h-12 text-red-400 mx-auto mb-3" />
+                  <p className="text-red-700 font-medium mb-2">No listings added yet</p>
+                  <p className="text-sm text-red-600">You must add at least one property listing to complete your profile</p>
+                </div>
+              )}
+
+              {hotelListings.map((listing, index) => (
+                <div key={index} className="border-2 border-gray-200 rounded-2xl p-6 space-y-5 bg-gradient-to-br from-white to-gray-50/50 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
+                        {index + 1}
+                      </div>
+                      <h4 className="font-bold text-gray-900 text-lg">Property Listing {index + 1}</h4>
+                    </div>
+                    {hotelListings.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeListing(index)}
+                        className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Remove listing"
+                      >
+                        <XMarkIcon className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <Input
+                      label="Property Name"
+                      type="text"
+                      value={listing.name}
+                      onChange={(e) => updateListing(index, 'name', e.target.value)}
+                      required
+                      placeholder="e.g., Grand Hotel Main Building"
+                    />
+
+                    <Input
+                      label="Property Location"
+                      type="text"
+                      value={listing.location}
+                      onChange={(e) => updateListing(index, 'location', e.target.value)}
+                      required
+                      placeholder="e.g., Paris, France"
+                    />
+                  </div>
+
+                  <Textarea
+                    label="Property Description"
+                    value={listing.description}
+                    onChange={(e) => updateListing(index, 'description', e.target.value)}
+                    required
+                    placeholder="Describe this property, its features, amenities, and what makes it special (minimum 10 characters)"
+                    rows={4}
+                    helperText={`${listing.description.length} characters (minimum 10 required)`}
+                  />
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Accommodation Type (Optional)
+                    </label>
+                    <select
+                      value={listing.accommodation_type}
+                      onChange={(e) => updateListing(index, 'accommodation_type', e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white font-medium"
+                    >
+                      <option value="">Select type (optional)</option>
+                      <option value="Hotel">Hotel</option>
+                      <option value="Resort">Resort</option>
+                      <option value="Boutique Hotel">Boutique Hotel</option>
+                      <option value="Lodge">Lodge</option>
+                      <option value="Apartment">Apartment</option>
+                      <option value="Villa">Villa</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addListing}
+                className="w-full py-4 border-2 border-dashed border-primary-300 rounded-xl text-primary-600 hover:border-primary-500 hover:bg-primary-50 transition-all flex items-center justify-center gap-2 font-semibold group"
+              >
+                <PlusIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                Add Another Property Listing
+              </button>
             </div>
 
             {error && (
