@@ -17,7 +17,7 @@ import {
 // Navigation links
 export const NAVIGATION_LINKS: NavigationLink[] = [
   { label: 'For Hotels', href: '#hotels' },
-  { label: 'For Creators', href: '#creators' },
+  { label: 'For Creators', href: '/creator-benefits' },
   { label: 'How It Works', href: '#how-it-works' },
 ]
 

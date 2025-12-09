@@ -11,6 +11,7 @@ export const ROUTES = {
   CONTACT: '/contact',
   BLOG: '/blog',
   PRICING: '/pricing',
+  CREATOR_BENEFITS: '/creator-benefits',
   
   // Auth routes
   LOGIN: '/login',
