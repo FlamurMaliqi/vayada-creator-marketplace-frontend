@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Button, Input, Textarea } from '@/components/ui'
 import { ROUTES } from '@/lib/constants/routes'
 import { checkProfileStatus, isProfileComplete } from '@/lib/utils'
@@ -716,12 +717,13 @@ export default function ProfileCompletePage() {
         <div className="absolute top-0 left-0 right-0 bg-white border-b border-gray-200 px-6 py-4 z-20">
           <div className="max-w-4xl mx-auto flex items-center">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center">
-                <SparklesIcon className="w-5 h-5 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold text-primary-600">
-                vayada
-              </h1>
+              <Image
+                src="/vayada-logo.svg"
+                alt="vayada logo"
+                width={32}
+                height={32}
+                className="w-8 h-8"
+              />
             </div>
           </div>
         </div>
@@ -775,12 +777,13 @@ export default function ProfileCompletePage() {
       <div className="relative bg-white/80 backdrop-blur-md border-b border-gray-200/50 px-6 py-4 shadow-sm">
         <div className="max-w-4xl mx-auto flex items-center">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center">
-              <SparklesIcon className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
-              vayada
-            </h1>
+            <Image
+              src="/vayada-logo.svg"
+              alt="vayada logo"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+            />
           </div>
         </div>
       </div>
