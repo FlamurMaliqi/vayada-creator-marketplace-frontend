@@ -26,9 +26,10 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copy necessary files from standalone build
-# Note: public folder is included in standalone if it exists
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Public assets are not bundled into the standalone output; copy them explicitly
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 USER nextjs
 
