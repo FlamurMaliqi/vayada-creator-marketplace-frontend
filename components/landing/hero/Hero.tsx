@@ -26,7 +26,9 @@ export default function Hero() {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
                 <span className="text-white">Less OTAs.</span>
                 <br />
-                <span className="text-primary-400">More Direct Bookings.</span>
+                <span className="text-primary-400">More Direct</span>
+                <br />
+                <span className="text-primary-400">Bookings.</span>
               </h1>
               <p className="text-lg md:text-xl text-white mb-8 leading-relaxed">
                 Replace fragmented tools. Turn creators into your booking channel.
