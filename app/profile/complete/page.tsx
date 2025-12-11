@@ -1283,13 +1283,13 @@ export default function ProfileCompletePage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input
-                  label="Hotel Name"
-                  type="text"
-                  value={hotelForm.name}
-                  onChange={(e) => setHotelForm({ ...hotelForm, name: e.target.value })}
-                  required
-                  placeholder="Your hotel or company name"
+                  <Input
+                    label="Hotel Name"
+                    type="text"
+                    value={hotelForm.name}
+                    onChange={(e) => setHotelForm({ ...hotelForm, name: e.target.value })}
+                    required
+                    placeholder="Your hotel or company name"
                   helperText={undefined}
                   leadingIcon={<BuildingOfficeIcon className="w-5 h-5" />}
                 />
@@ -1345,32 +1345,32 @@ export default function ProfileCompletePage() {
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input
-                  label="Website"
-                  type="url"
-                  value={hotelForm.website}
-                  onChange={(e) => setHotelForm({ ...hotelForm, website: e.target.value })}
-                  placeholder="https://your-hotel.com"
+                  <Input
+                    label="Website"
+                    type="url"
+                    value={hotelForm.website}
+                    onChange={(e) => setHotelForm({ ...hotelForm, website: e.target.value })}
+                    placeholder="https://your-hotel.com"
                   required
                   helperText={
                     profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('website')
                       ? undefined
                       : undefined
                   }
-                  error={error && error.includes('Website') ? error : undefined}
+                    error={error && error.includes('Website') ? error : undefined}
                   leadingIcon={<GlobeAltIcon className="w-5 h-5 text-gray-400" />}
-                />
+                  />
 
-                <Input
-                  label="Phone"
-                  type="tel"
-                  value={hotelForm.phone}
-                  onChange={(e) => setHotelForm({ ...hotelForm, phone: e.target.value })}
-                  placeholder="+1-555-123-4567"
+                  <Input
+                    label="Phone"
+                    type="tel"
+                    value={hotelForm.phone}
+                    onChange={(e) => setHotelForm({ ...hotelForm, phone: e.target.value })}
+                    placeholder="+1-555-123-4567"
                   required
                   helperText={undefined}
                   leadingIcon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
-                />
+                  />
               </div>
               </div>
               </div>
