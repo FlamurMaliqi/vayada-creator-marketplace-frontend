@@ -1338,6 +1338,7 @@ export default function ProfileCompletePage() {
                 placeholder="Describe your hotel, amenities, unique features, and what makes it special (10-5000 characters)"
                 rows={6}
                 maxLength={5000}
+                required
                 helperText={`${hotelForm.about.length}/5000 characters`}
                 className="resize-none"
                 error={error && error.includes('About') ? error : undefined}
@@ -1350,6 +1351,7 @@ export default function ProfileCompletePage() {
                   value={hotelForm.website}
                   onChange={(e) => setHotelForm({ ...hotelForm, website: e.target.value })}
                   placeholder="https://your-hotel.com"
+                  required
                   helperText={
                     profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('website')
                       ? undefined
@@ -1365,6 +1367,7 @@ export default function ProfileCompletePage() {
                   value={hotelForm.phone}
                   onChange={(e) => setHotelForm({ ...hotelForm, phone: e.target.value })}
                   placeholder="+1-555-123-4567"
+                  required
                   helperText={undefined}
                   leadingIcon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
                 />
@@ -1460,7 +1463,7 @@ export default function ProfileCompletePage() {
                         value={listing.accommodation_type}
                         onChange={(e) => updateListing(index, 'accommodation_type', e.target.value)}
                         required
-                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white font-medium"
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white font-medium text-gray-900"
                       >
                         <option value="">Select type</option>
                         {HOTEL_CATEGORIES.map((cat) => (
