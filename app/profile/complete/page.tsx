@@ -84,7 +84,7 @@ export default function ProfileCompletePage() {
   // Hotel form state
   const [hotelForm, setHotelForm] = useState({
     name: '',
-    location: 'Not specified',
+    location: '',
     email: '',
     about: '',
     website: '',
@@ -322,8 +322,8 @@ export default function ProfileCompletePage() {
       return false
     }
     
-    if (!hotelForm.location.trim() || hotelForm.location === 'Not specified') {
-      setError('Location must be updated from default value')
+    if (!hotelForm.location.trim()) {
+      setError('Location is required')
       return false
     }
     
@@ -684,7 +684,6 @@ export default function ProfileCompletePage() {
           hotelForm.name.trim() &&
           hotelForm.name.trim().length >= 2 &&
           hotelForm.location.trim() &&
-          hotelForm.location !== 'Not specified' &&
           hotelForm.email.trim() &&
           hotelForm.email.includes('@')
         )
@@ -1295,27 +1294,6 @@ export default function ProfileCompletePage() {
                   leadingIcon={<BuildingOfficeIcon className="w-5 h-5" />}
                 />
 
-                <div className="md:col-span-2">
-                  <Input
-                    label="Location"
-                    type="text"
-                    value={hotelForm.location}
-                    onChange={(e) => setHotelForm({ ...hotelForm, location: e.target.value })}
-                    required
-                    placeholder="Enter your hotel location"
-                    error={error && error.includes('Location') ? error : undefined}
-                    helperText={
-                      hotelForm.location === 'Not specified'
-                        ? 'Country or island, e.g., Bali, Indonesia.'
-                        : profileStatus && 'has_defaults' in profileStatus && profileStatus.has_defaults.location
-                        ? 'Country or island, e.g., Bali, Indonesia.'
-                        : 'Country or island, e.g., Bali, Indonesia.'
-                    }
-                    className={`${hotelForm.location === 'Not specified' ? 'border-red-300' : ''}`}
-                    leadingIcon={<MapPinIcon className="w-5 h-5 text-gray-400" />}
-                  />
-                </div>
-
                 <Input
                   label="Email"
                   type="email"
@@ -1326,6 +1304,20 @@ export default function ProfileCompletePage() {
                   helperText={undefined}
                   leadingIcon={<EnvelopeIcon className="w-5 h-5 text-gray-400" />}
                 />
+
+                <div className="md:col-span-2">
+                  <Input
+                    label="Location"
+                    type="text"
+                    value={hotelForm.location}
+                    onChange={(e) => setHotelForm({ ...hotelForm, location: e.target.value })}
+                    required
+                    placeholder="Enter your hotel location"
+                    error={error && error.includes('Location') ? error : undefined}
+                    helperText="Country or island, e.g., Bali, Indonesia."
+                    leadingIcon={<MapPinIcon className="w-5 h-5 text-gray-400" />}
+                  />
+                </div>
               </div>
 
               {/* Additional Information */}
