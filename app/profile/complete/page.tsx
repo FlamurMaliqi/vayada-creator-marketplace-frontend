@@ -1648,7 +1648,8 @@ export default function ProfileCompletePage() {
 
                       {/* Platforms */}
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-3">Platforms</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Posting platforms for this collaboration</label>
+                        <p className="text-sm text-gray-500 mb-2">Where the creator will post for this listing (choose at least one).</p>
                         <div className="flex flex-wrap gap-3">
                           {PLATFORM_OPTIONS.map((platform) => (
                             <label key={platform} className="flex items-center cursor-pointer">
@@ -1681,7 +1682,8 @@ export default function ProfileCompletePage() {
                     <div className="space-y-5">
                       {/* Platforms */}
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-3">Platforms</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Creator's existing platforms</label>
+                        <p className="text-sm text-gray-500 mb-2">Platforms the creator should already have. Pick at least one.</p>
                         <div className="flex flex-wrap gap-3">
                           {PLATFORM_OPTIONS.map((platform) => (
                             <label key={platform} className="flex items-center cursor-pointer">
