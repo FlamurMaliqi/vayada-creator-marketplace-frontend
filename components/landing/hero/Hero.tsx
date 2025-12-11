@@ -18,6 +18,11 @@ export default function Hero() {
           </div>
           <div className="relative z-10 max-w-7xl mx-auto w-full pt-32 pb-20">
             <div className="max-w-2xl">
+              <div className="mb-4">
+                <span className="inline-block px-4 py-2 bg-blue-900/70 backdrop-blur-sm text-blue-100 rounded-lg text-sm font-medium">
+                  For Hotels
+                </span>
+              </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
                 <span className="text-white">Less OTAs.</span>
                 <br />
