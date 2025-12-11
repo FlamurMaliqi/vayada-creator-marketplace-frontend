@@ -1328,7 +1328,6 @@ export default function ProfileCompletePage() {
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900">Additional Information</h3>
-                  <p className="text-sm text-gray-500">Optional but recommended</p>
                 </div>
               </div>
 
