@@ -80,12 +80,12 @@ export default function ProfileCompletePage() {
   })
   const [creatorPlatforms, setCreatorPlatforms] = useState<PlatformFormData[]>([])
   const [expandedPlatforms, setExpandedPlatforms] = useState<Set<number>>(new Set())
+  const [collapsedPlatformCards, setCollapsedPlatformCards] = useState<Set<number>>(new Set())
 
   // Hotel form state
   const [hotelForm, setHotelForm] = useState({
     name: '',
     location: '',
-    email: '',
     about: '',
     website: '',
     phone: '',
@@ -122,13 +122,11 @@ export default function ProfileCompletePage() {
       
       // Pre-fill forms with user data
       const userName = localStorage.getItem('userName') || ''
-      const userEmail = localStorage.getItem('userEmail') || ''
       
       if (storedUserType === 'hotel') {
         setHotelForm(prev => ({
           ...prev,
           name: userName,
-          email: userEmail,
         }))
       } else if (storedUserType === 'creator') {
         setCreatorForm(prev => ({
@@ -195,6 +193,16 @@ export default function ProfileCompletePage() {
       newExpanded.add(index)
     }
     setExpandedPlatforms(newExpanded)
+  }
+
+  const togglePlatformCardCollapse = (index: number) => {
+    const newCollapsed = new Set(collapsedPlatformCards)
+    if (newCollapsed.has(index)) {
+      newCollapsed.delete(index)
+    } else {
+      newCollapsed.add(index)
+    }
+    setCollapsedPlatformCards(newCollapsed)
   }
 
   const addTopCountry = (platformIndex: number) => {
@@ -324,11 +332,6 @@ export default function ProfileCompletePage() {
     
     if (!hotelForm.location.trim()) {
       setError('Location is required')
-      return false
-    }
-    
-    if (!hotelForm.email.trim() || !hotelForm.email.includes('@')) {
-      setError('Valid email is required')
       return false
     }
     
@@ -559,7 +562,6 @@ export default function ProfileCompletePage() {
       await hotelService.updateMyProfile({
         name: hotelForm.name,
         location: hotelForm.location,
-        email: hotelForm.email,
         about: hotelForm.about || undefined,
         website: hotelForm.website || undefined,
         phone: hotelForm.phone || undefined,
@@ -683,9 +685,7 @@ export default function ProfileCompletePage() {
         return !!(
           hotelForm.name.trim() &&
           hotelForm.name.trim().length >= 2 &&
-          hotelForm.location.trim() &&
-          hotelForm.email.trim() &&
-          hotelForm.email.includes('@')
+          hotelForm.location.trim()
         )
       }
       return true
@@ -870,65 +870,77 @@ export default function ProfileCompletePage() {
 
         {/* Creator Form */}
         {userType === 'creator' && (
-          <form onSubmit={currentStep === totalSteps ? handleCreatorSubmit : (e) => { e.preventDefault(); nextStep(); }} className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 space-y-8">
+          <form onSubmit={currentStep === totalSteps ? handleCreatorSubmit : (e) => { e.preventDefault(); nextStep(); }} className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-gray-200/50 p-8 md:p-10 space-y-10">
             {/* Step 1: Basic Information */}
             {currentStep === 1 && (
               <div className="space-y-6">
-              <h3 className="text-2xl font-semibold text-gray-900 border-b border-gray-200 pb-3">
-                Basic Information
-              </h3>
-              
-              <Input
-                label="Name"
-                type="text"
-                value={creatorForm.name}
-                onChange={(e) => setCreatorForm({ ...creatorForm, name: e.target.value })}
-                required
-                placeholder="Your display name"
-                error={error && error.includes('Name') ? error : undefined}
-                helperText={profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('name') ? '⚠️ This field is required' : undefined}
-              />
-              
-              <Input
-                label="Location"
-                type="text"
-                value={creatorForm.location}
-                onChange={(e) => setCreatorForm({ ...creatorForm, location: e.target.value })}
-                required
-                placeholder="e.g., New York, USA"
-                error={error && error.includes('Location') ? error : undefined}
-                helperText={profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('location') ? '⚠️ This field is required' : undefined}
-              />
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <UserIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">Basic Information</h3>
+                    <p className="text-sm text-gray-500">Your creator profile details</p>
+                  </div>
+                </div>
 
-              <Textarea
-                label="Short Description"
-                value={creatorForm.short_description}
-                onChange={(e) => setCreatorForm({ ...creatorForm, short_description: e.target.value })}
-                required
-                placeholder="Tell us about yourself (10-500 characters)"
-                rows={4}
-                maxLength={500}
-                error={error && error.includes('description') ? error : undefined}
-                helperText={`${creatorForm.short_description.length}/500 characters${profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('short_description') ? ' ⚠️ Required' : ''}`}
-              />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Input
+                    label="Name"
+                    type="text"
+                    value={creatorForm.name}
+                    onChange={(e) => setCreatorForm({ ...creatorForm, name: e.target.value })}
+                    required
+                    placeholder="Your display name"
+                    error={error && error.includes('Name') ? error : undefined}
+                    leadingIcon={<UserIcon className="w-5 h-5 text-gray-400" />}
+                  />
+                  
+                  <Input
+                    label="Location"
+                    type="text"
+                    value={creatorForm.location}
+                    onChange={(e) => setCreatorForm({ ...creatorForm, location: e.target.value })}
+                    required
+                    placeholder="e.g., New York, USA"
+                    error={error && error.includes('Location') ? error : undefined}
+                    leadingIcon={<MapPinIcon className="w-5 h-5 text-gray-400" />}
+                  />
+                </div>
 
-              <Input
-                label="Portfolio Link"
-                type="url"
-                value={creatorForm.portfolio_link}
-                onChange={(e) => setCreatorForm({ ...creatorForm, portfolio_link: e.target.value })}
-                placeholder="https://your-portfolio.com"
-                helperText="Optional - Your portfolio or website URL"
-              />
+                <Textarea
+                  label="Short Description"
+                  value={creatorForm.short_description}
+                  onChange={(e) => setCreatorForm({ ...creatorForm, short_description: e.target.value })}
+                  required
+                  placeholder="Tell us about yourself (10-500 characters)"
+                  rows={4}
+                  maxLength={500}
+                  error={error && error.includes('description') ? error : undefined}
+                  helperText={`${creatorForm.short_description.length}/500 characters`}
+                />
 
-              <Input
-                label="Phone"
-                type="tel"
-                value={creatorForm.phone}
-                onChange={(e) => setCreatorForm({ ...creatorForm, phone: e.target.value })}
-                placeholder="+1-555-123-4567"
-                helperText={undefined}
-              />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Input
+                    label="Portfolio Link"
+                    type="url"
+                    value={creatorForm.portfolio_link}
+                    onChange={(e) => setCreatorForm({ ...creatorForm, portfolio_link: e.target.value })}
+                    placeholder="https://your-portfolio.com"
+                    helperText="Optional - Your portfolio or website URL"
+                    leadingIcon={<LinkIcon className="w-5 h-5 text-gray-400" />}
+                  />
+
+                  <Input
+                    label="Phone"
+                    type="tel"
+                    value={creatorForm.phone}
+                    onChange={(e) => setCreatorForm({ ...creatorForm, phone: e.target.value })}
+                    placeholder="+1-555-123-4567"
+                    helperText={undefined}
+                    leadingIcon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
+                  />
+                </div>
               </div>
             )}
 
@@ -948,137 +960,176 @@ export default function ProfileCompletePage() {
                   </div>
                   <p className="text-sm text-gray-500 mt-1">
                     Add at least one platform <span className="font-semibold text-red-600">(required)</span>
-                    {profileStatus && 'missing_platforms' in profileStatus && profileStatus.missing_platforms && (
-                      <span className="ml-2 text-red-600 font-semibold">⚠️ Missing platforms</span>
-                    )}
                   </p>
                 </div>
               </div>
 
               {creatorPlatforms.length === 0 && (
-                <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center bg-gray-50/50">
-                  <SparklesIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 font-medium mb-2">No platforms added yet</p>
-                  <p className="text-sm text-gray-500">Click below to add your first social media platform</p>
+                <div className="border border-primary-200 rounded-2xl p-8 text-center bg-white shadow-sm">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary-50 flex items-center justify-center">
+                    <SparklesIcon className="w-6 h-6 text-primary-600" />
+                  </div>
+                  <p className="text-primary-800 font-semibold mb-2">No platforms added yet</p>
+                  <p className="text-sm text-gray-600">Add at least one social media platform to complete your profile.</p>
                 </div>
               )}
 
               {creatorPlatforms.map((platform, index) => (
-                <div key={index} className="border-2 border-gray-200 rounded-2xl p-6 space-y-5 bg-gradient-to-br from-white to-gray-50/50 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
-                        {index + 1}
+                <div
+                  key={index}
+                  className="border border-primary-100 rounded-2xl p-5 space-y-4 bg-white shadow-sm hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center justify-between mb-3 pb-3 border-b border-primary-100/70">
+                    <button
+                      type="button"
+                      onClick={() => togglePlatformCardCollapse(index)}
+                      className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
+                    >
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-semibold text-sm ${
+                        platform.name && platform.handle && platform.followers && platform.engagement_rate
+                          ? 'bg-green-50 text-green-700'
+                          : 'bg-primary-50 text-primary-700'
+                      }`}>
+                        {platform.name && platform.handle && platform.followers && platform.engagement_rate ? (
+                          <CheckCircleIcon className="w-5 h-5" />
+                        ) : (
+                          index + 1
+                        )}
                       </div>
-                      <h4 className="font-bold text-gray-900 text-lg">Platform {index + 1}</h4>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-gray-900">
+                            {platform.name || `Platform ${index + 1}`}
+                          </h4>
+                          {platform.name && platform.handle && platform.followers && platform.engagement_rate && (
+                            <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                              Complete
+                            </span>
+                          )}
+                        </div>
+                        {collapsedPlatformCards.has(index) && platform.name && (
+                          <p className="text-sm text-gray-500 mt-0.5">
+                            {platform.handle && `@${platform.handle.replace('@', '')}`} {platform.followers && `• ${Number(platform.followers).toLocaleString()} followers`}
+                          </p>
+                        )}
+                      </div>
+                      {collapsedPlatformCards.has(index) ? (
+                        <ChevronDownIcon className="w-5 h-5 text-gray-600" />
+                      ) : (
+                        <ChevronUpIcon className="w-5 h-5 text-gray-600" />
+                      )}
+                    </button>
+                    <div className="flex items-center gap-2">
+                      {creatorPlatforms.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removePlatform(index)}
+                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remove platform"
+                        >
+                          <XMarkIcon className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
-                    {creatorPlatforms.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removePlatform(index)}
-                        className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Remove platform"
-                      >
-                        <XMarkIcon className="w-5 h-5" />
-                      </button>
-                    )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Platform Name <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={platform.name}
-                        onChange={(e) => updatePlatform(index, 'name', e.target.value)}
+                  {!collapsedPlatformCards.has(index) && (
+                    <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Platform Name <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={platform.name}
+                          onChange={(e) => updatePlatform(index, 'name', e.target.value)}
+                          required
+                          className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white font-medium text-gray-900"
+                        >
+                          <option value="">Select platform</option>
+                          {PLATFORM_OPTIONS.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <Input
+                        label="Handle/Username"
+                        type="text"
+                        value={platform.handle}
+                        onChange={(e) => updatePlatform(index, 'handle', e.target.value)}
                         required
-                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white font-medium"
-                      >
-                        <option value="">Select platform</option>
-                        {PLATFORM_OPTIONS.map((opt) => (
-                          <option key={opt} value={opt}>
-                            {opt}
-                          </option>
-                        ))}
-                      </select>
+                        placeholder="@username or username"
+                      />
                     </div>
 
-                    <Input
-                      label="Handle/Username"
-                      type="text"
-                      value={platform.handle}
-                      onChange={(e) => updatePlatform(index, 'handle', e.target.value)}
-                      required
-                      placeholder="@username or username"
-                    />
-                  </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Followers"
+                        type="number"
+                        value={platform.followers}
+                        onChange={(e) => updatePlatform(index, 'followers', e.target.value === '' ? '' : parseInt(e.target.value))}
+                        required
+                        placeholder="0"
+                        min={1}
+                        helperText="Must be greater than 0"
+                      />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <Input
-                      label="Followers"
-                      type="number"
-                      value={platform.followers}
-                      onChange={(e) => updatePlatform(index, 'followers', e.target.value === '' ? '' : parseInt(e.target.value))}
-                      required
-                      placeholder="0"
-                      min={1}
-                      helperText="Must be greater than 0"
-                    />
-
-                    <Input
-                      label="Engagement Rate (%)"
-                      type="number"
-                      value={platform.engagement_rate}
-                      onChange={(e) => updatePlatform(index, 'engagement_rate', e.target.value === '' ? '' : parseFloat(e.target.value))}
-                      required
-                      placeholder="0.00"
-                      min={0.01}
-                      max={100}
-                      step="0.01"
-                      helperText="Must be greater than 0"
-                    />
-                  </div>
+                      <Input
+                        label="Engagement Rate (%)"
+                        type="number"
+                        value={platform.engagement_rate}
+                        onChange={(e) => updatePlatform(index, 'engagement_rate', e.target.value === '' ? '' : parseFloat(e.target.value))}
+                        required
+                        placeholder="0.00"
+                        min={0.01}
+                        max={100}
+                        step="0.01"
+                        helperText="Must be greater than 0"
+                      />
+                    </div>
 
                   {/* Optional Analytics Section */}
-                  <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="pt-3 border-t border-gray-200">
                     <button
                       type="button"
                       onClick={() => togglePlatformExpanded(index)}
-                      className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="w-full flex items-center justify-between p-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        <ChartBarIcon className="w-5 h-5 text-gray-600" />
-                        <span className="font-semibold text-gray-700">Analytics Data (Optional)</span>
+                        <ChartBarIcon className="w-4 h-4 text-gray-600" />
+                        <span className="text-sm font-semibold text-gray-700">Analytics Data (Optional)</span>
                       </div>
                       {expandedPlatforms.has(index) ? (
-                        <ChevronUpIcon className="w-5 h-5 text-gray-600" />
+                        <ChevronUpIcon className="w-4 h-4 text-gray-600" />
                       ) : (
-                        <ChevronDownIcon className="w-5 h-5 text-gray-600" />
+                        <ChevronDownIcon className="w-4 h-4 text-gray-600" />
                       )}
                     </button>
 
                     {expandedPlatforms.has(index) && (
-                      <div className="mt-4 space-y-6">
+                      <div className="mt-3 space-y-4">
                         {/* Top Countries */}
-                        <div>
-                          <div className="flex items-center justify-between mb-3">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
                             <label className="block text-sm font-semibold text-gray-700">
                               Top Countries
                             </label>
                             <button
                               type="button"
                               onClick={() => addTopCountry(index)}
-                              className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+                              className="px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors flex items-center gap-1.5"
                             >
-                              <PlusIcon className="w-4 h-4" />
+                              <PlusIcon className="w-3.5 h-3.5" />
                               Add Country
                             </button>
                           </div>
                           {platform.top_countries && platform.top_countries.length > 0 ? (
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                               {platform.top_countries.map((country, countryIndex) => (
-                                <div key={countryIndex} className="flex gap-3 items-end">
+                                <div key={countryIndex} className="flex gap-2 items-end">
                                   <div className="flex-1">
                                     <Input
                                       label="Country"
@@ -1111,29 +1162,31 @@ export default function ProfileCompletePage() {
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-500 italic">No countries added. Click "Add Country" to add one.</p>
+                            <div className="border border-dashed border-gray-200 rounded-lg p-4 bg-gray-50/50 text-center">
+                              <p className="text-sm text-gray-400">No countries added yet</p>
+                            </div>
                           )}
                         </div>
 
                         {/* Top Age Groups */}
-                        <div>
-                          <div className="flex items-center justify-between mb-3">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
                             <label className="block text-sm font-semibold text-gray-700">
                               Top Age Groups
                             </label>
                             <button
                               type="button"
                               onClick={() => addTopAgeGroup(index)}
-                              className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+                              className="px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors flex items-center gap-1.5"
                             >
-                              <PlusIcon className="w-4 h-4" />
+                              <PlusIcon className="w-3.5 h-3.5" />
                               Add Age Group
                             </button>
                           </div>
                           {platform.top_age_groups && platform.top_age_groups.length > 0 ? (
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                               {platform.top_age_groups.map((ageGroup, ageGroupIndex) => (
-                                <div key={ageGroupIndex} className="flex gap-3 items-end">
+                                <div key={ageGroupIndex} className="flex gap-2 items-end">
                                   <div className="flex-1">
                                     <Input
                                       label="Age Range"
@@ -1166,16 +1219,18 @@ export default function ProfileCompletePage() {
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-500 italic">No age groups added. Click "Add Age Group" to add one.</p>
+                            <div className="border border-dashed border-gray-200 rounded-lg p-4 bg-gray-50/50 text-center">
+                              <p className="text-sm text-gray-400">No age groups added yet</p>
+                            </div>
                           )}
                         </div>
 
                         {/* Gender Split */}
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-3">
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Gender Split (%)
                           </label>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-2 gap-3">
                             <Input
                               label="Male"
                               type="number"
@@ -1206,6 +1261,8 @@ export default function ProfileCompletePage() {
                       </div>
                     )}
                   </div>
+                    </>
+                  )}
                 </div>
               ))}
 
@@ -1221,8 +1278,9 @@ export default function ProfileCompletePage() {
             )}
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start gap-3">
+                <XMarkIcon className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800 font-medium">{error}</p>
               </div>
             )}
 
@@ -1283,6 +1341,7 @@ export default function ProfileCompletePage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
                   <Input
                     label="Hotel Name"
                     type="text"
@@ -1290,20 +1349,10 @@ export default function ProfileCompletePage() {
                     onChange={(e) => setHotelForm({ ...hotelForm, name: e.target.value })}
                     required
                     placeholder="Your hotel or company name"
-                  helperText={undefined}
-                  leadingIcon={<BuildingOfficeIcon className="w-5 h-5" />}
-                />
-
-                <Input
-                  label="Email"
-                  type="email"
-                  value={hotelForm.email}
-                  onChange={(e) => setHotelForm({ ...hotelForm, email: e.target.value })}
-                  required
-                  placeholder="contact@hotel.com"
-                  helperText={undefined}
-                  leadingIcon={<EnvelopeIcon className="w-5 h-5 text-gray-400" />}
-                />
+                    helperText={undefined}
+                    leadingIcon={<BuildingOfficeIcon className="w-5 h-5" />}
+                  />
+                </div>
 
                 <div className="md:col-span-2">
                   <Input
@@ -1320,45 +1369,35 @@ export default function ProfileCompletePage() {
                 </div>
               </div>
 
-              {/* Additional Information */}
               <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <SparklesIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900">Additional Information</h3>
-                </div>
-              </div>
+                <Textarea
+                  label="About"
+                  value={hotelForm.about}
+                  onChange={(e) => setHotelForm({ ...hotelForm, about: e.target.value })}
+                  placeholder="Describe your hotel, amenities, unique features, and what makes it special (10-5000 characters)"
+                  rows={6}
+                  maxLength={5000}
+                  required
+                  helperText={`${hotelForm.about.length}/5000 characters`}
+                  className="resize-none"
+                  error={error && error.includes('About') ? error : undefined}
+                />
 
-              <Textarea
-                label="About"
-                value={hotelForm.about}
-                onChange={(e) => setHotelForm({ ...hotelForm, about: e.target.value })}
-                placeholder="Describe your hotel, amenities, unique features, and what makes it special (10-5000 characters)"
-                rows={6}
-                maxLength={5000}
-                required
-                helperText={`${hotelForm.about.length}/5000 characters`}
-                className="resize-none"
-                error={error && error.includes('About') ? error : undefined}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Input
                     label="Website"
                     type="url"
                     value={hotelForm.website}
                     onChange={(e) => setHotelForm({ ...hotelForm, website: e.target.value })}
                     placeholder="https://your-hotel.com"
-                  required
-                  helperText={
-                    profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('website')
-                      ? undefined
-                      : undefined
-                  }
+                    required
+                    helperText={
+                      profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('website')
+                        ? undefined
+                        : undefined
+                    }
                     error={error && error.includes('Website') ? error : undefined}
-                  leadingIcon={<GlobeAltIcon className="w-5 h-5 text-gray-400" />}
+                    leadingIcon={<GlobeAltIcon className="w-5 h-5 text-gray-400" />}
                   />
 
                   <Input
@@ -1367,11 +1406,11 @@ export default function ProfileCompletePage() {
                     value={hotelForm.phone}
                     onChange={(e) => setHotelForm({ ...hotelForm, phone: e.target.value })}
                     placeholder="+1-555-123-4567"
-                  required
-                  helperText={undefined}
-                  leadingIcon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
+                    required
+                    helperText={undefined}
+                    leadingIcon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
                   />
-              </div>
+                </div>
               </div>
               </div>
             )}
