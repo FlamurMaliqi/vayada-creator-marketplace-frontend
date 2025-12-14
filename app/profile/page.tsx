@@ -379,21 +379,100 @@ export default function ProfilePage() {
   const loadProfile = async () => {
     setLoading(true)
     try {
-      // Check profile status
+      // Check profile status first
       const status = await checkProfileStatus(userType)
       setProfileStatus(status)
       
       if (status && !status.profile_complete) {
-        // Profile is incomplete - show empty state
+        // Profile is incomplete - show page without profile data
         setIsProfileIncomplete(true)
         setCreatorProfile(null)
         setHotelProfile(null)
-      } else {
-        // Profile is complete or status unavailable
-        setIsProfileIncomplete(false)
-        // Profile endpoints have been removed from backend
-        // Show empty state instead of trying to fetch
-        console.warn('Profile management endpoints are not available. Backend only supports authentication.')
+        return
+      }
+      
+      // Profile is complete, fetch profile data
+      setIsProfileIncomplete(false)
+      
+      if (userType === 'creator') {
+        try {
+          const apiProfile = await creatorService.getMyProfile()
+          // Transform API response to local CreatorProfile format
+          const profile: CreatorProfile = {
+            id: apiProfile.id,
+            name: apiProfile.name,
+            email: (apiProfile as any).email || '',
+            phone: (apiProfile as any).phone || undefined,
+            location: apiProfile.location,
+            portfolioLink: apiProfile.portfolioLink,
+            shortDescription: (apiProfile as any).shortDescription || '',
+            profilePicture: (apiProfile as any).profilePicture || undefined,
+            platforms: apiProfile.platforms || [],
+            rating: apiProfile.rating,
+            status: (apiProfile.status === 'verified' || apiProfile.status === 'pending' || apiProfile.status === 'rejected') 
+              ? apiProfile.status 
+              : 'pending',
+          }
+          setCreatorProfile(profile)
+        } catch (error) {
+          // Check if it's a 405 (Method Not Allowed) - endpoint not implemented yet
+          if (error instanceof ApiErrorResponse && error.status === 405) {
+            console.warn('Profile endpoint not yet implemented:', error.status)
+          } else {
+            console.error('Failed to fetch creator profile:', error)
+          }
+          // If profile fetch fails, still show the page (empty state will display)
+          setCreatorProfile(null)
+        }
+      } else if (userType === 'hotel') {
+        try {
+          const apiProfile = await hotelService.getMyProfile()
+          // Transform API response to local HotelProfile format
+          const profile: HotelProfile = {
+            id: apiProfile.id,
+            name: apiProfile.name,
+            email: apiProfile.email,
+            phone: apiProfile.phone || undefined,
+            location: apiProfile.location,
+            website: apiProfile.website || undefined,
+            about: apiProfile.about || undefined,
+            picture: apiProfile.picture ?? undefined,
+            status: (apiProfile.status === 'verified' || apiProfile.status === 'pending' || apiProfile.status === 'rejected') 
+              ? apiProfile.status 
+              : 'pending',
+            listings: (apiProfile.listings || []).map((listing: any) => ({
+              id: listing.id,
+              name: listing.name,
+              location: listing.location,
+              description: listing.description,
+              images: listing.images || [],
+              accommodationType: listing.accommodationType || listing.accommodation_type || undefined,
+              collaborationTypes: (listing.collaborationOfferings || listing.collaboration_offerings || []).map((offering: any) => offering.collaborationType || offering.collaboration_type),
+              availability: (listing.collaborationOfferings?.[0]?.availabilityMonths || listing.collaboration_offerings?.[0]?.availability_months || []),
+              platforms: (listing.collaborationOfferings?.[0]?.platforms || listing.collaboration_offerings?.[0]?.platforms || []),
+              freeStayMinNights: listing.collaborationOfferings?.[0]?.freeStayMinNights || listing.collaboration_offerings?.[0]?.free_stay_min_nights || undefined,
+              freeStayMaxNights: listing.collaborationOfferings?.[0]?.freeStayMaxNights || listing.collaboration_offerings?.[0]?.free_stay_max_nights || undefined,
+              paidMaxAmount: listing.collaborationOfferings?.[0]?.paidMaxAmount || listing.collaboration_offerings?.[0]?.paid_max_amount || undefined,
+              discountPercentage: listing.collaborationOfferings?.[0]?.discountPercentage || listing.collaboration_offerings?.[0]?.discount_percentage || undefined,
+              lookingForPlatforms: listing.creatorRequirements?.platforms || listing.creator_requirements?.platforms || [],
+              lookingForMinFollowers: listing.creatorRequirements?.minFollowers || listing.creator_requirements?.min_followers || undefined,
+              targetGroupCountries: listing.creatorRequirements?.targetCountries || listing.creator_requirements?.target_countries || [],
+              targetGroupAgeMin: listing.creatorRequirements?.targetAgeMin || listing.creator_requirements?.target_age_min || undefined,
+              targetGroupAgeMax: listing.creatorRequirements?.targetAgeMax || listing.creator_requirements?.target_age_max || undefined,
+              status: listing.status || 'pending',
+            })),
+          }
+          setHotelProfile(profile)
+        } catch (error) {
+          // Check if it's a 405 (Method Not Allowed) - endpoint not implemented yet
+          if (error instanceof ApiErrorResponse && error.status === 405) {
+            console.warn('Profile endpoint not yet implemented:', error.status)
+          } else {
+            console.error('Failed to fetch hotel profile:', error)
+          }
+          // If profile fetch fails, still show the page (empty state will display)
+          setHotelProfile(null)
+        }
       }
     } catch (error: unknown) {
       console.error(
@@ -1080,12 +1159,6 @@ export default function ProfilePage() {
   }
 
 
-  // Redirect to completion page if profile is incomplete
-  useEffect(() => {
-    if (!loading && isProfileIncomplete && profileStatus) {
-      router.push(ROUTES.PROFILE_COMPLETE)
-    }
-  }, [loading, isProfileIncomplete, profileStatus, router])
 
   return (
     <main className="min-h-screen bg-white">
@@ -2225,6 +2298,32 @@ export default function ProfilePage() {
                     )}
                   </div>
                 </>
+              )}
+
+              {/* Empty State - Profile data not available */}
+              {!loading && !creatorProfile && !hotelProfile && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                  <div className="max-w-md mx-auto">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-50 flex items-center justify-center">
+                      <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Profile Data Unavailable
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Your profile status is being checked, but profile data endpoints are currently unavailable. 
+                      You can still manage your profile through the profile completion page.
+                    </p>
+                    <Button
+                      variant="primary"
+                      onClick={() => router.push(ROUTES.PROFILE_COMPLETE)}
+                    >
+                      Go to Profile Completion
+                    </Button>
+                  </div>
+                </div>
               )}
             </>
           )}
