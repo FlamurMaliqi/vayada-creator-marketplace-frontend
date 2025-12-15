@@ -309,7 +309,7 @@ export default function ProfilePage() {
       genderSplit: platform.genderSplit || { male: 0, female: 0 },
     })),
     portfolioLink: apiCreator.portfolioLink,
-    email: apiCreator.email,
+    email: apiCreator.email || '', // Ensure email is always a string, default to empty if missing
     phone: apiCreator.phone || '',
   })
 
@@ -385,6 +385,27 @@ export default function ProfilePage() {
         }
       }),
     }
+  }
+
+  /**
+   * Format error detail for display
+   * Handles string, array of validation errors, or object
+   */
+  const formatErrorDetail = (detail: unknown): string => {
+    if (typeof detail === 'string') {
+      return detail
+    }
+    if (Array.isArray(detail)) {
+      // Pydantic validation errors: [{type, loc, msg, input, url}, ...]
+      return detail.map((err: any) => {
+        const field = Array.isArray(err.loc) ? err.loc.slice(1).join('.') : 'field'
+        return `${field}: ${err.msg || 'Validation error'}`
+      }).join('; ')
+    }
+    if (detail && typeof detail === 'object') {
+      return JSON.stringify(detail)
+    }
+    return 'An error occurred'
   }
 
   const loadProfile = async () => {
@@ -734,7 +755,7 @@ export default function ProfilePage() {
       const logError = error instanceof Error ? error : new Error(String(error))
       console.error('Failed to save hotel profile:', logError)
       if (detail) {
-        alert(`Failed to save profile: ${detail}`)
+        alert(`Failed to save profile: ${formatErrorDetail(detail)}`)
       } else {
         alert('Failed to save profile. Please try again.')
       }
@@ -801,7 +822,7 @@ export default function ProfilePage() {
       const logError = error instanceof Error ? error : new Error(String(error))
       console.error('Failed to save contact information:', logError)
       if (detail) {
-        alert(`Failed to save contact information: ${detail}`)
+        alert(`Failed to save contact information: ${formatErrorDetail(detail)}`)
       } else {
         alert('Failed to save contact information. Please try again.')
       }
@@ -954,13 +975,7 @@ export default function ProfilePage() {
       const logError = error instanceof Error ? error : new Error(String(error))
       console.error('Failed to save listing:', logError)
       if (detail) {
-        const errorDetail =
-          typeof detail === 'string'
-            ? detail
-            : Array.isArray(detail) && detail[0]?.msg
-              ? detail[0].msg
-              : 'Validation error'
-        alert(`Failed to save listing: ${errorDetail}`)
+        alert(`Failed to save listing: ${formatErrorDetail(detail)}`)
       } else {
         alert('Failed to save listing. Please try again.')
       }
@@ -1002,7 +1017,7 @@ export default function ProfilePage() {
       const logError = error instanceof Error ? error : new Error(String(error))
       console.error('Failed to delete listing:', logError)
       if (detail) {
-        alert(`Failed to delete listing: ${detail}`)
+        alert(`Failed to delete listing: ${formatErrorDetail(detail)}`)
       } else {
         alert('Failed to delete listing. Please try again.')
       }
@@ -1042,7 +1057,7 @@ export default function ProfilePage() {
         const logError = error instanceof Error ? error : new Error(String(error))
         console.error('Failed to upload listing images:', logError)
         if (detail) {
-          alert(`Failed to upload images: ${detail}`)
+          alert(`Failed to upload images: ${formatErrorDetail(detail)}`)
         } else {
           alert('Failed to upload images. Please try again.')
         }

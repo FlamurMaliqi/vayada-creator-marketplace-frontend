@@ -80,6 +80,27 @@ export default function ProfileCompletePage() {
   const [profileStatus, setProfileStatus] = useState<CreatorProfileStatus | HotelProfileStatus | null>(null)
   const [error, setError] = useState('')
   const [profileCompleted, setProfileCompleted] = useState(false)
+
+  /**
+   * Format error detail for display
+   * Handles string, array of validation errors, or object
+   */
+  const formatErrorDetail = (detail: unknown): string => {
+    if (typeof detail === 'string') {
+      return detail
+    }
+    if (Array.isArray(detail)) {
+      // Pydantic validation errors: [{type, loc, msg, input, url}, ...]
+      return detail.map((err: any) => {
+        const field = Array.isArray(err.loc) ? err.loc.slice(1).join('.') : 'field'
+        return `${field}: ${err.msg || 'Validation error'}`
+      }).join('; ')
+    }
+    if (detail && typeof detail === 'object') {
+      return JSON.stringify(detail)
+    }
+    return 'An error occurred'
+  }
   
   // Step management
   const [currentStep, setCurrentStep] = useState<number>(1)
@@ -628,7 +649,7 @@ export default function ProfileCompletePage() {
     } catch (error) {
       console.error('Failed to update profile:', error)
       if (error instanceof ApiErrorResponse) {
-        setError(error.data.detail as string || 'Failed to update profile')
+        setError(formatErrorDetail(error.data.detail) || 'Failed to update profile')
       } else {
         setError('Failed to update profile. Please try again.')
       }
@@ -647,6 +668,15 @@ export default function ProfileCompletePage() {
     
     setSubmitting(true)
     try {
+      // Get email from localStorage (stored during login) - backend requires it
+      const userEmail = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : null
+      
+      if (!userEmail) {
+        setError('Email is required. Please log in again.')
+        setSubmitting(false)
+        return
+      }
+      
       // Update hotel profile
       await hotelService.updateMyProfile({
         name: hotelForm.name,
@@ -654,6 +684,7 @@ export default function ProfileCompletePage() {
         about: hotelForm.about || undefined,
         website: hotelForm.website || undefined,
         phone: hotelForm.phone || undefined,
+        email: userEmail, // Backend requires email
       })
       
       // Create listings
@@ -734,7 +765,7 @@ export default function ProfileCompletePage() {
     } catch (error) {
       console.error('Failed to update profile:', error)
       if (error instanceof ApiErrorResponse) {
-        setError(error.data.detail as string || 'Failed to update profile')
+        setError(formatErrorDetail(error.data.detail) || 'Failed to update profile')
       } else {
         setError('Failed to update profile. Please try again.')
       }
