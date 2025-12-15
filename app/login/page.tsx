@@ -5,11 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants/routes'
 import { Button, Input } from '@/components/ui'
-import { Navigation, Footer } from '@/components/layout'
 import { authService } from '@/services/auth'
 import { ApiErrorResponse } from '@/services/api/client'
 import { checkProfileStatus } from '@/lib/utils'
 import type { UserType } from '@/lib/types'
+import { EyeIcon, EyeSlashIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -19,6 +19,7 @@ export default function LoginPage() {
     email: '',
     password: '',
   })
+  const [showPassword, setShowPassword] = useState(false)
   const [emailError, setEmailError] = useState('')
   const [submitError, setSubmitError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -139,28 +140,48 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex flex-col">
-      <Navigation />
-      
-      <main className="flex-1 pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-lg mx-auto">
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-8 py-6 text-center">
-              <h1 className="text-3xl font-bold text-white">vayada</h1>
+    <div className="min-h-screen flex">
+      {/* Left Side - Sign In Form (50% width) */}
+      <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-8 relative">
+        {/* Back to Home Button */}
+        <Link
+          href={ROUTES.HOME}
+          className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors"
+        >
+          <ArrowLeftIcon className="w-5 h-5" />
+          <span className="text-sm font-medium">Back to Home</span>
+        </Link>
+        
+        <div className="w-full max-w-md">
+          {/* Logo/Icon */}
+          <div className="mb-8">
+            <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center mb-6">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
             </div>
+          </div>
 
-            <form onSubmit={handleSubmit} className="p-8 space-y-6">
-              {tokenExpired && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-sm text-yellow-800 font-medium">
-                    Your session has expired. Please login again.
-                  </p>
-                </div>
-              )}
+          {/* Title */}
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Sign in</h1>
+          <p className="text-gray-600 mb-8">Enter your credentials to access your account</p>
 
-              <Input
-                label="Email address"
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {tokenExpired && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800 font-medium">
+                  Your session has expired. Please login again.
+                </p>
+              </div>
+            )}
+
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email address
+              </label>
+              <input
+                id="email"
                 type="email"
                 name="email"
                 value={formData.email}
@@ -168,81 +189,98 @@ export default function LoginPage() {
                 required
                 placeholder="you@example.com"
                 autoComplete="email"
-                error={emailError}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                  emailError ? 'border-red-300' : 'border-gray-300'
+                }`}
               />
+              {emailError && (
+                <p className="mt-1 text-sm text-red-600">{emailError}</p>
+              )}
+            </div>
 
-              <div>
-                <Input
-                  label="Password"
-                  type="password"
+            {/* Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   required
                   placeholder="Enter your password"
                   autoComplete="current-password"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-12"
                 />
-                <div className="mt-2 text-right">
-                  <Link
-                    href={ROUTES.FORGOT_PASSWORD}
-                    className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-              </div>
-
-              {submitError && (
-                <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 shadow-sm">
-                  <div className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-sm text-red-800 font-semibold">{submitError}</p>
-                      <p className="text-xs text-red-600 mt-1">Please check your credentials and try again.</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setSubmitError('')}
-                      className="text-red-400 hover:text-red-600 transition-colors flex-shrink-0"
-                      aria-label="Dismiss error"
-                    >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                className="w-full"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Signing In...' : 'Sign In'}
-              </Button>
-            </form>
-
-            <div className="px-8 pb-8 text-center border-t border-gray-200 pt-6">
-              <p className="text-sm text-gray-600">
-                Don't have an account?{' '}
-                <Link
-                  href={ROUTES.SIGNUP}
-                  className="text-primary-600 hover:text-primary-700 font-semibold"
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
-                  Sign up
+                  {showPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              <div className="mt-2 text-right">
+                <Link
+                  href={ROUTES.FORGOT_PASSWORD}
+                  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Forgot password?
                 </Link>
-              </p>
+              </div>
             </div>
+
+            {/* Error Message */}
+            {submitError && (
+              <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                <p className="text-sm text-red-800 font-semibold">{submitError}</p>
+              </div>
+            )}
+
+            {/* Sign In Button */}
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Signing In...' : 'Sign In'}
+            </Button>
+          </form>
+
+          {/* Sign Up Link */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <Link
+                href={ROUTES.SIGNUP}
+                className="text-primary-600 hover:text-primary-700 font-semibold"
+              >
+                Sign up
+              </Link>
+            </p>
           </div>
         </div>
-      </main>
+      </div>
 
-      <Footer />
+      {/* Right Side - Image (50% width) */}
+      <div className="hidden lg:block lg:w-1/2 relative">
+        <div className="absolute inset-0">
+          <img
+            src="/hotel-hero.JPG"
+            alt="Luxury hotel resort"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
     </div>
   )
 }
