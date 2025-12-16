@@ -37,7 +37,7 @@ export default function LoginPage() {
       ...prev,
       [name]: value,
     }))
-    
+
     // Clear email validation errors when user types
     if (name === 'email' && emailError) {
       setEmailError('')
@@ -53,26 +53,26 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Clear previous errors
     setEmailError('')
     setSubmitError('')
-    
+
     // Validate email format
     if (!validateEmail(formData.email)) {
       setEmailError('Please enter a valid email address')
       return
     }
-    
+
     setIsSubmitting(true)
-    
+
     try {
       // Call login API (token is automatically stored by authService)
       const response = await authService.login({
         email: formData.email,
         password: formData.password,
       })
-      
+
       // Check profile status after login
       const userType = response.type as UserType
       if (userType === 'creator' || userType === 'hotel') {
@@ -92,15 +92,15 @@ export default function LoginPage() {
           console.error('Failed to check profile status:', error)
         }
       }
-      
+
       // Profile is complete or status check failed, redirect to marketplace
       router.push(ROUTES.MARKETPLACE)
     } catch (error) {
       setIsSubmitting(false)
-      
+
       // Clear password field for security
       setFormData(prev => ({ ...prev, password: '' }))
-      
+
       if (error instanceof ApiErrorResponse) {
         // Handle different error status codes
         if (error.status === 401) {
@@ -151,7 +151,7 @@ export default function LoginPage() {
           <ArrowLeftIcon className="w-5 h-5" />
           <span className="text-sm font-medium">Back to Home</span>
         </Link>
-        
+
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="mb-8">
@@ -189,9 +189,8 @@ export default function LoginPage() {
                 required
                 placeholder="you@example.com"
                 autoComplete="email"
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                  emailError ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 ${emailError ? 'border-red-300' : 'border-gray-300'
+                  }`}
               />
               {emailError && (
                 <p className="mt-1 text-sm text-red-600">{emailError}</p>
@@ -213,7 +212,7 @@ export default function LoginPage() {
                   required
                   placeholder="Enter your password"
                   autoComplete="current-password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-12"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-12 text-gray-900"
                 />
                 <button
                   type="button"

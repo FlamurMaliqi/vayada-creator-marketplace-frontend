@@ -44,7 +44,7 @@ function SignUpForm() {
       ...prev,
       [name]: value,
     }))
-    
+
     // Clear errors when user types
     if (name === 'confirmPassword' && (confirmPasswordError || passwordError)) {
       setConfirmPasswordError('')
@@ -72,39 +72,39 @@ function SignUpForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Clear previous errors
     setPasswordError('')
     setConfirmPasswordError('')
     setEmailError('')
     setSubmitError('')
-    
+
     // Validate terms acceptance
     if (!termsAccepted) {
       setSubmitError('You must agree to the Terms & Privacy to continue')
       return
     }
-    
+
     // Validate email format
     if (!validateEmail(formData.email)) {
       setEmailError('Please enter a valid email address')
       return
     }
-    
+
     // Validate password length
     if (!validatePassword(formData.password)) {
       setPasswordError('Password must be at least 8 characters')
       return
     }
-    
+
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       setConfirmPasswordError('Passwords do not match')
       return
     }
-    
+
     setIsSubmitting(true)
-    
+
     try {
       // Prepare registration data
       const registrationData = {
@@ -113,10 +113,10 @@ function SignUpForm() {
         type: formData.userType as 'creator' | 'hotel',
         ...(formData.name.trim() && { name: formData.name.trim() }),
       }
-      
+
       // Call registration API (token is automatically stored by authService)
       const response = await authService.register(registrationData)
-      
+
       // Check profile status after registration
       const userType = response.type as UserType
       if (userType === 'creator' || userType === 'hotel') {
@@ -136,14 +136,14 @@ function SignUpForm() {
           console.error('Failed to check profile status:', error)
         }
       }
-      
+
       // Profile is complete or status check failed, redirect to marketplace
       router.push(ROUTES.MARKETPLACE)
     } catch (error) {
       setIsSubmitting(false)
-      
+
       if (error instanceof ApiErrorResponse) {
-              // Handle different error status codes
+        // Handle different error status codes
         if (error.status === 400) {
           // Email already registered
           setEmailError(error.data.detail as string || 'Email already registered')
@@ -263,7 +263,7 @@ function SignUpForm() {
                 onChange={handleChange}
                 placeholder="Your name"
                 autoComplete="name"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white text-gray-900"
               />
             </div>
 
@@ -281,9 +281,8 @@ function SignUpForm() {
                 required
                 placeholder="you@example.com"
                 autoComplete="email"
-                className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white ${
-                  emailError ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white text-gray-900 ${emailError ? 'border-red-300' : 'border-gray-300'
+                  }`}
               />
               {emailError && (
                 <p className="mt-1 text-sm text-red-600">{emailError}</p>
@@ -305,9 +304,8 @@ function SignUpForm() {
                   required
                   placeholder="min 8 characters"
                   autoComplete="new-password"
-                  className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white pr-12 ${
-                    passwordError ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white pr-12 text-gray-900 ${passwordError ? 'border-red-300' : 'border-gray-300'
+                    }`}
                 />
                 <button
                   type="button"
@@ -341,9 +339,8 @@ function SignUpForm() {
                   required
                   placeholder="Repeat password"
                   autoComplete="new-password"
-                  className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white pr-12 ${
-                    confirmPasswordError ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white pr-12 text-gray-900 ${confirmPasswordError ? 'border-red-300' : 'border-gray-300'
+                    }`}
                 />
                 <button
                   type="button"

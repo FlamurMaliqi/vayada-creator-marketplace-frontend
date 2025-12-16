@@ -17,7 +17,7 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    
+
     if (!email) {
       setError('Please enter your email address')
       return
@@ -162,9 +162,8 @@ export default function ForgotPasswordPage() {
                 placeholder="you@example.com"
                 autoComplete="email"
                 disabled={isSubmitting}
-                className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white ${
-                  error ? 'border-red-300' : 'border-gray-300'
-                } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white text-gray-900 ${error ? 'border-red-300' : 'border-gray-300'
+                  } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
               />
               {error && (
                 <p className="mt-1 text-sm text-red-600">{error}</p>
