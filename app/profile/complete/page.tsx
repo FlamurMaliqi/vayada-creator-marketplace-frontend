@@ -30,6 +30,7 @@ import {
   CurrencyDollarIcon,
   TagIcon,
   CalendarDaysIcon,
+  ArrowLeftIcon,
 } from '@heroicons/react/24/outline'
 
 const HOTEL_CATEGORIES = [
@@ -102,6 +103,61 @@ export default function ProfileCompletePage() {
     return 'An error occurred'
   }
 
+  // Real-time progress calculation
+  const calculateProgress = (): number => {
+    if (!userType) return 0
+
+    if (userType === 'creator') {
+      let progress = 0
+      // Step 1: Basic Info (50% total)
+      if (creatorForm.name.trim()) progress += 10
+      if (creatorForm.location.trim()) progress += 10
+      if (creatorForm.short_description.trim() && creatorForm.short_description.length >= 10) progress += 10
+      if (creatorForm.phone.trim()) progress += 10
+      if (creatorForm.profile_image) progress += 10
+
+      // Step 2: Platforms (50% total)
+      if (creatorPlatforms.length > 0) {
+        progress += 20 // Base points for having a platform
+
+        // check first platform for details (30% max)
+        const firstPlatform = creatorPlatforms[0]
+        if (firstPlatform.name) progress += 5
+        if (firstPlatform.handle) progress += 5
+        if (firstPlatform.followers !== '') progress += 10
+        if (firstPlatform.engagement_rate !== '') progress += 10
+      }
+
+      return Math.min(100, progress)
+    }
+
+    if (userType === 'hotel') {
+      let progress = 0
+      // Step 1: Basic Info (50% total)
+      if (hotelForm.name.trim() && hotelForm.name.length >= 2) progress += 10
+      if (hotelForm.location.trim()) progress += 10
+      if (hotelForm.about.trim() && hotelForm.about.length >= 50) progress += 10
+      if (hotelForm.website.trim()) progress += 10
+      if (hotelForm.phone.trim()) progress += 10
+
+      // Step 2: Listings (50% total)
+      if (hotelListings.length > 0) {
+        progress += 20
+        // check first listing for details
+        const firstListing = hotelListings[0]
+        if (firstListing.name) progress += 5
+        if (firstListing.location) progress += 5
+        if (firstListing.description && firstListing.description.length >= 10) progress += 5
+        if (firstListing.collaborationTypes.length > 0) progress += 5
+        if (firstListing.availability.length > 0) progress += 10
+      }
+
+      return Math.min(100, progress)
+    }
+
+    return 0
+  }
+
   // Step management
   const [currentStep, setCurrentStep] = useState<number>(1)
   const creatorSteps = ['Basic Information', 'Social Media Platforms']
@@ -114,6 +170,7 @@ export default function ProfileCompletePage() {
     short_description: '',
     portfolio_link: '',
     phone: '',
+    profile_image: '',
   })
   const [creatorPlatforms, setCreatorPlatforms] = useState<PlatformFormData[]>([])
   const [expandedPlatforms, setExpandedPlatforms] = useState<Set<number>>(new Set())
@@ -150,6 +207,7 @@ export default function ProfileCompletePage() {
   }
   const [hotelListings, setHotelListings] = useState<ListingFormData[]>([])
   const listingImageInputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const creatorImageInputRef = useRef<HTMLInputElement>(null)
   const [collapsedListingCards, setCollapsedListingCards] = useState<Set<number>>(new Set())
   const [expandedContinents, setExpandedContinents] = useState<Record<number, Set<string>>>({})
 
@@ -604,6 +662,33 @@ export default function ProfileCompletePage() {
     setHotelListings(updated)
   }
 
+  const handleCreatorImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const file = files[0]
+    // Validate file type (image only)
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file (JPG, PNG, WebP)')
+      return
+    }
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be less than 5MB')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setCreatorForm(prev => ({
+        ...prev,
+        profile_image: reader.result as string
+      }))
+      setError('') // Clear any previous errors
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleCreatorSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -659,6 +744,9 @@ export default function ProfileCompletePage() {
         }),
         ...(creatorForm.phone && creatorForm.phone.trim() && {
           phone: creatorForm.phone.trim(),
+        }),
+        ...(creatorForm.profile_image && {
+          profilePicture: creatorForm.profile_image,
         }),
       }
 
@@ -870,7 +958,14 @@ export default function ProfileCompletePage() {
       <div className="min-h-screen bg-white relative">
         {/* Header */}
         <div className="absolute top-0 left-0 right-0 bg-white border-b border-gray-200 px-6 py-4 z-20">
-          <div className="max-w-4xl mx-auto flex items-center">
+          <div className="max-w-4xl mx-auto flex items-center justify-center relative">
+            <a
+              href="/"
+              className="absolute left-0 p-2 -ml-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+              title="Back to Home"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+            </a>
             <div className="flex items-center gap-2">
               <Image
                 src="/vayada-logo.svg"
@@ -915,9 +1010,12 @@ export default function ProfileCompletePage() {
 
   const steps = userType === 'creator' ? creatorSteps : hotelSteps
   const totalSteps = steps.length
-  const completionPercentage = profileStatus.profile_complete
+
+  // Use real-time calculation if available, otherwise fall back to profile status
+  // But strictly prioritize real-time form state for immediate feedback
+  const completionPercentage = profileStatus?.profile_complete
     ? 100
-    : Math.max(0, 100 - (profileStatus.completion_steps.length * 20))
+    : calculateProgress()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 relative overflow-hidden">
@@ -930,7 +1028,14 @@ export default function ProfileCompletePage() {
 
       {/* Minimal Header */}
       <div className="relative bg-white/80 backdrop-blur-md border-b border-gray-200/50 px-6 py-4 shadow-sm">
-        <div className="max-w-4xl mx-auto flex items-center">
+        <div className="max-w-4xl mx-auto flex items-center justify-center relative">
+          <a
+            href="/"
+            className="absolute left-0 p-2 -ml-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+            title="Back to Home"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+          </a>
           <div className="flex items-center gap-2">
             <Image
               src="/vayada-logo.svg"
@@ -943,7 +1048,7 @@ export default function ProfileCompletePage() {
         </div>
       </div>
 
-      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
@@ -958,28 +1063,31 @@ export default function ProfileCompletePage() {
           </div>
         </div>
 
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl mb-6 shadow-lg transform hover:scale-105 transition-transform">
-            {userType === 'creator' ? (
-              <UserIcon className="w-10 h-10 text-white" />
-            ) : (
-              <BuildingOfficeIcon className="w-10 h-10 text-white" />
-            )}
+        {/* Compact Header Card with Steps */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-5 flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Left: Title & Subtitle */}
+          <div className="flex items-center gap-3 text-center md:text-left">
+            <div className="flex-shrink-0 w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center shadow-sm">
+              {userType === 'creator' ? (
+                <UserIcon className="w-5 h-5 text-white" />
+              ) : (
+                <BuildingOfficeIcon className="w-5 h-5 text-white" />
+              )}
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900 leading-tight">
+                Complete Your Profile
+              </h1>
+              <p className="text-xs text-gray-500 max-w-xs">
+                {userType === 'creator'
+                  ? 'Add info to connect with hotels'
+                  : 'Update info to collaborate'}
+              </p>
+            </div>
           </div>
-          <h2 className="text-5xl font-extrabold text-gray-900 mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
-            Complete Your Profile
-          </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            {userType === 'creator'
-              ? 'Add your information to start connecting with hotels and unlock amazing collaboration opportunities'
-              : 'Update your hotel information to start collaborating with creators and grow your brand'}
-          </p>
-        </div>
 
-        {/* Step Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center">
+          {/* Right: Step Indicators */}
+          <div className="flex items-center">
             {steps.map((step, index) => {
               const stepNumber = index + 1
               const isActive = currentStep === stepNumber
@@ -989,21 +1097,21 @@ export default function ProfileCompletePage() {
                 <div key={index} className="flex items-center">
                   <div className="flex flex-col items-center">
                     <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm transition-all ${isActive
-                          ? 'bg-primary-600 text-white shadow-lg scale-110'
-                          : isCompleted
-                            ? 'bg-green-500 text-white'
-                            : 'bg-gray-200 text-gray-600'
+                      className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all ${isActive
+                        ? 'bg-primary-600 text-white shadow-md'
+                        : isCompleted
+                          ? 'bg-primary-600 text-white'
+                          : 'bg-gray-100 text-gray-400'
                         }`}
                     >
                       {isCompleted ? (
-                        <CheckCircleIcon className="w-6 h-6" />
+                        <CheckCircleIcon className="w-4 h-4 text-white" />
                       ) : (
                         stepNumber
                       )}
                     </div>
                     <span
-                      className={`mt-2 text-sm font-medium ${isActive ? 'text-primary-600' : isCompleted ? 'text-green-600' : 'text-gray-500'
+                      className={`mt-1 text-[10px] font-medium uppercase tracking-wide ${isActive ? 'text-primary-700' : isCompleted ? 'text-primary-700' : 'text-gray-400'
                         }`}
                     >
                       {step}
@@ -1011,7 +1119,7 @@ export default function ProfileCompletePage() {
                   </div>
                   {index < steps.length - 1 && (
                     <div
-                      className={`w-24 h-1 mx-4 transition-all ${isCompleted ? 'bg-green-500' : currentStep > stepNumber ? 'bg-primary-300' : 'bg-gray-200'
+                      className={`w-8 h-0.5 mx-2 mb-3.5 ${isCompleted ? 'bg-primary-200' : 'bg-gray-100'
                         }`}
                     />
                   )}
@@ -1023,152 +1131,212 @@ export default function ProfileCompletePage() {
 
         {/* Creator Form */}
         {userType === 'creator' && (
-          <form onSubmit={currentStep === totalSteps ? handleCreatorSubmit : (e) => { e.preventDefault(); nextStep(); }} className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-gray-200/50 p-8 md:p-10 space-y-10">
+          <form onSubmit={currentStep === totalSteps ? handleCreatorSubmit : (e) => { e.preventDefault(); nextStep(); }} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-5">
             {/* Step 1: Basic Information */}
             {currentStep === 1 && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <UserIcon className="w-6 h-6 text-white" />
-                  </div>
+              <div className="space-y-5">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-2">
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">Basic Information</h3>
-                    <p className="text-sm text-gray-500">Your creator profile details</p>
+                    <h3 className="text-lg font-bold text-gray-900">Basic Information</h3>
+                    <p className="text-xs text-gray-500">Your creator profile details</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Input
-                    label="Name"
-                    type="text"
-                    value={creatorForm.name}
-                    onChange={(e) => setCreatorForm({ ...creatorForm, name: e.target.value })}
-                    required
-                    placeholder="Your display name"
-                    error={error && error.includes('Name') ? error : undefined}
-                    leadingIcon={<UserIcon className="w-5 h-5 text-gray-400" />}
-                  />
+                <div className="flex flex-col-reverse md:flex-row gap-5">
+                  {/* Left Column: Name & Location */}
+                  <div className="flex-1 space-y-3">
+                    <Input
+                      label="Name"
+                      type="text"
+                      value={creatorForm.name}
+                      onChange={(e) => setCreatorForm({ ...creatorForm, name: e.target.value })}
+                      required
+                      placeholder="Your full name"
+                      error={error && error.includes('Name') ? error : undefined}
+                      leadingIcon={<UserIcon className="w-5 h-5 text-gray-400" />}
+                    />
 
-                  <Input
-                    label="Location"
-                    type="text"
-                    value={creatorForm.location}
-                    onChange={(e) => setCreatorForm({ ...creatorForm, location: e.target.value })}
+                    <Input
+                      label="Location"
+                      type="text"
+                      value={creatorForm.location}
+                      onChange={(e) => setCreatorForm({ ...creatorForm, location: e.target.value })}
+                      required
+                      placeholder="e.g., New York, USA"
+                      error={error && error.includes('Location') ? error : undefined}
+                      leadingIcon={<MapPinIcon className="w-5 h-5 text-gray-400" />}
+                    />
+                  </div>
+
+                  {/* Right Column: Profile Picture */}
+                  <div className="w-full md:w-auto flex flex-col items-center gap-2">
+                    <span className="text-xs font-semibold text-gray-700">Profile Picture</span>
+                    <div
+                      className="relative w-40 h-40 rounded-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-primary-500 hover:bg-gray-50 transition-all overflow-hidden bg-gray-50 group"
+                      onClick={() => creatorImageInputRef.current?.click()}
+                    >
+                      {creatorForm.profile_image ? (
+                        <>
+                          <img
+                            src={creatorForm.profile_image}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-white text-[10px] font-medium">Change</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-6 h-6 text-gray-400 mb-1 group-hover:text-primary-500 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                            </svg>
+                          </div>
+                          <span className="text-[10px] text-gray-500 font-medium group-hover:text-primary-600">Upload</span>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      ref={creatorImageInputRef}
+                      onChange={handleCreatorImageChange}
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Textarea
+                    label="Creator Biography"
+                    value={creatorForm.short_description}
+                    onChange={(e) => setCreatorForm({ ...creatorForm, short_description: e.target.value })}
                     required
-                    placeholder="e.g., New York, USA"
-                    error={error && error.includes('Location') ? error : undefined}
-                    leadingIcon={<MapPinIcon className="w-5 h-5 text-gray-400" />}
+                    placeholder="Tell us about yourself as a travel creator"
+                    rows={3}
+                    maxLength={500}
+                    error={error && error.includes('description') ? error : undefined}
+                    helperText={`${creatorForm.short_description.length}/500 characters`}
                   />
                 </div>
 
-                <Textarea
-                  label="Short Description"
-                  value={creatorForm.short_description}
-                  onChange={(e) => setCreatorForm({ ...creatorForm, short_description: e.target.value })}
-                  required
-                  placeholder="Tell us about yourself (50-500 characters)"
-                  rows={4}
-                  maxLength={500}
-                  error={error && error.includes('description') ? error : undefined}
-                  helperText={`${creatorForm.short_description.length}/500 characters`}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <h4 className="text-sm font-bold text-gray-700">Portfolio Link</h4>
                   <Input
-                    label="Portfolio Link"
+                    label=""
                     type="url"
                     value={creatorForm.portfolio_link}
                     onChange={(e) => setCreatorForm({ ...creatorForm, portfolio_link: e.target.value })}
                     placeholder="https://your-portfolio.com"
-                    helperText="Optional - Your portfolio or website URL"
+                    helperText="Optional - Your website, media kit, or best-performing content URL"
                     leadingIcon={<LinkIcon className="w-5 h-5 text-gray-400" />}
                   />
-
-                  <Input
-                    label="Phone"
-                    type="tel"
-                    value={creatorForm.phone}
-                    onChange={(e) => setCreatorForm({ ...creatorForm, phone: e.target.value })}
-                    placeholder="+1-555-123-4567"
-                    helperText={undefined}
-                    leadingIcon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
-                  />
                 </div>
+
+                <div className="space-y-4 pt-2">
+                  <div>
+                    <h4 className="text-base font-bold text-gray-900">Contact Information</h4>
+                    <p className="text-sm text-gray-500 mt-1">Your email & phone number for direct communication with properties after both accept a collaboration</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      label="Email"
+                      type="email"
+                      value={typeof window !== 'undefined' ? localStorage.getItem('userEmail') || '' : ''}
+                      disabled
+                      required
+                      leadingIcon={<EnvelopeIcon className="w-5 h-5 text-gray-400" />}
+                      className="bg-gray-50 text-gray-500"
+                    />
+                    <Input
+                      label="Phone"
+                      type="tel"
+                      required
+                      value={creatorForm.phone}
+                      onChange={(e) => setCreatorForm({ ...creatorForm, phone: e.target.value })}
+                      placeholder="+1-555-123-4567"
+                      leadingIcon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
+                    />
+                  </div>
+                </div>
+
               </div>
             )}
 
             {/* Step 2: Platforms Section */}
             {currentStep === 2 && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-                    <SparklesIcon className="w-6 h-6 text-white" />
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-sm">
+                    <SparklesIcon className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-2xl font-bold text-gray-900">Social Media Platforms</h3>
-                      <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-semibold">
+                      <h3 className="text-lg font-bold text-gray-900">Platforms & Audience</h3>
+                      <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-semibold">
                         {creatorPlatforms.length} platform{creatorPlatforms.length !== 1 ? 's' : ''}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500">
                       Add at least one platform <span className="font-semibold text-red-600">(required)</span>
                     </p>
                   </div>
                 </div>
 
                 {creatorPlatforms.length === 0 && (
-                  <div className="border border-primary-200 rounded-2xl p-8 text-center bg-white shadow-sm">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary-50 flex items-center justify-center">
-                      <SparklesIcon className="w-6 h-6 text-primary-600" />
+                  <div className="border border-primary-200 rounded-xl p-6 text-center bg-white shadow-sm border-dashed">
+                    <div className="w-10 h-10 mx-auto mb-2 rounded-lg bg-primary-50 flex items-center justify-center">
+                      <SparklesIcon className="w-5 h-5 text-primary-600" />
                     </div>
-                    <p className="text-primary-800 font-semibold mb-2">No platforms added yet</p>
-                    <p className="text-sm text-gray-600">Add at least one social media platform to complete your profile.</p>
+                    <p className="text-primary-800 font-semibold mb-1 text-sm">No platforms added yet</p>
+                    <p className="text-xs text-gray-600">Add at least one social media platform to complete your profile.</p>
                   </div>
                 )}
 
                 {creatorPlatforms.map((platform, index) => (
                   <div
                     key={index}
-                    className="border border-primary-100 rounded-2xl p-5 space-y-4 bg-white shadow-sm hover:shadow-md transition-all"
+                    className="border border-primary-100 rounded-xl p-4 space-y-3 bg-white shadow-sm hover:shadow-md transition-all"
                   >
-                    <div className="flex items-center justify-between mb-3 pb-3 border-b border-primary-100/70">
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-primary-100/70">
                       <button
                         type="button"
                         onClick={() => togglePlatformCardCollapse(index)}
                         className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
                       >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-semibold text-sm ${platform.name && platform.handle && platform.followers && platform.engagement_rate
-                            ? 'bg-green-50 text-green-700'
-                            : 'bg-primary-50 text-primary-700'
+                        <div className={`w-7 h-7 rounded-md flex items-center justify-center font-semibold text-xs ${platform.name && platform.handle && platform.followers && platform.engagement_rate
+                          ? 'bg-green-50 text-green-700'
+                          : 'bg-primary-50 text-primary-700'
                           }`}>
                           {platform.name && platform.handle && platform.followers && platform.engagement_rate ? (
-                            <CheckCircleIcon className="w-5 h-5" />
+                            <CheckCircleIcon className="w-4 h-4" />
                           ) : (
                             index + 1
                           )}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-gray-900">
+                            <h4 className="font-bold text-gray-900 text-sm">
                               {platform.name || `Platform ${index + 1}`}
                             </h4>
                             {platform.name && platform.handle && platform.followers && platform.engagement_rate && (
-                              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                              <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
                                 Complete
                               </span>
                             )}
                           </div>
                           {collapsedPlatformCards.has(index) && platform.name && (
-                            <p className="text-sm text-gray-500 mt-0.5">
+                            <p className="text-xs text-gray-500 mt-0">
                               {platform.handle && `@${platform.handle.replace('@', '')}`} {platform.followers && `• ${Number(platform.followers).toLocaleString()} followers`}
                             </p>
                           )}
                         </div>
                         {collapsedPlatformCards.has(index) ? (
-                          <ChevronDownIcon className="w-5 h-5 text-gray-600" />
+                          <ChevronDownIcon className="w-4 h-4 text-gray-600" />
                         ) : (
-                          <ChevronUpIcon className="w-5 h-5 text-gray-600" />
+                          <ChevronUpIcon className="w-4 h-4 text-gray-600" />
                         )}
                       </button>
                       <div className="flex items-center gap-2">
@@ -1176,10 +1344,10 @@ export default function ProfileCompletePage() {
                           <button
                             type="button"
                             onClick={() => removePlatform(index)}
-                            className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1 rounded-md text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
                             title="Remove platform"
                           >
-                            <XMarkIcon className="w-4 h-4" />
+                            <XMarkIcon className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>
@@ -1187,16 +1355,16 @@ export default function ProfileCompletePage() {
 
                     {!collapsedPlatformCards.has(index) && (
                       <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">
                               Platform Name <span className="text-red-500">*</span>
                             </label>
                             <select
                               value={platform.name}
                               onChange={(e) => updatePlatform(index, 'name', e.target.value)}
                               required
-                              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white font-medium text-gray-900"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white text-sm text-gray-900"
                             >
                               <option value="">Select platform</option>
                               {PLATFORM_OPTIONS.map((opt) => (
@@ -1213,11 +1381,11 @@ export default function ProfileCompletePage() {
                             value={platform.handle}
                             onChange={(e) => updatePlatform(index, 'handle', e.target.value)}
                             required
-                            placeholder="@username or username"
+                            placeholder="@username"
                           />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <Input
                             label="Followers"
                             type="number"
@@ -1239,42 +1407,42 @@ export default function ProfileCompletePage() {
                             min={0.01}
                             max={100}
                             step="0.01"
-                            helperText="Must be greater than 0"
+                            helperText="Must be > 0"
                           />
                         </div>
 
                         {/* Optional Analytics Section */}
-                        <div className="pt-3 border-t border-gray-200">
+                        <div className="pt-2 border-t border-gray-100">
                           <button
                             type="button"
                             onClick={() => togglePlatformExpanded(index)}
-                            className="w-full flex items-center justify-between p-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="w-full flex items-center justify-between p-1.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
                           >
                             <div className="flex items-center gap-2">
-                              <ChartBarIcon className="w-4 h-4 text-gray-600" />
-                              <span className="text-sm font-semibold text-gray-700">Analytics Data (Optional)</span>
+                              <ChartBarIcon className="w-3.5 h-3.5 text-gray-600" />
+                              <span className="text-xs font-semibold text-gray-700">Analytics Data (Optional)</span>
                             </div>
                             {expandedPlatforms.has(index) ? (
-                              <ChevronUpIcon className="w-4 h-4 text-gray-600" />
+                              <ChevronUpIcon className="w-3.5 h-3.5 text-gray-600" />
                             ) : (
-                              <ChevronDownIcon className="w-4 h-4 text-gray-600" />
+                              <ChevronDownIcon className="w-3.5 h-3.5 text-gray-600" />
                             )}
                           </button>
 
                           {expandedPlatforms.has(index) && (
-                            <div className="mt-3 space-y-4">
+                            <div className="mt-2 space-y-3">
                               {/* Top Countries */}
-                              <div className="space-y-3">
+                              <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <label className="block text-sm font-semibold text-gray-700">
+                                  <label className="block text-xs font-semibold text-gray-700">
                                     Top Countries
                                   </label>
                                   <button
                                     type="button"
                                     onClick={() => addTopCountry(index)}
-                                    className="px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors flex items-center gap-1.5"
+                                    className="px-2 py-1 text-[10px] font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors flex items-center gap-1"
                                   >
-                                    <PlusIcon className="w-3.5 h-3.5" />
+                                    <PlusIcon className="w-3 h-3" />
                                     Add Country
                                   </button>
                                 </div>
@@ -1288,10 +1456,10 @@ export default function ProfileCompletePage() {
                                             type="text"
                                             value={country.country}
                                             onChange={(e) => updateTopCountry(index, countryIndex, 'country', e.target.value)}
-                                            placeholder="e.g., United States"
+                                            placeholder="e.g., USA"
                                           />
                                         </div>
-                                        <div className="w-32">
+                                        <div className="w-24">
                                           <Input
                                             label="%"
                                             type="number"
@@ -1306,32 +1474,32 @@ export default function ProfileCompletePage() {
                                         <button
                                           type="button"
                                           onClick={() => removeTopCountry(index, countryIndex)}
-                                          className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors mb-1"
+                                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors mb-0.5"
                                         >
-                                          <XMarkIcon className="w-5 h-5" />
+                                          <XMarkIcon className="w-4 h-4" />
                                         </button>
                                       </div>
                                     ))}
                                   </div>
                                 ) : (
-                                  <div className="border border-dashed border-gray-200 rounded-lg p-4 bg-gray-50/50 text-center">
-                                    <p className="text-sm text-gray-400">No countries added yet</p>
+                                  <div className="border border-dashed border-gray-200 rounded-lg p-2 bg-gray-50/50 text-center">
+                                    <p className="text-xs text-gray-400">No countries added</p>
                                   </div>
                                 )}
                               </div>
 
                               {/* Top Age Groups */}
-                              <div className="space-y-3">
+                              <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <label className="block text-sm font-semibold text-gray-700">
+                                  <label className="block text-xs font-semibold text-gray-700">
                                     Top Age Groups
                                   </label>
                                   <button
                                     type="button"
                                     onClick={() => addTopAgeGroup(index)}
-                                    className="px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors flex items-center gap-1.5"
+                                    className="px-2 py-1 text-[10px] font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors flex items-center gap-1"
                                   >
-                                    <PlusIcon className="w-3.5 h-3.5" />
+                                    <PlusIcon className="w-3 h-3" />
                                     Add Age Group
                                   </button>
                                 </div>
@@ -1345,10 +1513,10 @@ export default function ProfileCompletePage() {
                                             type="text"
                                             value={ageGroup.ageRange}
                                             onChange={(e) => updateTopAgeGroup(index, ageGroupIndex, 'ageRange', e.target.value)}
-                                            placeholder="e.g., 18-24, 25-34"
+                                            placeholder="e.g., 18-24"
                                           />
                                         </div>
-                                        <div className="w-32">
+                                        <div className="w-24">
                                           <Input
                                             label="%"
                                             type="number"
@@ -1363,26 +1531,26 @@ export default function ProfileCompletePage() {
                                         <button
                                           type="button"
                                           onClick={() => removeTopAgeGroup(index, ageGroupIndex)}
-                                          className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors mb-1"
+                                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors mb-0.5"
                                         >
-                                          <XMarkIcon className="w-5 h-5" />
+                                          <XMarkIcon className="w-4 h-4" />
                                         </button>
                                       </div>
                                     ))}
                                   </div>
                                 ) : (
-                                  <div className="border border-dashed border-gray-200 rounded-lg p-4 bg-gray-50/50 text-center">
-                                    <p className="text-sm text-gray-400">No age groups added yet</p>
+                                  <div className="border border-dashed border-gray-200 rounded-lg p-2 bg-gray-50/50 text-center">
+                                    <p className="text-xs text-gray-400">No age groups added</p>
                                   </div>
                                 )}
                               </div>
 
                               {/* Gender Split */}
                               <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <label className="block text-xs font-semibold text-gray-700 mb-1">
                                   Gender Split (%)
                                 </label>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-2">
                                   <Input
                                     label="Male"
                                     type="number"
@@ -1397,7 +1565,7 @@ export default function ProfileCompletePage() {
                                     min={0}
                                     max={100}
                                     step="0.1"
-                                    helperText="Percentage of male audience"
+                                    helperText="Male %"
                                   />
                                   <Input
                                     label="Female"
@@ -1413,11 +1581,11 @@ export default function ProfileCompletePage() {
                                     min={0}
                                     max={100}
                                     step="0.1"
-                                    helperText="Percentage of female audience"
+                                    helperText="Female %"
                                   />
                                 </div>
                                 {platform.gender_split && (platform.gender_split.male + platform.gender_split.female) > 100 && (
-                                  <p className="text-sm text-red-600 mt-2">⚠️ Total percentage should not exceed 100%</p>
+                                  <p className="text-xs text-red-600 mt-1">⚠️ Total &gt; 100%</p>
                                 )}
                               </div>
                             </div>
@@ -1431,9 +1599,9 @@ export default function ProfileCompletePage() {
                 <button
                   type="button"
                   onClick={addPlatform}
-                  className="w-full py-4 border-2 border-dashed border-primary-300 rounded-xl text-primary-600 hover:border-primary-500 hover:bg-primary-50 transition-all flex items-center justify-center gap-2 font-semibold group"
+                  className="w-full py-3 border-2 border-dashed border-primary-300 rounded-lg text-primary-600 hover:border-primary-500 hover:bg-primary-50 transition-all flex items-center justify-center gap-2 font-semibold text-sm group"
                 >
-                  <PlusIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <PlusIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   Add Another Platform
                 </button>
               </div>
@@ -1488,21 +1656,21 @@ export default function ProfileCompletePage() {
 
         {/* Hotel Form */}
         {userType === 'hotel' && (
-          <form onSubmit={currentStep === totalSteps ? handleHotelSubmit : (e) => { e.preventDefault(); nextStep(); }} className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-gray-200/50 p-8 md:p-10 space-y-10">
+          <form onSubmit={currentStep === totalSteps ? handleHotelSubmit : (e) => { e.preventDefault(); nextStep(); }} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-5">
             {/* Step 1: Basic Information */}
             {currentStep === 1 && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <BuildingOfficeIcon className="w-6 h-6 text-white" />
+              <div className="space-y-5">
+                <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
+                    <BuildingOfficeIcon className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">Basic Information</h3>
-                    <p className="text-sm text-gray-500">Your hotel details</p>
+                    <h3 className="text-lg font-bold text-gray-900">Basic Information</h3>
+                    <p className="text-xs text-gray-500">Your hotel details</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <Input
                       label="Hotel Name"
@@ -1531,13 +1699,13 @@ export default function ProfileCompletePage() {
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <Textarea
                     label="About"
                     value={hotelForm.about}
                     onChange={(e) => setHotelForm({ ...hotelForm, about: e.target.value })}
                     placeholder="Describe your hotel, amenities, unique features, and what makes it special (minimum 50 characters)"
-                    rows={6}
+                    rows={4}
                     maxLength={5000}
                     required
                     helperText={`${hotelForm.about.length}/5000 characters`}
@@ -1545,7 +1713,7 @@ export default function ProfileCompletePage() {
                     error={error && error.includes('About') ? error : undefined}
                   />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       label="Website"
                       type="url"
@@ -1579,31 +1747,31 @@ export default function ProfileCompletePage() {
 
             {/* Step 2: Property Listings Section - REQUIRED */}
             {currentStep === 2 && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <BuildingOfficeIcon className="w-6 h-6 text-white" />
+              <div className="space-y-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-sm">
+                    <BuildingOfficeIcon className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-2xl font-bold text-gray-900">Property Listings</h3>
-                      <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
+                      <h3 className="text-lg font-bold text-gray-900">Property Listings</h3>
+                      <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-xs font-semibold">
                         {hotelListings.length} listing{hotelListings.length !== 1 ? 's' : ''}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500">
                       Add at least one property listing <span className="font-semibold text-red-600">(required)</span>
                     </p>
                   </div>
                 </div>
 
                 {hotelListings.length === 0 && (
-                  <div className="border border-primary-200 rounded-2xl p-8 text-center bg-white shadow-sm">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary-50 flex items-center justify-center">
-                      <BuildingOfficeIcon className="w-6 h-6 text-primary-600" />
+                  <div className="border border-primary-200 rounded-xl p-6 text-center bg-white shadow-sm border-dashed">
+                    <div className="w-10 h-10 mx-auto mb-2 rounded-lg bg-primary-50 flex items-center justify-center">
+                      <BuildingOfficeIcon className="w-5 h-5 text-primary-600" />
                     </div>
-                    <p className="text-primary-800 font-semibold mb-2">No listings added yet</p>
-                    <p className="text-sm text-gray-600">Add at least one property listing to complete your profile.</p>
+                    <p className="text-primary-800 font-semibold mb-1 text-sm">No listings added yet</p>
+                    <p className="text-xs text-gray-600">Add at least one property listing to complete your profile.</p>
                   </div>
                 )}
 
@@ -1622,45 +1790,45 @@ export default function ProfileCompletePage() {
                   return (
                     <div
                       key={index}
-                      className="border border-primary-100 rounded-2xl p-5 space-y-4 bg-white shadow-sm hover:shadow-md transition-all"
+                      className="border border-primary-100 rounded-xl p-4 space-y-3 bg-white shadow-sm hover:shadow-md transition-all"
                     >
-                      <div className="flex items-center justify-between mb-3 pb-3 border-b border-primary-100/70">
+                      <div className="flex items-center justify-between mb-2 pb-2 border-b border-primary-100/70">
                         <button
                           type="button"
                           onClick={() => toggleListingCardCollapse(index)}
                           className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
                         >
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-semibold text-sm ${isComplete
-                              ? 'bg-green-50 text-green-700'
-                              : 'bg-primary-50 text-primary-700'
+                          <div className={`w-7 h-7 rounded-md flex items-center justify-center font-semibold text-xs ${isComplete
+                            ? 'bg-green-50 text-green-700'
+                            : 'bg-primary-50 text-primary-700'
                             }`}>
                             {isComplete ? (
-                              <CheckCircleIcon className="w-5 h-5" />
+                              <CheckCircleIcon className="w-4 h-4" />
                             ) : (
                               index + 1
                             )}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-gray-900">
+                              <h4 className="font-bold text-gray-900 text-sm">
                                 {listing.name || `Property Listing ${index + 1}`}
                               </h4>
                               {isComplete && (
-                                <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                                <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
                                   Complete
                                 </span>
                               )}
                             </div>
                             {collapsedListingCards.has(index) && listing.name && (
-                              <p className="text-sm text-gray-500 mt-0.5">
+                              <p className="text-xs text-gray-500 mt-0">
                                 {listing.location && `${listing.location}`} {listing.accommodation_type && `• ${listing.accommodation_type}`}
                               </p>
                             )}
                           </div>
                           {collapsedListingCards.has(index) ? (
-                            <ChevronDownIcon className="w-5 h-5 text-gray-600" />
+                            <ChevronDownIcon className="w-4 h-4 text-gray-600" />
                           ) : (
-                            <ChevronUpIcon className="w-5 h-5 text-gray-600" />
+                            <ChevronUpIcon className="w-4 h-4 text-gray-600" />
                           )}
                         </button>
                         <div className="flex items-center gap-2">
@@ -1668,10 +1836,10 @@ export default function ProfileCompletePage() {
                             <button
                               type="button"
                               onClick={() => removeListing(index)}
-                              className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-1 rounded-md text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
                               title="Remove listing"
                             >
-                              <XMarkIcon className="w-4 h-4" />
+                              <XMarkIcon className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>
@@ -1681,9 +1849,9 @@ export default function ProfileCompletePage() {
                         <>
                           {/* Basic Information */}
                           <div className="space-y-4">
-                            <h5 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Basic Information</h5>
+                            <h5 className="text-sm font-semibold text-gray-900 border-b border-gray-200 pb-2">Basic Information</h5>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               <Input
                                 label="Listing Name"
                                 type="text"
@@ -1704,14 +1872,14 @@ export default function ProfileCompletePage() {
                             </div>
 
                             <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              <label className="block text-xs font-semibold text-gray-700 mb-1">
                                 Accommodation Type <span className="text-red-500">*</span>
                               </label>
                               <select
                                 value={listing.accommodation_type}
                                 onChange={(e) => updateListing(index, 'accommodation_type', e.target.value)}
                                 required
-                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white font-medium text-gray-900"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white text-sm text-gray-900"
                               >
                                 <option value="">Select type</option>
                                 {HOTEL_CATEGORIES.map((cat) => (
@@ -1727,22 +1895,22 @@ export default function ProfileCompletePage() {
                               value={listing.description}
                               onChange={(e) => updateListing(index, 'description', e.target.value)}
                               required
-                              rows={4}
+                              rows={3}
                               placeholder="A stunning beachfront villa with private pool and ocean views."
                             />
 
                             {/* Images */}
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">Images</label>
-                              <div className="space-y-4">
+                              <div className="space-y-3">
                                 {listing.images.length > 0 && (
-                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     {listing.images.map((image, imageIndex) => (
                                       <div key={imageIndex} className="relative group">
                                         <img
                                           src={image}
                                           alt={`Listing ${index + 1} - Image ${imageIndex + 1}`}
-                                          className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                                          className="w-full h-24 object-cover rounded-lg border border-gray-200"
                                           onError={(e) => {
                                             e.currentTarget.style.display = 'none'
                                           }}
@@ -1780,18 +1948,18 @@ export default function ProfileCompletePage() {
                           </div>
 
                           {/* Offerings Section */}
-                          <div className="pt-3 border-t border-gray-200">
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-1 h-6 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
-                              <h5 className="text-lg font-semibold text-gray-900">Offerings</h5>
+                          <div className="pt-2 border-t border-gray-100">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-1 h-5 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
+                              <h5 className="text-sm font-semibold text-gray-900">Offerings</h5>
                             </div>
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                               {/* Collaboration Types */}
                               <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                <label className="block text-xs font-semibold text-gray-700 mb-2">
                                   Collaboration Types <span className="text-red-500">*</span>
                                 </label>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                   {COLLABORATION_TYPES.map((type) => {
                                     const isSelected = listing.collaborationTypes.includes(type)
                                     const icons = {
@@ -1804,9 +1972,9 @@ export default function ProfileCompletePage() {
                                     return (
                                       <label
                                         key={type}
-                                        className={`relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${isSelected
-                                            ? 'bg-primary-50 border-primary-300 shadow-sm'
-                                            : 'bg-white border-gray-200 hover:border-primary-200 hover:shadow-sm'
+                                        className={`relative flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-all ${isSelected
+                                          ? 'bg-primary-50 border-primary-300 shadow-sm'
+                                          : 'bg-white border-gray-200 hover:border-primary-200 hover:shadow-sm'
                                           }`}
                                       >
                                         <input
@@ -1821,18 +1989,18 @@ export default function ProfileCompletePage() {
                                           }}
                                           className="sr-only"
                                         />
-                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${isSelected
-                                            ? 'bg-gradient-to-br from-primary-500 to-primary-600'
-                                            : 'bg-gray-100'
+                                        <div className={`w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 ${isSelected
+                                          ? 'bg-gradient-to-br from-primary-500 to-primary-600'
+                                          : 'bg-gray-100'
                                           }`}>
-                                          <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-gray-600'}`} />
+                                          <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-600'}`} />
                                         </div>
                                         <div className="flex-1">
-                                          <div className={`font-semibold ${isSelected ? 'text-primary-900' : 'text-gray-900'}`}>{type}</div>
+                                          <div className={`text-sm font-semibold ${isSelected ? 'text-primary-900' : 'text-gray-900'}`}>{type}</div>
                                           {isSelected && (
-                                            <div className="mt-1 flex items-center gap-1">
-                                              <CheckCircleIcon className="w-4 h-4 text-primary-600" />
-                                              <span className="text-xs text-primary-600">Selected</span>
+                                            <div className="mt-0.5 flex items-center gap-1">
+                                              <CheckCircleIcon className="w-3 h-3 text-primary-600" />
+                                              <span className="text-[10px] text-primary-600">Selected</span>
                                             </div>
                                           )}
                                         </div>
@@ -1844,17 +2012,17 @@ export default function ProfileCompletePage() {
 
                               {/* Free Stay Details */}
                               {listing.collaborationTypes.includes('Free Stay') && (
-                                <div className="p-5 bg-primary-50/50 rounded-xl border border-primary-200 shadow-sm transition-all">
-                                  <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
-                                      <GiftIcon className="w-5 h-5 text-white" />
+                                <div className="p-4 bg-primary-50/50 rounded-xl border border-primary-200 shadow-sm transition-all">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+                                      <GiftIcon className="w-4 h-4 text-white" />
                                     </div>
                                     <div>
-                                      <h6 className="font-semibold text-gray-900">Free Stay Details</h6>
-                                      <p className="text-xs text-gray-600">Specify the night range for free stays</p>
+                                      <h6 className="font-semibold text-gray-900 text-sm">Free Stay Details</h6>
+                                      <p className="text-[10px] text-gray-600">Specify the night range for free stays</p>
                                     </div>
                                   </div>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <Input
                                       label="Min. Nights"
                                       type="number"
@@ -1886,14 +2054,14 @@ export default function ProfileCompletePage() {
 
                               {/* Paid Details */}
                               {listing.collaborationTypes.includes('Paid') && (
-                                <div className="p-5 bg-primary-50/50 rounded-xl border border-primary-200 shadow-sm transition-all">
-                                  <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
-                                      <CurrencyDollarIcon className="w-5 h-5 text-white" />
+                                <div className="p-4 bg-primary-50/50 rounded-xl border border-primary-200 shadow-sm transition-all">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+                                      <CurrencyDollarIcon className="w-4 h-4 text-white" />
                                     </div>
                                     <div>
-                                      <h6 className="font-semibold text-gray-900">Paid Details</h6>
-                                      <p className="text-xs text-gray-600">Set the maximum payment amount</p>
+                                      <h6 className="font-semibold text-gray-900 text-sm">Paid Details</h6>
+                                      <p className="text-[10px] text-gray-600">Set the maximum payment amount</p>
                                     </div>
                                   </div>
                                   <Input
@@ -1909,14 +2077,14 @@ export default function ProfileCompletePage() {
 
                               {/* Discount Details */}
                               {listing.collaborationTypes.includes('Discount') && (
-                                <div className="p-5 bg-primary-50/50 rounded-xl border border-primary-200 shadow-sm transition-all">
-                                  <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
-                                      <TagIcon className="w-5 h-5 text-white" />
+                                <div className="p-4 bg-primary-50/50 rounded-xl border border-primary-200 shadow-sm transition-all">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+                                      <TagIcon className="w-4 h-4 text-white" />
                                     </div>
                                     <div>
-                                      <h6 className="font-semibold text-gray-900">Discount Details</h6>
-                                      <p className="text-xs text-gray-600">Set the discount percentage</p>
+                                      <h6 className="font-semibold text-gray-900 text-sm">Discount Details</h6>
+                                      <p className="text-[10px] text-gray-600">Set the discount percentage</p>
                                     </div>
                                   </div>
                                   <Input
@@ -1934,13 +2102,13 @@ export default function ProfileCompletePage() {
 
                               {/* Availability */}
                               <div>
-                                <div className="flex items-center gap-2 mb-4">
-                                  <CalendarDaysIcon className="w-5 h-5 text-primary-600" />
-                                  <label className="block text-sm font-semibold text-gray-700">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <CalendarDaysIcon className="w-4 h-4 text-primary-600" />
+                                  <label className="block text-xs font-semibold text-gray-700">
                                     Availability (Months) <span className="text-red-500">*</span>
                                   </label>
                                 </div>
-                                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                                <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
                                   <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
                                     {MONTHS.map((month) => {
                                       const isSelected = listing.availability.includes(month)
@@ -1950,8 +2118,8 @@ export default function ProfileCompletePage() {
                                         <label
                                           key={month}
                                           className={`relative flex flex-col items-center justify-center p-3 rounded-lg border-2 cursor-pointer transition-all ${isSelected
-                                              ? 'bg-primary-50 border-primary-400 shadow-sm'
-                                              : 'bg-white border-gray-200 hover:border-primary-200 hover:bg-primary-50/30'
+                                            ? 'bg-primary-50 border-primary-400 shadow-sm'
+                                            : 'bg-white border-gray-200 hover:border-primary-200 hover:bg-primary-50/30'
                                             }`}
                                         >
                                           <input
@@ -1993,9 +2161,9 @@ export default function ProfileCompletePage() {
 
                               {/* Platforms */}
                               <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Posting platforms for this collaboration</label>
-                                <p className="text-sm text-gray-500 mb-2">Where the creator will post for this listing (choose at least one).</p>
-                                <div className="flex flex-wrap gap-3">
+                                <label className="block text-xs font-semibold text-gray-700 mb-1">Posting platforms for this collaboration</label>
+                                <p className="text-[10px] text-gray-500 mb-2">Where the creator will post for this listing (choose at least one).</p>
+                                <div className="flex flex-wrap gap-2">
                                   {PLATFORM_OPTIONS.map((platform) => (
                                     <label key={platform} className="flex items-center cursor-pointer">
                                       <input
@@ -2019,17 +2187,17 @@ export default function ProfileCompletePage() {
                           </div>
 
                           {/* Looking For Section */}
-                          <div className="pt-3 border-t border-gray-200">
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-1 h-6 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
-                              <h5 className="text-lg font-semibold text-gray-900">Looking For</h5>
+                          <div className="pt-2 border-t border-gray-100">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-1 h-5 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
+                              <h5 className="text-sm font-semibold text-gray-900">Looking For</h5>
                             </div>
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                               {/* Platforms */}
                               <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Creator's existing platforms</label>
-                                <p className="text-sm text-gray-500 mb-2">Platforms the creator should already have. Pick at least one.</p>
-                                <div className="flex flex-wrap gap-3">
+                                <label className="block text-xs font-semibold text-gray-700 mb-1">Creator's existing platforms</label>
+                                <p className="text-[10px] text-gray-500 mb-2">Platforms the creator should already have. Pick at least one.</p>
+                                <div className="flex flex-wrap gap-2">
                                   {PLATFORM_OPTIONS.map((platform) => (
                                     <label key={platform} className="flex items-center cursor-pointer">
                                       <input
@@ -2061,15 +2229,15 @@ export default function ProfileCompletePage() {
 
                               {/* Target Group Countries */}
                               <div>
-                                <div className="flex items-center gap-2 mb-4">
-                                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
-                                    <GlobeAltIcon className="w-5 h-5 text-white" />
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+                                    <GlobeAltIcon className="w-4 h-4 text-white" />
                                   </div>
-                                  <label className="block text-sm font-semibold text-gray-700">
+                                  <label className="block text-xs font-semibold text-gray-700">
                                     Target Group - Countries <span className="text-red-500">*</span>
                                   </label>
                                 </div>
-                                <div className="space-y-2 max-h-96 overflow-y-auto p-4">
+                                <div className="space-y-2 max-h-80 overflow-y-auto p-2">
                                   {CONTINENT_ORDER.map((continent) => {
                                     const countries = COUNTRIES_BY_CONTINENT[continent]
                                     // Default to collapsed - only expand if explicitly in the expanded Set
@@ -2083,24 +2251,24 @@ export default function ProfileCompletePage() {
                                         <button
                                           type="button"
                                           onClick={() => toggleContinent(index, continent)}
-                                          className={`w-full flex items-center justify-between p-4 transition-all ${allSelected
-                                              ? 'bg-gradient-to-r from-primary-50 to-primary-100/50 border-primary-300'
-                                              : someSelected
-                                                ? 'bg-gradient-to-r from-primary-50/70 to-primary-50/30 border-primary-200'
-                                                : 'bg-white hover:bg-gray-50 border-gray-200'
+                                          className={`w-full flex items-center justify-between p-3 transition-all ${allSelected
+                                            ? 'bg-gradient-to-r from-primary-50 to-primary-100/50 border-primary-300'
+                                            : someSelected
+                                              ? 'bg-gradient-to-r from-primary-50/70 to-primary-50/30 border-primary-200'
+                                              : 'bg-white hover:bg-gray-50 border-gray-200'
                                             }`}
                                         >
-                                          <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${allSelected
-                                                ? 'bg-gradient-to-br from-primary-500 to-primary-600'
-                                                : someSelected
-                                                  ? 'bg-primary-200'
-                                                  : 'bg-gray-100'
+                                          <div className="flex items-center gap-2">
+                                            <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${allSelected
+                                              ? 'bg-gradient-to-br from-primary-500 to-primary-600'
+                                              : someSelected
+                                                ? 'bg-primary-200'
+                                                : 'bg-gray-100'
                                               }`}>
                                               {isCollapsed ? (
-                                                <ChevronDownIcon className={`w-5 h-5 ${allSelected ? 'text-white' : 'text-gray-600'}`} />
+                                                <ChevronDownIcon className={`w-4 h-4 ${allSelected ? 'text-white' : 'text-gray-600'}`} />
                                               ) : (
-                                                <ChevronUpIcon className={`w-5 h-5 ${allSelected ? 'text-white' : 'text-gray-600'}`} />
+                                                <ChevronUpIcon className={`w-4 h-4 ${allSelected ? 'text-white' : 'text-gray-600'}`} />
                                               )}
                                             </div>
                                             <span className={`font-semibold ${allSelected ? 'text-primary-900' : 'text-gray-900'}`}>
@@ -2128,8 +2296,8 @@ export default function ProfileCompletePage() {
                                                   <label
                                                     key={country}
                                                     className={`flex items-center gap-2.5 p-2.5 rounded-lg cursor-pointer transition-all border-2 ${isSelected
-                                                        ? 'bg-primary-50 border-primary-300 shadow-sm'
-                                                        : 'bg-white border-gray-200 hover:border-primary-200 hover:bg-primary-50/30'
+                                                      ? 'bg-primary-50 border-primary-300 shadow-sm'
+                                                      : 'bg-white border-gray-200 hover:border-primary-200 hover:bg-primary-50/30'
                                                       }`}
                                                   >
                                                     <input
@@ -2171,8 +2339,8 @@ export default function ProfileCompletePage() {
 
                               {/* Target Group Age */}
                               <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-3">Target Group - Age Group</label>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <label className="block text-xs font-semibold text-gray-700 mb-2">Target Group - Age Group</label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                   <Input
                                     label="Min. Age (optional)"
                                     type="number"
@@ -2200,9 +2368,9 @@ export default function ProfileCompletePage() {
                 <button
                   type="button"
                   onClick={addListing}
-                  className="w-full py-4 border-2 border-dashed border-primary-200 rounded-xl text-primary-700 hover:border-primary-400 hover:bg-primary-50 transition-all flex items-center justify-center gap-2 font-semibold group"
+                  className="w-full py-3 border-2 border-dashed border-primary-200 rounded-lg text-primary-700 hover:border-primary-400 hover:bg-primary-50 transition-all flex items-center justify-center gap-2 font-semibold text-sm group"
                 >
-                  <PlusIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <PlusIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   Add Another Property Listing
                 </button>
               </div>
