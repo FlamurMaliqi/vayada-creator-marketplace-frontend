@@ -1268,342 +1268,334 @@ export default function ProfileCompletePage() {
             {/* Step 2: Platforms Section */}
             {currentStep === 2 && (
               <div className="space-y-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-sm">
-                    <SparklesIcon className="w-5 h-5 text-white" />
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center shadow-sm">
+                    <LinkIcon className="w-5 h-5 text-primary-600" />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-bold text-gray-900">Platforms & Audience</h3>
-                      <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-semibold">
-                        {creatorPlatforms.length} platform{creatorPlatforms.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Add at least one platform <span className="font-semibold text-red-600">(required)</span>
-                    </p>
+                    <h3 className="text-lg font-bold text-gray-900">Connect Your Platforms</h3>
+                    <p className="text-sm text-gray-600">Link your accounts and define your audience per platform</p>
                   </div>
                 </div>
 
-                {creatorPlatforms.length === 0 && (
-                  <div className="border border-primary-200 rounded-xl p-6 text-center bg-white shadow-sm border-dashed">
-                    <div className="w-10 h-10 mx-auto mb-2 rounded-lg bg-primary-50 flex items-center justify-center">
-                      <SparklesIcon className="w-5 h-5 text-primary-600" />
-                    </div>
-                    <p className="text-primary-800 font-semibold mb-1 text-sm">No platforms added yet</p>
-                    <p className="text-xs text-gray-600">Add at least one social media platform to complete your profile.</p>
-                  </div>
-                )}
+                <p className="text-sm text-gray-700">Add at least one platform with audience demographics to help match you with the right properties.</p>
 
-                {creatorPlatforms.map((platform, index) => (
-                  <div
-                    key={index}
-                    className="border border-primary-100 rounded-xl p-4 space-y-3 bg-white shadow-sm hover:shadow-md transition-all"
-                  >
-                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-primary-100/70">
-                      <button
-                        type="button"
-                        onClick={() => togglePlatformCardCollapse(index)}
-                        className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
+                {/* Platform Cards Grid */}
+                <div className="space-y-3 mt-4">
+                  {PLATFORM_OPTIONS.map((platformName) => {
+                    const isAdded = creatorPlatforms.some(p => p.name === platformName)
+                    const platformIndex = creatorPlatforms.findIndex(p => p.name === platformName)
+                    
+                    return (
+                      <div
+                        key={platformName}
+                        className="flex items-center justify-between gap-4 p-4 border border-gray-200 rounded-lg bg-white hover:border-gray-300 transition-colors"
                       >
-                        <div className={`w-7 h-7 rounded-md flex items-center justify-center font-semibold text-xs ${platform.name && platform.handle && platform.followers && platform.engagement_rate
-                          ? 'bg-green-50 text-green-700'
-                          : 'bg-primary-50 text-primary-700'
-                          }`}>
-                          {platform.name && platform.handle && platform.followers && platform.engagement_rate ? (
-                            <CheckCircleIcon className="w-4 h-4" />
-                          ) : (
-                            index + 1
+                        <div className="flex items-center gap-3">
+                          {/* Platform Icon */}
+                          {platformName === 'Instagram' && (
+                            <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zM5.838 12a6.162 6.162 0 1 1 12.324 0 6.162 6.162 0 0 1-12.324 0zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm4.965-10.322a1.44 1.44 0 1 1 2.881.001 1.44 1.44 0 0 1-2.881-.001z"/>
+                              </svg>
+                            </div>
                           )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-gray-900 text-sm">
-                              {platform.name || `Platform ${index + 1}`}
-                            </h4>
-                            {platform.name && platform.handle && platform.followers && platform.engagement_rate && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
-                                Complete
-                              </span>
-                            )}
+                          {platformName === 'TikTok' && (
+                            <div className="w-12 h-12 bg-black rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.1 1.75 2.9 2.9 0 0 1 2.31-4.64 2.88 2.88 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-.96-.1z"/>
+                              </svg>
+                            </div>
+                          )}
+                          {platformName === 'YouTube' && (
+                            <div className="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                              </svg>
+                            </div>
+                          )}
+                          {platformName === 'Facebook' && (
+                            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                              </svg>
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-bold text-gray-900">{platformName}</p>
                           </div>
-                          {collapsedPlatformCards.has(index) && platform.name && (
-                            <p className="text-xs text-gray-500 mt-0">
-                              {platform.handle && `@${platform.handle.replace('@', '')}`} {platform.followers && `• ${Number(platform.followers).toLocaleString()} followers`}
-                            </p>
-                          )}
                         </div>
-                        {collapsedPlatformCards.has(index) ? (
-                          <ChevronDownIcon className="w-4 h-4 text-gray-600" />
-                        ) : (
-                          <ChevronUpIcon className="w-4 h-4 text-gray-600" />
-                        )}
-                      </button>
-                      <div className="flex items-center gap-2">
-                        {creatorPlatforms.length > 1 && (
+                        
+                        {isAdded && platformIndex !== -1 && (
                           <button
                             type="button"
-                            onClick={() => removePlatform(index)}
-                            className="p-1 rounded-md text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
-                            title="Remove platform"
+                            onClick={() => togglePlatformCardCollapse(platformIndex)}
+                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
                           >
-                            <XMarkIcon className="w-3.5 h-3.5" />
+                            Edit
+                          </button>
+                        )}
+                        
+                        {!isAdded && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCreatorPlatforms([
+                                ...creatorPlatforms,
+                                {
+                                  name: platformName,
+                                  handle: '',
+                                  followers: '',
+                                  engagement_rate: '',
+                                },
+                              ])
+                            }}
+                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                          >
+                            Add Manually
                           </button>
                         )}
                       </div>
+                    )
+                  })}
+                </div>
+
+                {/* Error Message */}
+                {creatorPlatforms.length === 0 && (
+                  <p className="text-center text-orange-700 font-medium text-sm mt-4">
+                    Connect at least one platform to complete your profile
+                  </p>
+                )}
+
+                {/* Info Box */}
+                <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 flex items-start gap-3 mt-6">
+                  <div className="w-6 h-6 rounded-full bg-white border border-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-500 font-bold text-sm leading-none">i</span>
+                  </div>
+                  <p className="text-sm text-gray-600 blur-[0.5px]">All data should be verifiable via platform insights (e.g., Instagram Insights, YouTube Analytics).</p>
+                </div>
+
+                {/* Added Platforms Detail Forms */}
+                {creatorPlatforms.map((platform, index) => (
+                  <div key={index} className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-bold text-gray-900 flex items-center gap-2">
+                        {platform.name}
+                        {platform.name && platform.handle && platform.followers && platform.engagement_rate && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                            Complete
+                          </span>
+                        )}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => removePlatform(index)}
+                        className="p-1 rounded-md text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                        title="Remove platform"
+                      >
+                        <XMarkIcon className="w-4 h-4" />
+                      </button>
                     </div>
 
-                    {!collapsedPlatformCards.has(index) && (
-                      <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">
-                              Platform Name <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                              value={platform.name}
-                              onChange={(e) => updatePlatform(index, 'name', e.target.value)}
-                              required
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white text-sm text-gray-900"
-                            >
-                              <option value="">Select platform</option>
-                              {PLATFORM_OPTIONS.map((opt) => (
-                                <option key={opt} value={opt}>
-                                  {opt}
-                                </option>
-                              ))}
-                            </select>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <Input
+                        label="Handle/Username *"
+                        type="text"
+                        value={platform.handle}
+                        onChange={(e) => updatePlatform(index, 'handle', e.target.value)}
+                        required
+                        placeholder="@username"
+                      />
+                      <Input
+                        label="Followers *"
+                        type="number"
+                        value={platform.followers}
+                        onChange={(e) => updatePlatform(index, 'followers', e.target.value === '' ? '' : parseInt(e.target.value))}
+                        required
+                        placeholder="0"
+                        min={1}
+                      />
+                      <Input
+                        label="Engagement Rate (%) *"
+                        type="number"
+                        value={platform.engagement_rate}
+                        onChange={(e) => updatePlatform(index, 'engagement_rate', e.target.value === '' ? '' : parseFloat(e.target.value))}
+                        required
+                        placeholder="0.00"
+                        min={0.01}
+                        max={100}
+                        step="0.01"
+                      />
+                    </div>
+
+                    {/* Optional Analytics Section */}
+                    <div className="pt-4 border-t border-gray-100 mt-4">
+                      <button
+                        type="button"
+                        onClick={() => togglePlatformExpanded(index)}
+                        className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors w-full"
+                      >
+                        <div className="flex items-center gap-2">
+                          <ChartBarIcon className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm font-semibold text-gray-700">Audience Demographics (Optional)</span>
+                        </div>
+                        {expandedPlatforms.has(index) ? (
+                          <ChevronUpIcon className="w-4 h-4 text-gray-600" />
+                        ) : (
+                          <ChevronDownIcon className="w-4 h-4 text-gray-600" />
+                        )}
+                      </button>
+
+                      {expandedPlatforms.has(index) && (
+                        <div className="mt-3 space-y-3">
+                          {/* Top Countries */}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <label className="block text-xs font-semibold text-gray-700">Top Countries</label>
+                              <button
+                                type="button"
+                                onClick={() => addTopCountry(index)}
+                                className="px-2 py-1 text-[10px] font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors flex items-center gap-1"
+                              >
+                                <PlusIcon className="w-3 h-3" />
+                                Add
+                              </button>
+                            </div>
+                            {platform.top_countries && platform.top_countries.length > 0 ? (
+                              <div className="space-y-2">
+                                {platform.top_countries.map((country, countryIndex) => (
+                                  <div key={countryIndex} className="flex gap-2 items-end">
+                                    <div className="flex-1">
+                                      <Input
+                                        label="Country"
+                                        type="text"
+                                        value={country.country}
+                                        onChange={(e) => updateTopCountry(index, countryIndex, 'country', e.target.value)}
+                                        placeholder="e.g., USA"
+                                      />
+                                    </div>
+                                    <div className="w-24">
+                                      <Input
+                                        label="%"
+                                        type="number"
+                                        value={country.percentage}
+                                        onChange={(e) => updateTopCountry(index, countryIndex, 'percentage', parseFloat(e.target.value) || 0)}
+                                        placeholder="0"
+                                        min={0}
+                                        max={100}
+                                        step="0.1"
+                                      />
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeTopCountry(index, countryIndex)}
+                                      className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors mb-0.5"
+                                    >
+                                      <XMarkIcon className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-gray-400">No countries added</p>
+                            )}
                           </div>
 
-                          <Input
-                            label="Handle/Username"
-                            type="text"
-                            value={platform.handle}
-                            onChange={(e) => updatePlatform(index, 'handle', e.target.value)}
-                            required
-                            placeholder="@username"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <Input
-                            label="Followers"
-                            type="number"
-                            value={platform.followers}
-                            onChange={(e) => updatePlatform(index, 'followers', e.target.value === '' ? '' : parseInt(e.target.value))}
-                            required
-                            placeholder="0"
-                            min={1}
-                            helperText="Must be greater than 0"
-                          />
-
-                          <Input
-                            label="Engagement Rate (%)"
-                            type="number"
-                            value={platform.engagement_rate}
-                            onChange={(e) => updatePlatform(index, 'engagement_rate', e.target.value === '' ? '' : parseFloat(e.target.value))}
-                            required
-                            placeholder="0.00"
-                            min={0.01}
-                            max={100}
-                            step="0.01"
-                            helperText="Must be > 0"
-                          />
-                        </div>
-
-                        {/* Optional Analytics Section */}
-                        <div className="pt-2 border-t border-gray-100">
-                          <button
-                            type="button"
-                            onClick={() => togglePlatformExpanded(index)}
-                            className="w-full flex items-center justify-between p-1.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <div className="flex items-center gap-2">
-                              <ChartBarIcon className="w-3.5 h-3.5 text-gray-600" />
-                              <span className="text-xs font-semibold text-gray-700">Analytics Data (Optional)</span>
+                          {/* Top Age Groups */}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <label className="block text-xs font-semibold text-gray-700">Top Age Groups</label>
+                              <button
+                                type="button"
+                                onClick={() => addTopAgeGroup(index)}
+                                className="px-2 py-1 text-[10px] font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors flex items-center gap-1"
+                              >
+                                <PlusIcon className="w-3 h-3" />
+                                Add
+                              </button>
                             </div>
-                            {expandedPlatforms.has(index) ? (
-                              <ChevronUpIcon className="w-3.5 h-3.5 text-gray-600" />
+                            {platform.top_age_groups && platform.top_age_groups.length > 0 ? (
+                              <div className="space-y-2">
+                                {platform.top_age_groups.map((ageGroup, ageGroupIndex) => (
+                                  <div key={ageGroupIndex} className="flex gap-2 items-end">
+                                    <div className="flex-1">
+                                      <Input
+                                        label="Age Range"
+                                        type="text"
+                                        value={ageGroup.ageRange}
+                                        onChange={(e) => updateTopAgeGroup(index, ageGroupIndex, 'ageRange', e.target.value)}
+                                        placeholder="e.g., 18-24"
+                                      />
+                                    </div>
+                                    <div className="w-24">
+                                      <Input
+                                        label="%"
+                                        type="number"
+                                        value={ageGroup.percentage}
+                                        onChange={(e) => updateTopAgeGroup(index, ageGroupIndex, 'percentage', parseFloat(e.target.value) || 0)}
+                                        placeholder="0"
+                                        min={0}
+                                        max={100}
+                                        step="0.1"
+                                      />
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeTopAgeGroup(index, ageGroupIndex)}
+                                      className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors mb-0.5"
+                                    >
+                                      <XMarkIcon className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
                             ) : (
-                              <ChevronDownIcon className="w-3.5 h-3.5 text-gray-600" />
+                              <p className="text-xs text-gray-400">No age groups added</p>
                             )}
-                          </button>
+                          </div>
 
-                          {expandedPlatforms.has(index) && (
-                            <div className="mt-2 space-y-3">
-                              {/* Top Countries */}
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <label className="block text-xs font-semibold text-gray-700">
-                                    Top Countries
-                                  </label>
-                                  <button
-                                    type="button"
-                                    onClick={() => addTopCountry(index)}
-                                    className="px-2 py-1 text-[10px] font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors flex items-center gap-1"
-                                  >
-                                    <PlusIcon className="w-3 h-3" />
-                                    Add Country
-                                  </button>
-                                </div>
-                                {platform.top_countries && platform.top_countries.length > 0 ? (
-                                  <div className="space-y-2">
-                                    {platform.top_countries.map((country, countryIndex) => (
-                                      <div key={countryIndex} className="flex gap-2 items-end">
-                                        <div className="flex-1">
-                                          <Input
-                                            label="Country"
-                                            type="text"
-                                            value={country.country}
-                                            onChange={(e) => updateTopCountry(index, countryIndex, 'country', e.target.value)}
-                                            placeholder="e.g., USA"
-                                          />
-                                        </div>
-                                        <div className="w-24">
-                                          <Input
-                                            label="%"
-                                            type="number"
-                                            value={country.percentage}
-                                            onChange={(e) => updateTopCountry(index, countryIndex, 'percentage', parseFloat(e.target.value) || 0)}
-                                            placeholder="0"
-                                            min={0}
-                                            max={100}
-                                            step="0.1"
-                                          />
-                                        </div>
-                                        <button
-                                          type="button"
-                                          onClick={() => removeTopCountry(index, countryIndex)}
-                                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors mb-0.5"
-                                        >
-                                          <XMarkIcon className="w-4 h-4" />
-                                        </button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="border border-dashed border-gray-200 rounded-lg p-2 bg-gray-50/50 text-center">
-                                    <p className="text-xs text-gray-400">No countries added</p>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Top Age Groups */}
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <label className="block text-xs font-semibold text-gray-700">
-                                    Top Age Groups
-                                  </label>
-                                  <button
-                                    type="button"
-                                    onClick={() => addTopAgeGroup(index)}
-                                    className="px-2 py-1 text-[10px] font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors flex items-center gap-1"
-                                  >
-                                    <PlusIcon className="w-3 h-3" />
-                                    Add Age Group
-                                  </button>
-                                </div>
-                                {platform.top_age_groups && platform.top_age_groups.length > 0 ? (
-                                  <div className="space-y-2">
-                                    {platform.top_age_groups.map((ageGroup, ageGroupIndex) => (
-                                      <div key={ageGroupIndex} className="flex gap-2 items-end">
-                                        <div className="flex-1">
-                                          <Input
-                                            label="Age Range"
-                                            type="text"
-                                            value={ageGroup.ageRange}
-                                            onChange={(e) => updateTopAgeGroup(index, ageGroupIndex, 'ageRange', e.target.value)}
-                                            placeholder="e.g., 18-24"
-                                          />
-                                        </div>
-                                        <div className="w-24">
-                                          <Input
-                                            label="%"
-                                            type="number"
-                                            value={ageGroup.percentage}
-                                            onChange={(e) => updateTopAgeGroup(index, ageGroupIndex, 'percentage', parseFloat(e.target.value) || 0)}
-                                            placeholder="0"
-                                            min={0}
-                                            max={100}
-                                            step="0.1"
-                                          />
-                                        </div>
-                                        <button
-                                          type="button"
-                                          onClick={() => removeTopAgeGroup(index, ageGroupIndex)}
-                                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors mb-0.5"
-                                        >
-                                          <XMarkIcon className="w-4 h-4" />
-                                        </button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="border border-dashed border-gray-200 rounded-lg p-2 bg-gray-50/50 text-center">
-                                    <p className="text-xs text-gray-400">No age groups added</p>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Gender Split */}
-                              <div>
-                                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                                  Gender Split (%)
-                                </label>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <Input
-                                    label="Male"
-                                    type="number"
-                                    value={platform.gender_split?.male && platform.gender_split.male > 0 ? platform.gender_split.male : ''}
-                                    onChange={(e) => {
-                                      const val = e.target.value
-                                      // Remove leading zeros (e.g., "094" -> "94", "06" -> "6")
-                                      const cleanVal = val === '' ? '' : val.replace(/^0+(?=\d)/, '') || val
-                                      updateGenderSplit(index, 'male', cleanVal)
-                                    }}
-                                    placeholder="0"
-                                    min={0}
-                                    max={100}
-                                    step="0.1"
-                                    helperText="Male %"
-                                  />
-                                  <Input
-                                    label="Female"
-                                    type="number"
-                                    value={platform.gender_split?.female && platform.gender_split.female > 0 ? platform.gender_split.female : ''}
-                                    onChange={(e) => {
-                                      const val = e.target.value
-                                      // Remove leading zeros (e.g., "094" -> "94", "06" -> "6")
-                                      const cleanVal = val === '' ? '' : val.replace(/^0+(?=\d)/, '') || val
-                                      updateGenderSplit(index, 'female', cleanVal)
-                                    }}
-                                    placeholder="0"
-                                    min={0}
-                                    max={100}
-                                    step="0.1"
-                                    helperText="Female %"
-                                  />
-                                </div>
-                                {platform.gender_split && (platform.gender_split.male + platform.gender_split.female) > 100 && (
-                                  <p className="text-xs text-red-600 mt-1">⚠️ Total &gt; 100%</p>
-                                )}
-                              </div>
+                          {/* Gender Split */}
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-2">Gender Split (%)</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                label="Male"
+                                type="number"
+                                value={platform.gender_split?.male && platform.gender_split.male > 0 ? platform.gender_split.male : ''}
+                                onChange={(e) => {
+                                  const val = e.target.value
+                                  const cleanVal = val === '' ? '' : val.replace(/^0+(?=\d)/, '') || val
+                                  updateGenderSplit(index, 'male', cleanVal)
+                                }}
+                                placeholder="0"
+                                min={0}
+                                max={100}
+                                step="0.1"
+                              />
+                              <Input
+                                label="Female"
+                                type="number"
+                                value={platform.gender_split?.female && platform.gender_split.female > 0 ? platform.gender_split.female : ''}
+                                onChange={(e) => {
+                                  const val = e.target.value
+                                  const cleanVal = val === '' ? '' : val.replace(/^0+(?=\d)/, '') || val
+                                  updateGenderSplit(index, 'female', cleanVal)
+                                }}
+                                placeholder="0"
+                                min={0}
+                                max={100}
+                                step="0.1"
+                              />
                             </div>
-                          )}
+                            {platform.gender_split && (platform.gender_split.male + platform.gender_split.female) > 100 && (
+                              <p className="text-xs text-red-600 mt-1">⚠️ Total &gt; 100%</p>
+                            )}
+                          </div>
                         </div>
-                      </>
-                    )}
+                      )}
+                    </div>
                   </div>
                 ))}
-
-                <button
-                  type="button"
-                  onClick={addPlatform}
-                  className="w-full py-3 border-2 border-dashed border-primary-300 rounded-lg text-primary-600 hover:border-primary-500 hover:bg-primary-50 transition-all flex items-center justify-center gap-2 font-semibold text-sm group"
-                >
-                  <PlusIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  Add Another Platform
-                </button>
               </div>
             )}
 
