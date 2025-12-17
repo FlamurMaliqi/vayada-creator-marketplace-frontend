@@ -32,6 +32,7 @@ import {
   CalendarDaysIcon,
   ArrowLeftIcon,
   ClockIcon,
+  BuildingOffice2Icon,
 } from '@heroicons/react/24/outline'
 
 const HOTEL_CATEGORIES = [
@@ -177,6 +178,17 @@ export default function ProfileCompletePage() {
   const [creatorPlatforms, setCreatorPlatforms] = useState<PlatformFormData[]>([])
   const [platformCountryInputs, setPlatformCountryInputs] = useState<Record<number, string>>({})
   const [platformSaveStatus, setPlatformSaveStatus] = useState<Record<number, string>>({})
+  const HotelBadgeIcon = ({ active }: { active?: boolean }) => (
+    <div
+      className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+        active
+          ? 'bg-[#2F54EB] text-white border-[#2F54EB]'
+          : 'bg-[#EEF2FF] text-[#2F54EB] border-[#E0E7FF]'
+      }`}
+    >
+      <BuildingOffice2Icon className="w-5 h-5" />
+    </div>
+  )
   const [expandedPlatforms, setExpandedPlatforms] = useState<Set<number>>(new Set())
   const [collapsedPlatformCards, setCollapsedPlatformCards] = useState<Set<number>>(new Set())
 
@@ -1138,13 +1150,13 @@ export default function ProfileCompletePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-5 flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Left: Title & Subtitle */}
           <div className="flex items-center gap-3 text-center md:text-left">
-            <div className="flex-shrink-0 w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center shadow-sm">
-              {userType === 'creator' ? (
+            {userType === 'creator' ? (
+              <div className="flex-shrink-0 w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center shadow-sm">
                 <UserIcon className="w-5 h-5 text-white" />
-              ) : (
-                <BuildingOfficeIcon className="w-5 h-5 text-white" />
-              )}
-            </div>
+              </div>
+            ) : (
+              <HotelBadgeIcon active />
+            )}
             <div>
               <h1 className="text-lg font-bold text-gray-900 leading-tight">
                 Complete Your Profile
@@ -1725,102 +1737,98 @@ export default function ProfileCompletePage() {
 
         {/* Hotel Form */}
         {userType === 'hotel' && (
-          <form onSubmit={currentStep === totalSteps ? handleHotelSubmit : (e) => { e.preventDefault(); nextStep(); }} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-5">
-            {/* Step 1: Basic Information */}
-            {currentStep === 1 && (
-              <div className="space-y-5">
-                <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
-                    <BuildingOfficeIcon className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Basic Information</h3>
-                    <p className="text-xs text-gray-500">Your hotel details</p>
-                  </div>
-                </div>
+          <div className="space-y-4">
+            {/* Hotel form shell with header/steps similar to creator layout */}
+            <form
+              onSubmit={currentStep === totalSteps ? handleHotelSubmit : (e) => { e.preventDefault(); nextStep(); }}
+              className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 space-y-6"
+            >
+              
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
+              {/* Step 1: Basic Information */}
+              {currentStep === 1 && (
+                <div className="space-y-5">
+                  <div className="flex items-center gap-3 pb-1">
+                    <HotelBadgeIcon active={false} />
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Basic Information</h3>
+                      <p className="text-xs text-gray-500">Your hotel details</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       label="Hotel Name"
                       type="text"
                       value={hotelForm.name}
                       onChange={(e) => setHotelForm({ ...hotelForm, name: e.target.value })}
                       required
-                      placeholder="Your hotel or company name"
-                      helperText={undefined}
+                      placeholder="Your hotel name"
                       leadingIcon={<BuildingOfficeIcon className="w-5 h-5" />}
                     />
-                  </div>
 
-                  <div className="md:col-span-2">
                     <Input
                       label="Location"
                       type="text"
                       value={hotelForm.location}
                       onChange={(e) => setHotelForm({ ...hotelForm, location: e.target.value })}
                       required
-                      placeholder="Enter your hotel location"
+                      placeholder="City, Country"
                       error={error && error.includes('Location') ? error : undefined}
                       helperText="Country or island, e.g., Bali, Indonesia."
                       leadingIcon={<MapPinIcon className="w-5 h-5 text-gray-400" />}
                     />
                   </div>
-                </div>
 
-                <div className="space-y-5">
-                  <Textarea
-                    label="About"
-                    value={hotelForm.about}
-                    onChange={(e) => setHotelForm({ ...hotelForm, about: e.target.value })}
-                    placeholder="Describe your hotel, amenities, unique features, and what makes it special (minimum 50 characters)"
-                    rows={4}
-                    maxLength={5000}
-                    required
-                    helperText={`${hotelForm.about.length}/5000 characters`}
-                    className="resize-none"
-                    error={error && error.includes('About') ? error : undefined}
-                  />
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      label="Website"
-                      type="url"
-                      value={hotelForm.website}
-                      onChange={(e) => setHotelForm({ ...hotelForm, website: e.target.value })}
-                      placeholder="https://your-hotel.com"
+                  <div className="space-y-3">
+                    <Textarea
+                      label="About"
+                      value={hotelForm.about}
+                      onChange={(e) => setHotelForm({ ...hotelForm, about: e.target.value })}
+                      placeholder="Tell potential creators aobut your properties"
+                      rows={4}
+                      maxLength={5000}
                       required
-                      helperText={
-                        profileStatus && 'missing_fields' in profileStatus && profileStatus.missing_fields.includes('website')
-                          ? undefined
-                          : undefined
-                      }
-                      error={error && error.includes('Website') ? error : undefined}
-                      leadingIcon={<GlobeAltIcon className="w-5 h-5 text-gray-400" />}
-                    />
-
-                    <Input
-                      label="Phone"
-                      type="tel"
-                      value={hotelForm.phone}
-                      onChange={(e) => setHotelForm({ ...hotelForm, phone: e.target.value })}
-                      placeholder="+1-555-123-4567"
-                      required
-                      helperText={undefined}
-                      leadingIcon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
+                      helperText={`${hotelForm.about.length}/5000 characters`}
+                      className="resize-none"
+                      error={error && error.includes('About') ? error : undefined}
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-gray-900">Contact Information</p>
+                    <p className="text-xs text-gray-500">Your website & phone for direct communication with creators</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Website"
+                        type="url"
+                        value={hotelForm.website}
+                        onChange={(e) => setHotelForm({ ...hotelForm, website: e.target.value })}
+                        placeholder="https://your-hotel.com"
+                        required
+                        error={error && error.includes('Website') ? error : undefined}
+                        leadingIcon={<GlobeAltIcon className="w-5 h-5 text-gray-400" />}
+                      />
+
+                      <Input
+                        label="Phone"
+                        type="tel"
+                        value={hotelForm.phone}
+                        onChange={(e) => setHotelForm({ ...hotelForm, phone: e.target.value })}
+                        placeholder="+1-555-123-4567"
+                        required
+                        leadingIcon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Step 2: Property Listings Section - REQUIRED */}
             {currentStep === 2 && (
               <div className="space-y-5">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-sm">
-                    <BuildingOfficeIcon className="w-5 h-5 text-white" />
-                  </div>
+                  <HotelBadgeIcon active />
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-bold text-gray-900">Property Listings</h3>
@@ -1836,9 +1844,9 @@ export default function ProfileCompletePage() {
 
                 {hotelListings.length === 0 && (
                   <div className="border border-primary-200 rounded-xl p-6 text-center bg-white shadow-sm border-dashed">
-                    <div className="w-10 h-10 mx-auto mb-2 rounded-lg bg-primary-50 flex items-center justify-center">
-                      <BuildingOfficeIcon className="w-5 h-5 text-primary-600" />
-                    </div>
+                  <div className="w-10 h-10 mx-auto mb-2 rounded-lg flex items-center justify-center">
+                    <HotelBadgeIcon />
+                  </div>
                     <p className="text-primary-800 font-semibold mb-1 text-sm">No listings added yet</p>
                     <p className="text-xs text-gray-600">Add at least one property listing to complete your profile.</p>
                   </div>
@@ -2490,6 +2498,7 @@ export default function ProfileCompletePage() {
               </Button>
             </div>
           </form>
+            </div>
         )}
       </div>
     </div>
