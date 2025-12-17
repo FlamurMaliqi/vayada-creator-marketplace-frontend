@@ -1,9 +1,22 @@
+'use client'
+
+import { useState } from 'react'
+
 export default function Hero() {
+  const [hoveredSection, setHoveredSection] = useState<string | null>(null)
+
   return (
     <div className="relative">
-      <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
+      <div className="flex flex-col lg:flex-row min-h-screen">
         {/* Properties Section */}
-        <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <section 
+          className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 transition-all duration-500 ease-in-out"
+          style={{
+            flex: hoveredSection === 'properties' ? '0.8' : hoveredSection === 'creators' ? '0.2' : '1'
+          }}
+          onMouseEnter={() => setHoveredSection('properties')}
+          onMouseLeave={() => setHoveredSection(null)}
+        >
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
@@ -15,7 +28,7 @@ export default function Hero() {
           <div className="relative z-10 w-full text-center">
             <div className="max-w-2xl mx-auto">
               <div className="mb-4">
-                <span className="inline-block px-4 py-2 border border-white text-white rounded-full text-sm font-medium">
+                <span className="inline-block px-4 py-2 bg-gray-500 border border-white text-white rounded-full text-sm font-medium">
                   For Properties
                 </span>
               </div>
@@ -32,7 +45,14 @@ export default function Hero() {
         </section>
 
         {/* Creators Section */}
-        <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <section 
+          className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 transition-all duration-500 ease-in-out"
+          style={{
+            flex: hoveredSection === 'creators' ? '0.8' : hoveredSection === 'properties' ? '0.2' : '1'
+          }}
+          onMouseEnter={() => setHoveredSection('creators')}
+          onMouseLeave={() => setHoveredSection(null)}
+        >
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
@@ -44,7 +64,7 @@ export default function Hero() {
           <div className="relative z-10 w-full text-center">
             <div className="max-w-2xl mx-auto">
               <div className="mb-4">
-                <span className="inline-block px-4 py-2  border border-white text-white rounded-full text-sm font-medium">
+                <span className="inline-block px-4 py-2 bg-gray-500 border border-white text-white rounded-full text-sm font-medium">
                   For Creators
                 </span>
               </div>
