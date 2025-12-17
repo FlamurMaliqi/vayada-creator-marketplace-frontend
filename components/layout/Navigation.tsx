@@ -25,7 +25,7 @@ export default function Navigation() {
                 alt="vayada logo"
                 width={24}
                 height={24}
-                className="w-6 h-6"
+                className="w-6 h-6 rounded-lg"
               />
               <span className="text-xl font-normal text-black lowercase">vayada</span>
             </a>

@@ -200,7 +200,7 @@ function SignUpForm() {
             <img
               src="/vayada-logo.svg"
               alt="Vayada"
-              className="h-10 mb-4"
+              className="h-10 mb-4 rounded-lg"
             />
           </div>
 

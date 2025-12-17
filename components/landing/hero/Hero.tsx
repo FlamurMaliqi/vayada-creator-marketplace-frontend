@@ -32,7 +32,7 @@ export default function Hero() {
           <div className="relative z-10 w-full text-center">
             <div className="max-w-2xl mx-auto">
               <div className="mb-4">
-                <span className="inline-block px-4 py-2 bg-gray-500 border border-white text-white rounded-full text-sm font-medium">
+                <span className="inline-block px-4 py-2 border border-white text-white rounded-full text-sm font-medium">
                   For Properties
                 </span>
               </div>
@@ -117,7 +117,7 @@ export default function Hero() {
           <div className="relative z-10 w-full text-center">
             <div className="max-w-2xl mx-auto">
               <div className="mb-4">
-                <span className="inline-block px-4 py-2 bg-gray-500 border border-white text-white rounded-full text-sm font-medium">
+                <span className="inline-block px-4 py-2 border border-white text-white rounded-full text-sm font-medium">
                   For Creators
                 </span>
               </div>
