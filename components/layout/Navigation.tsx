@@ -16,53 +16,53 @@ export default function Navigation() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <a href={ROUTES.HOME} className="flex items-center gap-2">
-              <Image
-                src="/vayada-logo.svg"
-                alt="vayada logo"
-                width={24}
-                height={24}
-                className="w-6 h-6 rounded-lg"
-              />
-              <span className="text-xl font-normal text-black lowercase">vayada</span>
-            </a>
-          </div>
-          
-          {/* Center Links */}
-          <div className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
-            {centerLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-gray-700 hover:text-primary-600 transition-colors"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-          
-          {/* Right Side - Contact us */}
-          <div className="hidden md:flex items-center">
-            <a href={ROUTES.CONTACT}>
-              <Button variant="primary" size="md" className="bg-primary-600 hover:bg-primary-700 text-white rounded-lg">
-                Contact us
-              </Button>
-            </a>
-          </div>
-
-          <button
-            className="md:hidden text-gray-700"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+      <div className="relative flex items-center h-16">
+        {/* Left Side - Logo */}
+        <div className="absolute left-[10vw] flex items-center">
+          <a href={ROUTES.HOME} className="flex items-center gap-2">
+            <Image
+              src="/vayada-logo.svg"
+              alt="vayada logo"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-lg"
+            />
+            <span className="text-xl font-normal text-black lowercase">vayada</span>
+          </a>
         </div>
+        
+        {/* Center Links */}
+        <div className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
+          {centerLinks.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="text-gray-700 hover:text-primary-600 transition-colors"
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+        
+        {/* Right Side - Contact us */}
+        <div className="absolute right-[10vw] hidden md:flex items-center">
+          <a href={ROUTES.CONTACT}>
+            <Button variant="primary" size="md" className="bg-primary-600 hover:bg-primary-700 text-white rounded-2xl px-4 py-2">
+              Contact us
+            </Button>
+          </a>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden absolute right-[10vw] text-gray-700"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </div>
 
       {isMenuOpen && (
