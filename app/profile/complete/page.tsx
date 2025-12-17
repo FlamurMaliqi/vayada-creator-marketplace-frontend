@@ -1423,7 +1423,7 @@ export default function ProfileCompletePage() {
                                 }}
                                 className="px-4 py-2 border border-primary-200 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors text-sm font-medium"
                               >
-                                Add Manually
+                                Add
                               </button>
                             )}
                           </div>
@@ -1464,33 +1464,6 @@ export default function ProfileCompletePage() {
                                     className="bg-gray-50"
                                   />
                                 </div>
-                              </div>
-
-                              {/* Save button always visible */}
-                              <div className="pt-2">
-                                <Button
-                                  type="button"
-                                  variant="primary"
-                                  className="w-full justify-center text-base font-semibold"
-                                  onClick={() => {
-                                    setPlatformSaveStatus((prev) => ({ ...prev, [platformIndex]: 'Saved!' }))
-                                    togglePlatformCardCollapse(platformIndex)
-                                    setTimeout(() => {
-                                      setPlatformSaveStatus((prev) => {
-                                        const next = { ...prev }
-                                        delete next[platformIndex]
-                                        return next
-                                      })
-                                    }, 2000)
-                                  }}
-                                >
-                                  Save {platformName} Profile
-                                </Button>
-                                {platformSaveStatus[platformIndex] && (
-                                  <p className="text-sm text-green-600 text-center mt-2 font-medium">
-                                    {platformSaveStatus[platformIndex]}
-                                  </p>
-                                )}
                               </div>
 
                               <div className="bg-white border border-gray-200 rounded-xl p-3">
@@ -1632,6 +1605,33 @@ export default function ProfileCompletePage() {
                                       )}
                                     </div>
                                   </div>
+                                )}
+                              </div>
+
+                              {/* Save button below demographics toggle */}
+                              <div className="pt-4">
+                                <Button
+                                  type="button"
+                                  variant="primary"
+                                  className="w-full justify-center text-base font-semibold"
+                                  onClick={() => {
+                                    setPlatformSaveStatus((prev) => ({ ...prev, [platformIndex]: 'Saved!' }))
+                                    togglePlatformCardCollapse(platformIndex)
+                                    setTimeout(() => {
+                                      setPlatformSaveStatus((prev) => {
+                                        const next = { ...prev }
+                                        delete next[platformIndex]
+                                        return next
+                                      })
+                                    }, 2000)
+                                  }}
+                                >
+                                  Save {platformName} Profile
+                                </Button>
+                                {platformSaveStatus[platformIndex] && (
+                                  <p className="text-sm text-green-600 text-center mt-2 font-medium">
+                                    {platformSaveStatus[platformIndex]}
+                                  </p>
                                 )}
                               </div>
                             </div>
