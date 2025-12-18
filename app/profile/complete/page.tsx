@@ -2219,8 +2219,8 @@ export default function ProfileCompletePage() {
 
                               {/* Platforms */}
                               <div>
-                                <label className="block text-base font-semibold text-gray-900 mb-1">Posting platforms</label>
-                                <p className="text-sm text-gray-600 mb-3">Where should the creator post content?</p>
+                                <label className="block text-base font-semibold text-gray-900 mb-1">Property posting platforms</label>
+                                <p className="text-sm text-gray-600 mb-3">On which platforms  is your property active?</p>
                                 <div className="flex flex-wrap gap-2">
                                   {PLATFORM_OPTIONS.map((platform) => {
                                     const isSelected = listing.platforms.includes(platform)
