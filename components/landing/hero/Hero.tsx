@@ -36,7 +36,7 @@ export default function Hero() {
                   For Properties
                 </span>
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-loosWin back bookings from OTAs while boosting direct reservations with creators.e">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-loose">
                 <span className="text-white block mb-3">Less OTAs.</span>
                 <span style={{ color: '#2e51f4' }} className="block mb-3">More Direct</span>
                 <span style={{ color: '#2e51f4' }} className="block">Bookings.</span>
@@ -128,6 +128,55 @@ export default function Hero() {
               <p className="text-lg md:text-xl text-white/60 leading-relaxed">
                 Trade your travel influence for partnerships with curated & high-quality hotels worldwide.
               </p>
+
+              {/* Info Box - Appears on hover */}
+              <div className={`mt-8 w-full max-w-xl mx-auto transition-all duration-500 ease-in-out ${
+                hoveredSection === 'creators' 
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-4 pointer-events-none'
+              }`}>
+                <div className="bg-white rounded-2xl shadow-xl p-4 md:p-6">
+                <div className="flex flex-col md:flex-row gap-6">
+                  {/* Icon */}
+                  <div className="flex-shrink-0">
+                    <div className="w-16 h-16 bg-primary-100 rounded-xl flex items-center justify-center">
+                      <Squares2X2Icon className="w-8 h-8 text-primary-600" />
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 flex flex-col items-center text-center">
+                    <p className="text-gray-900 font-medium text-sm md:text-base mb-4">
+                      Stop chasing DMs. Start securing professional<br />hotel & villa collaborations worldwide.
+                    </p>
+
+                    {/* Features */}
+                    <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-6">
+                      <div className="flex items-center gap-2">
+                        <CheckIcon className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                        <span className="text-gray-700 text-xs md:text-sm">Save Hours of Outreach</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckIcon className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                        <span className="text-gray-700 text-xs md:text-sm">Build Credibility</span>
+                      </div>
+                    </div>
+
+                    {/* CTA Button */}
+                    <Link href={ROUTES.CREATOR_BENEFITS}>
+                      <Button 
+                        variant="primary" 
+                        size="sm" 
+                        className="flex items-center justify-center gap-2 rounded-3xl"
+                      >
+                        Learn More
+                        <ArrowRightIcon className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
