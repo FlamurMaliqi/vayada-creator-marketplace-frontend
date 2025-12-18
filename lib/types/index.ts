@@ -73,7 +73,7 @@ export interface Hotel {
   location: string
   description: string
   images: string[]
-  accommodationType?: string // Hotel, Resort, Boutique Hotel, Lodge, Apartment, Villa
+  accommodationType?: string // Hotel, Resort, Boutique Hotel, Luxury Hotel, City Hotel, Apartment, Villa
   collaborationType?: 'Kostenlos' | 'Bezahlt' // Free, Paid
   availability?: string[] // Array of months
   platforms?: string[] // Array of platform names: 'Instagram', 'TikTok', 'YouTube', 'Facebook'

@@ -37,16 +37,13 @@ import {
 } from '@heroicons/react/24/outline'
 
 const HOTEL_CATEGORIES = [
-  'Resort',
   'Hotel',
-  'Villa',
-  'Apartment',
-  'Hostel',
+  'Resort',
   'Boutique Hotel',
   'Luxury Hotel',
-  'Eco Resort',
-  'Spa Resort',
-  'Beach Resort',
+  'City Hotel',
+  'Apartment',
+  'Villa',
 ]
 
 const PLATFORM_OPTIONS = ['Instagram', 'TikTok', 'YouTube', 'Facebook']
