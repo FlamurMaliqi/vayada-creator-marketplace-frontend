@@ -4,9 +4,8 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants/routes'
-import { Button, Input } from '@/components/ui'
-import { Navigation, Footer } from '@/components/layout'
 import { authService } from '@/services/auth'
+import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams()
@@ -100,100 +99,147 @@ function ResetPasswordForm() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex flex-col">
-        <Navigation />
-        
-        <main className="flex-1 pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-lg mx-auto">
-            <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-8 py-6 text-center">
-                <h1 className="text-3xl font-bold text-white">vayada</h1>
+      <div className="min-h-screen flex">
+        {/* Left Side - Success Message (50% width) */}
+        <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-8 relative">
+          {/* Back to Home Button */}
+          <Link
+            href={ROUTES.HOME}
+            className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+            <span className="text-sm font-medium">Back to Home</span>
+          </Link>
+
+          <div className="w-full max-w-md">
+            {/* Logo */}
+            <div className="mb-6">
+              <img
+                src="/vayada-logo.svg"
+                alt="Vayada"
+                className="h-10 mb-4 rounded-lg"
+              />
+            </div>
+
+            {/* Success Content */}
+            <div className="text-center space-y-6">
+              {/* Success Icon */}
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
               </div>
 
-              {/* Success Content */}
-              <div className="p-8 text-center space-y-6">
-                {/* Success Icon */}
-                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold text-gray-900">Password Reset Successful!</h2>
+                <p className="text-gray-600">
+                  Your password has been successfully reset. You can now sign in with your new password.
+                </p>
+              </div>
 
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-bold text-gray-900">Password Reset Successful!</h2>
-                  <p className="text-gray-600">
-                    Your password has been successfully reset. You can now sign in with your new password.
-                  </p>
-                </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
+                <p className="text-sm text-blue-800">
+                  <strong>Ready to sign in?</strong> Use your new password to access your account.
+                </p>
+              </div>
 
-                <div className="pt-4">
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    className="w-full"
-                    onClick={() => router.push(ROUTES.LOGIN)}
-                  >
-                    Go to Sign In
-                  </Button>
-                  <p className="text-sm text-gray-500 mt-3">
-                    Redirecting to sign in page in 3 seconds...
-                  </p>
-                </div>
+              <div className="space-y-3 pt-4">
+                <button
+                  onClick={() => router.push(ROUTES.LOGIN)}
+                  className="w-full px-4 py-3 bg-primary-600 text-white rounded-lg font-medium text-sm hover:bg-primary-700 transition-all"
+                >
+                  Go to Sign In
+                </button>
+                <p className="text-sm text-gray-500">
+                  Redirecting to sign in page in 3 seconds...
+                </p>
               </div>
             </div>
           </div>
-        </main>
+        </div>
 
-        <Footer />
+        {/* Right Side - Image (50% width) */}
+        <div className="hidden lg:block lg:w-1/2 relative">
+          <div className="absolute inset-0">
+            <img
+              src="/hotel-hero.JPG"
+              alt="Luxury hotel resort"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
       </div>
     )
   }
 
   if (!token && !error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex flex-col">
-        <Navigation />
-        <main className="flex-1 pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-lg mx-auto">
-            <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-8 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-100 border-t-primary-600 mx-auto"></div>
-            </div>
+      <div className="min-h-screen flex">
+        {/* Left Side - Loading (50% width) */}
+        <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-8 relative">
+          <div className="w-full max-w-md text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-100 border-t-primary-600 mx-auto"></div>
           </div>
-        </main>
-        <Footer />
+        </div>
+
+        {/* Right Side - Image (50% width) */}
+        <div className="hidden lg:block lg:w-1/2 relative">
+          <div className="absolute inset-0">
+            <img
+              src="/hotel-hero.JPG"
+              alt="Luxury hotel resort"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex flex-col">
-      <Navigation />
-      
-      <main className="flex-1 pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-lg mx-auto">
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-8 py-6 text-center">
-              <h1 className="text-3xl font-bold text-white">vayada</h1>
-            </div>
+    <div className="min-h-screen flex">
+      {/* Left Side - Reset Password Form (50% width) */}
+      <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-8 relative">
+        {/* Back to Home Button */}
+        <Link
+          href={ROUTES.HOME}
+          className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors"
+        >
+          <ArrowLeftIcon className="w-5 h-5" />
+          <span className="text-sm font-medium">Back to Home</span>
+        </Link>
 
-            <form onSubmit={handleSubmit} className="p-8 space-y-6">
-              <div className="text-center space-y-2 mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Reset your password</h2>
-                <p className="text-gray-600">
-                  Enter your new password below. Make sure it's strong and secure.
-                </p>
+        <div className="w-full max-w-md">
+          {/* Logo */}
+          <div className="mb-6">
+            <img
+              src="/vayada-logo.svg"
+              alt="Vayada"
+              className="h-10 mb-4 rounded-lg"
+            />
+          </div>
+
+          {/* Title */}
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Reset password</h1>
+          <p className="text-gray-600 mb-8">
+            Enter your new password below. Make sure it's strong and secure.
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                <p className="text-sm text-red-800 font-semibold">{error}</p>
               </div>
+            )}
 
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
-              )}
-
-              <Input
-                label="New Password"
+            {/* New Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                New Password
+              </label>
+              <input
+                id="password"
                 type="password"
                 name="password"
                 value={formData.password}
@@ -201,13 +247,26 @@ function ResetPasswordForm() {
                 required
                 placeholder="Enter your new password"
                 autoComplete="new-password"
-                error={passwordError}
                 disabled={isSubmitting || !token}
-                helperText="Must be at least 8 characters with uppercase, lowercase, and a number"
+                className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white text-gray-900 ${
+                  passwordError ? 'border-red-300' : 'border-gray-300'
+                } ${isSubmitting || !token ? 'opacity-50 cursor-not-allowed' : ''}`}
               />
+              {passwordError && (
+                <p className="mt-1 text-sm text-red-600">{passwordError}</p>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                Must be at least 8 characters with uppercase, lowercase, and a number
+              </p>
+            </div>
 
-              <Input
-                label="Confirm New Password"
+            {/* Confirm Password Field */}
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                Confirm New Password
+              </label>
+              <input
+                id="confirmPassword"
                 type="password"
                 name="confirmPassword"
                 value={formData.confirmPassword}
@@ -215,46 +274,66 @@ function ResetPasswordForm() {
                 required
                 placeholder="Confirm your new password"
                 autoComplete="new-password"
-                error={passwordError}
                 disabled={isSubmitting || !token}
+                className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:bg-white text-gray-900 ${
+                  passwordError ? 'border-red-300' : 'border-gray-300'
+                } ${isSubmitting || !token ? 'opacity-50 cursor-not-allowed' : ''}`}
               />
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                className="w-full"
-                disabled={isSubmitting || !token || !formData.password || !formData.confirmPassword}
-              >
-                {isSubmitting ? 'Resetting Password...' : 'Reset Password'}
-              </Button>
-            </form>
-
-            <div className="px-8 pb-8 text-center border-t border-gray-200 pt-6">
-              <p className="text-sm text-gray-600">
-                Remember your password?{' '}
-                <Link
-                  href={ROUTES.LOGIN}
-                  className="text-primary-600 hover:text-primary-700 font-semibold"
-                >
-                  Sign in
-                </Link>
-              </p>
-              <p className="text-sm text-gray-600 mt-2">
-                Need a new reset link?{' '}
-                <Link
-                  href={ROUTES.FORGOT_PASSWORD}
-                  className="text-primary-600 hover:text-primary-700 font-semibold"
-                >
-                  Request another
-                </Link>
-              </p>
+              {passwordError && (
+                <p className="mt-1 text-sm text-red-600">{passwordError}</p>
+              )}
             </div>
+
+            {/* Reset Password Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting || !token || !formData.password || !formData.confirmPassword}
+              className={`
+                w-full px-4 py-3 rounded-lg font-medium text-sm transition-all
+                ${isSubmitting || !token || !formData.password || !formData.confirmPassword
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-primary-600 text-white hover:bg-primary-700'
+                }
+              `}
+            >
+              {isSubmitting ? 'Resetting Password...' : 'Reset Password'}
+            </button>
+          </form>
+
+          {/* Links */}
+          <div className="mt-6 text-center space-y-2">
+            <p className="text-sm text-gray-600">
+              Remember your password?{' '}
+              <Link
+                href={ROUTES.LOGIN}
+                className="text-primary-600 hover:text-primary-700 font-semibold"
+              >
+                Sign in
+              </Link>
+            </p>
+            <p className="text-sm text-gray-600">
+              Need a new reset link?{' '}
+              <Link
+                href={ROUTES.FORGOT_PASSWORD}
+                className="text-primary-600 hover:text-primary-700 font-semibold"
+              >
+                Request another
+              </Link>
+            </p>
           </div>
         </div>
-      </main>
+      </div>
 
-      <Footer />
+      {/* Right Side - Image (50% width) */}
+      <div className="hidden lg:block lg:w-1/2 relative">
+        <div className="absolute inset-0">
+          <img
+            src="/hotel-hero.JPG"
+            alt="Luxury hotel resort"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
     </div>
   )
 }
@@ -262,16 +341,24 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex flex-col">
-        <Navigation />
-        <main className="flex-1 pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-lg mx-auto">
-            <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-8 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-100 border-t-primary-600 mx-auto"></div>
-            </div>
+      <div className="min-h-screen flex">
+        {/* Left Side - Loading (50% width) */}
+        <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-8 relative">
+          <div className="w-full max-w-md text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-100 border-t-primary-600 mx-auto"></div>
           </div>
-        </main>
-        <Footer />
+        </div>
+
+        {/* Right Side - Image (50% width) */}
+        <div className="hidden lg:block lg:w-1/2 relative">
+          <div className="absolute inset-0">
+            <img
+              src="/hotel-hero.JPG"
+              alt="Luxury hotel resort"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
       </div>
     }>
       <ResetPasswordForm />
