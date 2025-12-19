@@ -2135,7 +2135,16 @@ export default function ProfileCompletePage() {
                                       label="Max. Nights"
                                       type="number"
                                       value={listing.freeStayMaxNights || ''}
-                                      onChange={(e) => updateListing(index, 'freeStayMaxNights', parseInt(e.target.value) || undefined)}
+                                      min={1}
+                                      onChange={(e) => {
+                                        const { value } = e.target
+                                        if (value === '') {
+                                          updateListing(index, 'freeStayMaxNights', undefined)
+                                          return
+                                        }
+                                        const parsed = parseInt(value)
+                                        updateListing(index, 'freeStayMaxNights', Number.isNaN(parsed) ? undefined : Math.max(1, parsed))
+                                      }}
                                       placeholder="5"
                                       required
                                       className="bg-gray-50 border-gray-200"
