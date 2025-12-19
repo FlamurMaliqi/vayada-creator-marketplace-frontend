@@ -176,26 +176,21 @@ export const authService = {
   /**
    * Request password reset
    * Sends a password reset email to the user
+   * Always succeeds (for security - don't reveal if email exists)
    */
-  forgotPassword: async (email: string): Promise<void> => {
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
     try {
-      // In production, this would call the API
-      // await apiClient.post('/auth/forgot-password', { email })
-      
-      // For development: Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // In production, handle errors from API
-      // For now, we'll always succeed for demo purposes
-      console.log('Password reset email sent to:', email)
+      const response = await apiClient.post<{ message: string; token: string | null }>('/auth/forgot-password', { email })
+      return { message: response.message }
     } catch (error: any) {
-      // In production, handle specific error cases
-      if (error.response?.status === 404) {
-        // Don't reveal if email exists or not for security
-        // Still show success message
-        return
+      // For security, always show success message even if email doesn't exist
+      // This prevents email enumeration attacks
+      if (error instanceof ApiErrorResponse) {
+        // Still return success message for security
+        return { message: 'If an account with that email exists, a password reset link has been sent.' }
       }
-      throw new Error('Failed to send password reset email. Please try again.')
+      // For network errors, still show success to maintain security
+      return { message: 'If an account with that email exists, a password reset link has been sent.' }
     }
   },
 
@@ -203,28 +198,47 @@ export const authService = {
    * Reset password with token
    * Validates the reset token and updates the password
    */
-  resetPassword: async (token: string, newPassword: string): Promise<void> => {
+  resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
     try {
-      // In production, this would call the API
-      // await apiClient.post('/auth/reset-password', { token, password: newPassword })
-      
-      // For development: Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Validate token format (basic check)
-      if (!token || token.length < 20) {
+      if (!token || token.trim() === '') {
         throw new Error('Invalid reset token. Please request a new password reset link.')
       }
-      
-      // In production, handle errors from API
-      console.log('Password reset successful for token:', token.substring(0, 10) + '...')
-    } catch (error: any) {
-      // In production, handle specific error cases
-      if (error.response?.status === 400) {
-        throw new Error('Invalid or expired reset token. Please request a new password reset link.')
+
+      if (!newPassword || newPassword.length < 8) {
+        throw new Error('Password must be at least 8 characters long.')
       }
-      if (error.response?.status === 401) {
-        throw new Error('This reset link has expired. Please request a new one.')
+
+      const response = await apiClient.post<{ message: string }>('/auth/reset-password', {
+        token,
+        new_password: newPassword,
+      })
+      
+      return response
+    } catch (error: any) {
+      if (error instanceof ApiErrorResponse) {
+        // Handle backend validation errors
+        if (error.status === 400 || error.status === 422) {
+          const detail = error.data.detail
+          if (typeof detail === 'string') {
+            throw new Error(detail)
+          }
+          if (Array.isArray(detail) && detail.length > 0) {
+            // Pydantic validation errors
+            const firstError = detail[0]
+            const field = Array.isArray(firstError.loc) ? firstError.loc.slice(1).join('.') : 'field'
+            throw new Error(`${field}: ${firstError.msg || 'Validation error'}`)
+          }
+          throw new Error('Invalid or expired reset token. Please request a new password reset link.')
+        }
+        if (error.status === 404) {
+          throw new Error('Invalid or expired reset token. Please request a new password reset link.')
+        }
+        // For other errors, use the detail message if available
+        const detail = error.data.detail
+        if (typeof detail === 'string') {
+          throw new Error(detail)
+        }
+        throw new Error('Failed to reset password. Please try again.')
       }
       throw new Error(error.message || 'Failed to reset password. Please try again.')
     }

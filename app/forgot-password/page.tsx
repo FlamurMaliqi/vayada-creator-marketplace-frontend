@@ -27,10 +27,13 @@ export default function ForgotPasswordPage() {
 
     try {
       // Call the forgot password service
+      // Always shows success for security (don't reveal if email exists)
       await authService.forgotPassword(email)
       setIsSuccess(true)
     } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please try again.')
+      // Even on error, show success message for security
+      // This prevents email enumeration attacks
+      setIsSuccess(true)
     } finally {
       setIsSubmitting(false)
     }
