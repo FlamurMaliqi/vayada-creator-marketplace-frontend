@@ -871,6 +871,9 @@ export default function ProfilePage() {
         ...(phone && phone.trim() && {
           phone: phone.trim(),
         }),
+        ...(editFormData.profilePicture && {
+          profilePicture: editFormData.profilePicture, // Use camelCase
+        }),
       }
 
       // Update creator profile (replaces all platforms)
@@ -1544,14 +1547,14 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen" style={{ backgroundColor: '#f9f8f6' }}>
       <AuthenticatedNavigation />
       <div className={`transition-all duration-300 ${isCollapsed ? 'md:pl-20' : 'md:pl-64'} pt-16`}>
         <div className="pt-4">
           <ProfileWarningBanner />
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+        <div className="max-w-7xl mx-auto pt-4 pb-8" style={{ paddingLeft: 'clamp(0.5rem, 3%, 3rem)', paddingRight: '2rem' }}>
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-5xl font-extrabold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-3">
@@ -1574,16 +1577,17 @@ export default function ProfilePage() {
               {/* Creator Profile Tabs */}
               {userType === 'creator' && creatorProfile && (
                 <>
-                  {/* Tab Navigation with Edit Button */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 w-fit">
+                  {/* Header with Tabs and Action Buttons */}
+                  <div className="pt-6 pr-6 pb-6 pl-0 mb-6" style={{ backgroundColor: '#f9f8f6' }}>
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                      {/* Tab Navigation */}
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => setActiveCreatorTab('overview')}
                           className={`px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
                             activeCreatorTab === 'overview'
-                              ? 'bg-primary-600 text-white shadow-md'
-                              : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
                           }`}
                         >
                           Overview
@@ -1592,8 +1596,8 @@ export default function ProfilePage() {
                           onClick={() => setActiveCreatorTab('platforms')}
                           className={`px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
                             activeCreatorTab === 'platforms'
-                              ? 'bg-primary-600 text-white shadow-md'
-                              : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
                           }`}
                         >
                           Social Media Platforms
@@ -1602,325 +1606,211 @@ export default function ProfilePage() {
                           onClick={() => setActiveCreatorTab('reviews')}
                           className={`px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
                             activeCreatorTab === 'reviews'
-                              ? 'bg-primary-600 text-white shadow-md'
-                              : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
                           }`}
                         >
                           Reviews & Ratings
                         </button>
                       </div>
+                      {/* Action Buttons */}
+                      {isEditingProfile ? (
+                        <div className="flex gap-3">
+                          <button
+                            onClick={handleCancelEdit}
+                            disabled={isSavingProfile}
+                            className="px-4 py-2.5 rounded-lg font-semibold bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleSaveProfile}
+                            disabled={isSavingProfile || !editFormData.name || !editFormData.shortDescription || !editFormData.location}
+                            className="px-4 py-2.5 rounded-lg font-semibold bg-primary-600 text-white hover:bg-primary-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isSavingProfile ? 'Saving...' : 'Save Changes'}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setIsEditingProfile(true)}
+                          className="p-2.5 rounded-lg bg-white text-primary-600 border border-primary-600 hover:bg-primary-50 transition-all duration-200 flex items-center justify-center"
+                          title="Edit Profile"
+                        >
+                          <PencilIcon className="w-5 h-5" />
+                        </button>
+                      )}
                     </div>
-                    {!isEditingProfile ? (
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsEditingProfile(true)}
-                      >
-                        <PencilIcon className="w-5 h-5 mr-2" />
-                        Edit Profile
-                      </Button>
-                    ) : (
-                      <div className="flex gap-3">
-                        <Button
-                          variant="outline"
-                          onClick={handleCancelEdit}
-                          disabled={isSavingProfile}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          variant="primary"
-                          onClick={handleSaveProfile}
-                          isLoading={isSavingProfile}
-                          disabled={!editFormData.name || !editFormData.shortDescription || !editFormData.location}
-                        >
-                          Save Changes
-                        </Button>
-                      </div>
-                    )}
                   </div>
 
                   {/* Tab Content */}
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-5">
                     {/* Overview Tab */}
                     {activeCreatorTab === 'overview' && (
-                      <div>
-                        <div className="flex items-center gap-3 mb-6">
-                          <div className="w-1 h-8 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
-                          <h2 className="text-2xl font-bold text-gray-900">Overview</h2>
+                      <div className="space-y-5">
+                        {/* Edit Profile Section */}
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                          <div className="flex items-center gap-2">
+                            <UserIcon className="w-5 h-5 text-gray-400" />
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-900">Edit Profile</h3>
+                              <p className="text-xs text-gray-500">Update your profile details</p>
+                            </div>
+                          </div>
                         </div>
 
-                        {!isEditingProfile ? (
-                          <div className="flex items-start gap-6">
-                            {/* Profile Picture */}
-                            <div className="flex-shrink-0">
-                              {creatorProfile.profilePicture ? (
-                                <button
-                                  onClick={() => setShowPictureModal(true)}
-                                  className="cursor-pointer hover:opacity-90 transition-opacity"
-                                >
+                        <div className="flex flex-col-reverse md:flex-row gap-5">
+                          {/* Left Column: Name & Location */}
+                          <div className="flex-1 space-y-3">
+                            <Input
+                              label="Name *"
+                              type="text"
+                              value={isEditingProfile ? editFormData.name : creatorProfile.name}
+                              onChange={(e) => {
+                                if (isEditingProfile) {
+                                  setEditFormData({ ...editFormData, name: e.target.value })
+                                }
+                              }}
+                              disabled={!isEditingProfile}
+                              required
+                              placeholder="Your full name"
+                              leadingIcon={<UserIcon className="w-5 h-5 text-gray-400" />}
+                            />
+
+                            <Input
+                              label="Location *"
+                              type="text"
+                              value={isEditingProfile ? editFormData.location : creatorProfile.location}
+                              onChange={(e) => {
+                                if (isEditingProfile) {
+                                  setEditFormData({ ...editFormData, location: e.target.value })
+                                }
+                              }}
+                              disabled={!isEditingProfile}
+                              required
+                              placeholder="e.g., New York, USA"
+                              leadingIcon={<MapPinIcon className="w-5 h-5 text-gray-400" />}
+                            />
+                          </div>
+
+                          {/* Right Column: Profile Picture */}
+                          <div className="w-full md:w-auto flex flex-col items-center gap-2">
+                            <span className="text-xs font-semibold text-gray-700">Profile Picture</span>
+                            <div
+                              className={`relative w-40 h-40 rounded-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center transition-all overflow-hidden bg-gray-50 group ${
+                                isEditingProfile ? 'cursor-pointer hover:border-primary-500 hover:bg-gray-50' : 'cursor-default'
+                              }`}
+                              onClick={() => {
+                                if (isEditingProfile) {
+                                  fileInputRef.current?.click()
+                                }
+                              }}
+                            >
+                              {(isEditingProfile ? editFormData.profilePicture : creatorProfile.profilePicture) ? (
+                                <>
                                   <img
-                                    src={creatorProfile.profilePicture}
-                                    alt={creatorProfile.name}
-                                    className="w-32 h-32 rounded-2xl object-cover border-4 border-gray-100 shadow-lg"
+                                    src={isEditingProfile ? editFormData.profilePicture : creatorProfile.profilePicture}
+                                    alt="Profile"
+                                    className="w-full h-full object-cover"
                                   />
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => setShowPictureModal(true)}
-                                  className="cursor-pointer hover:opacity-90 transition-opacity"
-                                >
-                                  <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-5xl shadow-lg border-4 border-gray-100">
-                                    {creatorProfile.name.charAt(0)}
-                                  </div>
-                                </button>
-                              )}
-                            </div>
-
-                            {/* Profile Information */}
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-3">
-                                <h3 className="text-3xl font-bold text-gray-900">{creatorProfile.name}</h3>
-                                {creatorProfile.status === 'verified' && (
-                                  <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-700">
-                                    <CheckBadgeIcon className="w-5 h-5" />
-                                    <span className="text-sm font-semibold">Verified</span>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Location */}
-                              <div className="flex items-center gap-2 text-gray-600 mb-4">
-                                <MapPinIcon className="w-5 h-5" />
-                                <span className="text-lg">{creatorProfile.location}</span>
-                              </div>
-
-                              {/* Rating */}
-                              {creatorProfile.rating && (
-                                <div className="mb-4">
-                                  <StarRating
-                                    rating={creatorProfile.rating.averageRating ?? 0}
-                                    totalReviews={creatorProfile.rating.totalReviews ?? 0}
-                                    size="md"
-                                  />
-                                </div>
-                              )}
-
-                              {/* Short Description */}
-                              <div className="mt-6">
-                                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                                  Description
-                                </h4>
-                                <p className="text-gray-700 leading-relaxed text-lg">
-                                  {creatorProfile.shortDescription || 'No description provided'}
-                                </p>
-                              </div>
-
-                              {/* Portfolio Link */}
-                              {creatorProfile.portfolioLink && (
-                                <div className="mt-6">
-                                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                                    Portfolio
-                                  </h4>
-                                  <a
-                                    href={creatorProfile.portfolioLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium"
-                                  >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                    </svg>
-                                    <span>{creatorProfile.portfolioLink}</span>
-                                  </a>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="space-y-5">
-                            <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                              <div>
-                                <h3 className="text-lg font-bold text-gray-900">Basic Information</h3>
-                                <p className="text-xs text-gray-500">Your creator profile details</p>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col-reverse md:flex-row gap-5">
-                              {/* Left Column: Name & Location */}
-                              <div className="flex-1 space-y-3">
-                                <Input
-                                  label="Name"
-                                  type="text"
-                                  value={editFormData.name}
-                                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                                  required
-                                  placeholder="Your full name"
-                                  leadingIcon={<UserIcon className="w-5 h-5 text-gray-400" />}
-                                />
-
-                                <Input
-                                  label="Location"
-                                  type="text"
-                                  value={editFormData.location}
-                                  onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
-                                  required
-                                  placeholder="e.g., New York, USA"
-                                  leadingIcon={<MapPinIcon className="w-5 h-5 text-gray-400" />}
-                                />
-                              </div>
-
-                              {/* Right Column: Profile Picture */}
-                              <div className="w-full md:w-auto flex flex-col items-center gap-2">
-                                <span className="text-xs font-semibold text-gray-700">Profile Picture</span>
-                                <div
-                                  className="relative w-40 h-40 rounded-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-primary-500 hover:bg-gray-50 transition-all overflow-hidden bg-gray-50 group"
-                                  onClick={() => fileInputRef.current?.click()}
-                                >
-                                  {editFormData.profilePicture ? (
-                                    <>
-                                      <img
-                                        src={editFormData.profilePicture}
-                                        alt="Profile"
-                                        className="w-full h-full object-cover"
-                                      />
-                                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <span className="text-white text-[10px] font-medium">Change</span>
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <div className="w-6 h-6 text-gray-400 mb-1 group-hover:text-primary-500 transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                                          <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                                        </svg>
-                                      </div>
-                                      <span className="text-[10px] text-gray-500 font-medium group-hover:text-primary-600">Upload</span>
-                                    </>
+                                  {isEditingProfile && (
+                                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <span className="text-white text-[10px] font-medium">Change</span>
+                                    </div>
                                   )}
-                                </div>
-                                <input
-                                  type="file"
-                                  ref={fileInputRef}
-                                  onChange={handleCreatorImageChange}
-                                  accept="image/jpeg,image/png,image/webp"
-                                  className="hidden"
-                                />
-                              </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="w-6 h-6 text-gray-400 mb-1 group-hover:text-primary-500 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                                    </svg>
+                                  </div>
+                                  <span className="text-[10px] text-gray-500 font-medium group-hover:text-primary-600">Upload</span>
+                                </>
+                              )}
                             </div>
-
-                            <div className="space-y-1">
-                              <Textarea
-                                label="Creator Biography"
-                                value={editFormData.shortDescription}
-                                onChange={(e) => setEditFormData({ ...editFormData, shortDescription: e.target.value })}
-                                required
-                                placeholder="Tell us about yourself as a travel creator"
-                                rows={3}
-                                maxLength={500}
-                                helperText={`${editFormData.shortDescription.length}/500 characters`}
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <h4 className="text-sm font-bold text-gray-700">Portfolio Link</h4>
-                              <Input
-                                label=""
-                                type="url"
-                                value={editFormData.portfolioLink}
-                                onChange={(e) => setEditFormData({ ...editFormData, portfolioLink: e.target.value })}
-                                placeholder="https://your-portfolio.com"
-                                helperText="Optional - Your website, media kit, or best-performing content URL"
-                                leadingIcon={<LinkIcon className="w-5 h-5 text-gray-400" />}
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                  {/* Contact Information Section */}
-                  <div className="mt-8 pt-8 border-t border-gray-200">
-                    <div className="space-y-4 pt-2">
-                      <div>
-                        <h4 className="text-base font-bold text-gray-900">Contact Information</h4>
-                        <p className="text-sm text-gray-500 mt-1">Your email & phone number for direct communication with properties after both accept a collaboration</p>
-                      </div>
-                      {!isEditingContact ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
-                            <div className="flex items-center gap-3 mb-2">
-                              <EnvelopeIcon className="w-5 h-5 text-gray-600" />
-                              <label className="text-sm font-medium text-gray-700">E-Mail</label>
-                            </div>
-                            <p className="text-lg font-semibold text-gray-900 ml-8">{email || 'Not provided'}</p>
-                          </div>
-
-                          <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
-                            <div className="flex items-center gap-3 mb-2">
-                              <PhoneIcon className="w-5 h-5 text-gray-600" />
-                              <label className="text-sm font-medium text-gray-700">Telefon</label>
-                            </div>
-                            <p className="text-lg font-semibold text-gray-900 ml-8">{phone || 'Not provided'}</p>
+                            <p className="text-xs text-gray-500 text-center">Optional - JPG, PNG or WebP (max 5MB)</p>
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              onChange={handleCreatorImageChange}
+                              accept="image/jpeg,image/png,image/webp"
+                              className="hidden"
+                            />
                           </div>
                         </div>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <Input
-                            label="Email"
-                            type="email"
-                            value={typeof window !== 'undefined' ? localStorage.getItem('userEmail') || email : email}
-                            disabled
-                            required
-                            leadingIcon={<EnvelopeIcon className="w-5 h-5 text-gray-400" />}
-                            className="bg-gray-50 text-gray-500"
-                          />
-                          <Input
-                            label="Phone"
-                            type="tel"
-                            required
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="+1-555-123-4567"
-                            leadingIcon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
-                          />
-                        </div>
-                      )}
-                      {!isEditingContact ? (
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsEditingContact(true)}
-                          className="w-full sm:w-auto"
-                        >
-                          Edit Contact Information
-                        </Button>
-                      ) : (
-                        <div className="flex gap-3">
-                          <Button
-                            variant="primary"
-                            onClick={handleSaveContact}
-                            isLoading={isSavingContact}
-                            disabled={!email || !email.includes('@')}
-                          >
-                            Save Changes
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setIsEditingContact(false)
-                              if (creatorProfile?.email) {
-                                setEmail(creatorProfile.email)
-                              }
-                              if (creatorProfile?.phone) {
-                                setPhone(creatorProfile.phone)
+
+                        <div className="space-y-1">
+                          <Textarea
+                            label="Creator Biography *"
+                            value={isEditingProfile ? editFormData.shortDescription : creatorProfile.shortDescription}
+                            onChange={(e) => {
+                              if (isEditingProfile) {
+                                setEditFormData({ ...editFormData, shortDescription: e.target.value })
                               }
                             }}
-                            disabled={isSavingContact}
-                          >
-                            Cancel
-                          </Button>
+                            disabled={!isEditingProfile}
+                            required
+                            placeholder="Tell us about yourself as a travel creator..."
+                            rows={3}
+                            maxLength={500}
+                            helperText={`${(isEditingProfile ? editFormData.shortDescription : creatorProfile.shortDescription).length}/500 characters`}
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Highlight your niche, primary audience demographics, and unique travel style.</p>
                         </div>
-                      )}
-                    </div>
-                  </div>
+
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-bold text-gray-700">Portfolio Link</h4>
+                          <Input
+                            label=""
+                            type="url"
+                            value={isEditingProfile ? editFormData.portfolioLink : (creatorProfile.portfolioLink || '')}
+                            onChange={(e) => {
+                              if (isEditingProfile) {
+                                setEditFormData({ ...editFormData, portfolioLink: e.target.value })
+                              }
+                            }}
+                            disabled={!isEditingProfile}
+                            placeholder="https://your-portfolio.com"
+                            helperText="Optional - Your website, media kit, or best-performing content URL"
+                            leadingIcon={<LinkIcon className="w-5 h-5 text-gray-400" />}
+                          />
+                        </div>
+
+                        {/* Contact Information Section */}
+                        <div className="space-y-4 pt-2">
+                          <div>
+                            <h4 className="text-base font-bold text-gray-900">Contact Information</h4>
+                            <p className="text-sm text-gray-500 mt-1">Your email & phone number for direct communication with properties after both accept a collaboration</p>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input
+                              label="Email *"
+                              type="email"
+                              value={typeof window !== 'undefined' ? localStorage.getItem('userEmail') || email : email}
+                              disabled
+                              required
+                              leadingIcon={<EnvelopeIcon className="w-5 h-5 text-gray-400" />}
+                              className="bg-gray-50 text-gray-500"
+                            />
+                            <Input
+                              label="Phone *"
+                              type="tel"
+                              required
+                              value={phone}
+                              onChange={(e) => {
+                                if (isEditingProfile) {
+                                  setPhone(e.target.value)
+                                }
+                              }}
+                              disabled={!isEditingProfile}
+                              placeholder="+1-555-123-4567"
+                              leadingIcon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
+                            />
+                          </div>
+                        </div>
                       </div>
                     )}
 

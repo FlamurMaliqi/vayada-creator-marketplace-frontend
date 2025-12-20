@@ -173,14 +173,14 @@ function CollaborationsPageContent() {
   }, [collaborations, statusFilter, searchQuery, sortOption, userType])
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen" style={{ backgroundColor: '#f9f8f6' }}>
       <AuthenticatedNavigation />
       <div className={`transition-all duration-300 ${isCollapsed ? 'md:pl-20' : 'md:pl-64'} pt-16`}>
         <div className="pt-4">
           <ProfileWarningBanner />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+        <div className="max-w-7xl mx-auto pt-4 pb-8" style={{ paddingLeft: 'clamp(0.5rem, 3%, 3rem)', paddingRight: '2rem' }}>
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-5xl font-extrabold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-3">
@@ -321,9 +321,9 @@ function CollaborationsPageContent() {
 export default function CollaborationsPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen" style={{ backgroundColor: '#f9f8f6' }}>
         <AuthenticatedNavigation />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="max-w-7xl mx-auto py-24" style={{ paddingLeft: 'clamp(0.5rem, 3%, 3rem)', paddingRight: '2rem' }}>
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
           </div>

@@ -195,14 +195,14 @@ export default function MarketplacePage() {
   const sortedCreators = sortItems(filteredCreators)
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen" style={{ backgroundColor: '#f9f8f6' }}>
       <AuthenticatedNavigation />
       <div className={`transition-all duration-300 ${isCollapsed ? 'md:pl-20' : 'md:pl-64'} pt-16`}>
         <div className="pt-4">
           <ProfileWarningBanner />
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+        <div className="max-w-7xl mx-auto pt-4 pb-8" style={{ paddingLeft: 'clamp(0.5rem, 3%, 3rem)', paddingRight: '2rem' }}>
         {/* Header */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
