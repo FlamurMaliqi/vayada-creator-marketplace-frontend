@@ -176,8 +176,11 @@ function SignUpForm() {
       return
     }
 
-    // Note: Email verification is optional but recommended
-    // We'll proceed with registration even if not verified
+    // Validate email verification
+    if (!isEmailVerified) {
+      setEmailError('Please verify your email address before signing up')
+      return
+    }
 
     // Validate password length
     if (!validatePassword(formData.password)) {
@@ -582,10 +585,10 @@ function SignUpForm() {
             {/* Create Account Button */}
             <button
               type="submit"
-              disabled={isSubmitting || !termsAccepted}
+              disabled={isSubmitting || !termsAccepted || !isEmailVerified}
               className={`
                 w-full px-4 py-3 rounded-lg font-medium text-sm transition-all
-                ${isSubmitting || !termsAccepted
+                ${isSubmitting || !termsAccepted || !isEmailVerified
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-primary-600 text-white hover:bg-primary-700'
                 }
@@ -593,9 +596,9 @@ function SignUpForm() {
             >
               {isSubmitting ? 'Creating Account...' : 'Create Account'}
             </button>
-            {!isEmailVerified && isCodeSent && (
+            {!isEmailVerified && (
               <p className="text-xs text-gray-500 text-center mt-2">
-                Email verification is optional but recommended
+                Please verify your email address to continue
               </p>
             )}
           </form>
