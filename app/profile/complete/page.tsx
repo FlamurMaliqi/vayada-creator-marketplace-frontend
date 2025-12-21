@@ -724,32 +724,65 @@ export default function ProfileCompletePage() {
     const files = e.target.files
     if (!files || files.length === 0) return
 
-    const file = files[0]
+    const fileArray = Array.from(files)
+    const maxImages = 10
+    const currentListing = hotelListings[listingIndex]
     
-    // Validate file type (image only)
-    if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file (JPG, PNG, WebP)')
-      return
-    }
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image must be less than 5MB')
+    // Validate total count
+    if (currentListing.images.length + fileArray.length > maxImages) {
+      setError(`Maximum ${maxImages} images allowed per listing`)
+      if (listingImageInputRefs.current[listingIndex]) {
+        listingImageInputRefs.current[listingIndex]!.value = ''
+      }
       return
     }
 
-    // Store the File object and create preview
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const result = reader.result as string
-      const updated = [...hotelListings]
-      updated[listingIndex] = {
-        ...updated[listingIndex],
-        images: [...updated[listingIndex].images, result], // Preview URL
-        imageFiles: [...updated[listingIndex].imageFiles, file], // Store File object
+    // Validate all files first
+    for (const file of fileArray) {
+      if (!file.type.startsWith('image/')) {
+        setError('Please upload image files only (JPG, PNG, WebP)')
+        if (listingImageInputRefs.current[listingIndex]) {
+          listingImageInputRefs.current[listingIndex]!.value = ''
+        }
+        return
       }
-      setHotelListings(updated)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image must be less than 5MB')
+        if (listingImageInputRefs.current[listingIndex]) {
+          listingImageInputRefs.current[listingIndex]!.value = ''
+        }
+        return
+      }
     }
-    reader.readAsDataURL(file)
+
+    // Process all files
+    let processedCount = 0
+    const newImages: string[] = []
+    const newFiles: File[] = []
+
+    fileArray.forEach((file) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        newImages.push(reader.result as string)
+        newFiles.push(file)
+        processedCount++
+
+        // When all files are processed, update state once
+        if (processedCount === fileArray.length) {
+          setHotelListings(prev => {
+            const updated = [...prev]
+            updated[listingIndex] = {
+              ...updated[listingIndex],
+              images: [...updated[listingIndex].images, ...newImages],
+              imageFiles: [...updated[listingIndex].imageFiles, ...newFiles],
+            }
+            return updated
+          })
+          setError('') // Clear any previous errors
+        }
+      }
+      reader.readAsDataURL(file)
+    })
 
     // Reset input
     if (listingImageInputRefs.current[listingIndex]) {
@@ -2264,50 +2297,124 @@ export default function ProfileCompletePage() {
                               className="bg-gray-50 border-gray-200"
                             />
 
-                            {/* Images */}
+                            {/* Images - Booking.com Style */}
                             <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Images</label>
-                              <div className="space-y-3">
-                                {listing.images.length > 0 && (
-                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    {listing.images.map((image, imageIndex) => (
-                                      <div key={imageIndex} className="relative group">
-                                        <img
-                                          src={image}
-                                          alt={`Listing ${index + 1} - Image ${imageIndex + 1}`}
-                                          className="w-full h-24 object-cover rounded-lg border border-gray-200"
-                                          onError={(e) => {
-                                            e.currentTarget.style.display = 'none'
-                                          }}
-                                        />
+                              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                Property Photos <span className="text-red-500">*</span>
+                              </label>
+                              {listing.images.length > 0 ? (
+                                <div className="space-y-2">
+                                  {/* Main Featured Image */}
+                                  <div className="relative group w-full h-64 md:h-80 rounded-xl overflow-hidden shadow-md">
+                                    <img
+                                      src={listing.images[0]}
+                                      alt={`${listing.name} - Main photo`}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none'
+                                      }}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <div className="absolute bottom-3 right-3">
                                         <button
                                           type="button"
-                                          onClick={() => removeListingImage(index, imageIndex)}
-                                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                          onClick={() => removeListingImage(index, 0)}
+                                          className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-lg transition-all transform hover:scale-105 flex items-center gap-1.5"
                                         >
                                           <XMarkIcon className="w-4 h-4" />
+                                          Remove
                                         </button>
                                       </div>
-                                    ))}
+                                    </div>
                                   </div>
-                                )}
-                                <input
-                                  ref={(el) => {
-                                    listingImageInputRefs.current[index] = el
-                                  }}
-                                  type="file"
-                                  accept="image/*"
-                                  className="hidden"
-                                  onChange={(e) => handleListingImageChange(index, e)}
-                                />
-                                <button
-                                  type="button"
+                                  
+                                  {/* Thumbnail Grid */}
+                                  {listing.images.length > 1 && (
+                                    <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
+                                      {listing.images.slice(1, 6).map((image, imageIndex) => (
+                                        <div key={imageIndex + 1} className="relative group aspect-square">
+                                          <img
+                                            src={image}
+                                            alt={`${listing.name} - Photo ${imageIndex + 2}`}
+                                            className="w-full h-full object-cover rounded-lg border-2 border-gray-200 shadow-sm group-hover:border-primary-400 group-hover:shadow-md transition-all cursor-pointer"
+                                            onError={(e) => {
+                                              e.currentTarget.style.display = 'none'
+                                            }}
+                                          />
+                                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-lg transition-all flex items-center justify-center">
+                                            <button
+                                              type="button"
+                                              onClick={() => removeListingImage(index, imageIndex + 1)}
+                                              className="p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg transform hover:scale-110"
+                                              title="Remove image"
+                                            >
+                                              <XMarkIcon className="w-3.5 h-3.5" />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                      
+                                      {/* Add More Button */}
+                                      {listing.images.length < 10 && (
+                                        <button
+                                          type="button"
+                                          onClick={() => listingImageInputRefs.current[index]?.click()}
+                                          className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-500 transition-all group cursor-pointer bg-gray-50"
+                                        >
+                                          <PlusIcon className="w-5 h-5 mb-1" />
+                                          <span className="text-[10px] font-medium">Add</span>
+                                        </button>
+                                      )}
+                                      
+                                      {/* Show remaining count if more than 6 images */}
+                                      {listing.images.length > 6 && (
+                                        <div className="aspect-square rounded-lg bg-gray-800/80 flex items-center justify-center text-white text-xs font-semibold">
+                                          +{listing.images.length - 6}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {/* Add First Image Button (if only one image) */}
+                                  {listing.images.length === 1 && listing.images.length < 10 && (
+                                    <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => listingImageInputRefs.current[index]?.click()}
+                                        className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-500 transition-all group cursor-pointer bg-gray-50"
+                                      >
+                                        <PlusIcon className="w-5 h-5 mb-1" />
+                                        <span className="text-[10px] font-medium">Add More</span>
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div 
+                                  className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:border-primary-400 hover:bg-primary-50 transition-all group cursor-pointer"
                                   onClick={() => listingImageInputRefs.current[index]?.click()}
-                                  className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center text-gray-400 hover:border-primary-400 hover:text-primary-500 transition-all"
                                 >
-                                  <PlusIcon className="w-6 h-6" />
-                                </button>
-                              </div>
+                                  <div className="w-20 h-20 rounded-full bg-white border-2 border-gray-200 group-hover:border-primary-400 flex items-center justify-center mb-4 transition-all shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 text-gray-400 group-hover:text-primary-500 transition-colors">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                                    </svg>
+                                  </div>
+                                  <p className="text-base font-semibold text-gray-700 group-hover:text-primary-600 transition-colors mb-1">Upload Property Photos</p>
+                                  <p className="text-sm text-gray-500">Showcase your property with high-quality images</p>
+                                  <p className="text-xs text-gray-400 mt-2">JPG, PNG, WEBP • Max 5MB per image</p>
+                                </div>
+                              )}
+                              <input
+                                ref={(el) => {
+                                  listingImageInputRefs.current[index] = el
+                                }}
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                className="hidden"
+                                onChange={(e) => handleListingImageChange(index, e)}
+                                multiple
+                              />
                             </div>
                           </div>
 
