@@ -207,7 +207,8 @@ export default function ProfileCompletePage() {
     location: string
     description: string
     accommodation_type: string
-    images: string[]
+    images: string[] // Preview URLs (base64 or existing URLs)
+    imageFiles: File[] // Actual File objects to upload
     collaborationTypes: ('Free Stay' | 'Paid' | 'Discount')[]
     availability: string[]
     platforms: string[]
@@ -657,6 +658,7 @@ export default function ProfileCompletePage() {
         description: '',
         accommodation_type: '',
         images: [],
+        imageFiles: [],
         collaborationTypes: [],
         availability: [],
         platforms: [],
@@ -723,13 +725,27 @@ export default function ProfileCompletePage() {
     if (!files || files.length === 0) return
 
     const file = files[0]
+    
+    // Validate file type (image only)
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file (JPG, PNG, WebP)')
+      return
+    }
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be less than 5MB')
+      return
+    }
+
+    // Store the File object and create preview
     const reader = new FileReader()
     reader.onloadend = () => {
       const result = reader.result as string
       const updated = [...hotelListings]
       updated[listingIndex] = {
         ...updated[listingIndex],
-        images: [...updated[listingIndex].images, result],
+        images: [...updated[listingIndex].images, result], // Preview URL
+        imageFiles: [...updated[listingIndex].imageFiles, file], // Store File object
       }
       setHotelListings(updated)
     }
@@ -746,6 +762,7 @@ export default function ProfileCompletePage() {
     updated[listingIndex] = {
       ...updated[listingIndex],
       images: updated[listingIndex].images.filter((_, i) => i !== imageIndex),
+      imageFiles: updated[listingIndex].imageFiles.filter((_, i) => i !== imageIndex),
     }
     setHotelListings(updated)
   }
@@ -1080,8 +1097,38 @@ export default function ProfileCompletePage() {
           })
         }
 
-        // Filter out base64 images (previews) - only keep URLs
-        const imageUrls = listing.images.filter((img) => !img.startsWith('data:'))
+        // Upload listing images first (recommended flow)
+        let imageUrls: string[] = []
+        
+        // Get existing URLs (if any - from editing existing listings)
+        const existingUrls = listing.images.filter((img) => !img.startsWith('data:'))
+        imageUrls = [...existingUrls]
+        
+        // Upload new image files if any
+        if (listing.imageFiles && listing.imageFiles.length > 0) {
+          try {
+            console.log(`Uploading ${listing.imageFiles.length} image(s) for listing "${listing.name}"...`)
+            const uploadResponse = await hotelService.uploadListingImages(listing.imageFiles)
+            const uploadedUrls = uploadResponse.images.map((img) => img.url)
+            imageUrls = [...imageUrls, ...uploadedUrls]
+            console.log(`Successfully uploaded ${uploadedUrls.length} image(s), total URLs: ${imageUrls.length}`)
+          } catch (error) {
+            console.error('Failed to upload listing images:', error)
+            if (error instanceof ApiErrorResponse) {
+              setError(formatErrorDetail(error.data.detail) || `Failed to upload images for listing "${listing.name}"`)
+            } else {
+              setError(`Failed to upload images for listing "${listing.name}". Please try again.`)
+            }
+            setSubmitting(false)
+            return
+          }
+        }
+
+        if (imageUrls.length === 0) {
+          setError(`Listing "${listing.name}": At least one image is required`)
+          setSubmitting(false)
+          return
+        }
 
         await hotelService.createListing({
           name: listing.name,
