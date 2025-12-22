@@ -246,12 +246,31 @@ export default function ProfilePage() {
         shortDescription: creatorProfile.shortDescription,
         location: creatorProfile.location,
         portfolioLink: creatorProfile.portfolioLink || '',
-        platforms: (creatorProfile.platforms || []).map(platform => ({
-          ...platform,
-          topCountries: platform.topCountries || [],
-          topAgeGroups: platform.topAgeGroups || [],
-          genderSplit: platform.genderSplit || { male: 0, female: 0 },
-        })),
+        platforms: (creatorProfile.platforms || []).map(platform => {
+          // Clean age groups - filter out any with empty or null ageRange
+          const cleanAgeGroups = (platform.topAgeGroups || [])
+            .map((ag: any) => {
+              // Handle both camelCase and snake_case formats, and null values
+              const ageRangeValue = ag.ageRange ?? ag.age_range ?? null
+              // Skip if null or undefined
+              if (ageRangeValue === null || ageRangeValue === undefined) {
+                return null
+              }
+              const ageRange = String(ageRangeValue).trim()
+              return {
+                ageRange: ageRange,
+                percentage: ag.percentage ?? 0,
+              }
+            })
+            .filter((ag: any) => ag !== null && ag.ageRange && ag.ageRange !== '' && ag.ageRange !== 'null') // Remove null entries and invalid age ranges
+
+          return {
+            ...platform,
+            topCountries: platform.topCountries || [],
+            topAgeGroups: cleanAgeGroups, // Only include valid age groups
+            genderSplit: platform.genderSplit || { male: 0, female: 0 },
+          }
+        }),
       })
       // Reset expanded platforms when profile loads - all collapsed by default
       setExpandedPlatforms(new Set())
@@ -347,6 +366,26 @@ export default function ProfilePage() {
         genderSplit = { male: 0, female: 0 }
       }
 
+      // Handle age groups - transform from backend format and filter out invalid ones
+      const rawAgeGroups = platform.topAgeGroups || platform.top_age_groups || []
+      const topAgeGroups = rawAgeGroups
+        .map((ag: any) => {
+          // Handle both ageRange (camelCase) and age_range (snake_case)
+          // Also handle null values from backend
+          const ageRangeValue = ag.ageRange ?? ag.age_range ?? null
+          if (ageRangeValue === null || ageRangeValue === undefined) {
+            return null
+          }
+          const ageRange = String(ageRangeValue).trim()
+          return {
+            ageRange: ageRange,
+            percentage: ag.percentage ?? 0,
+          }
+        })
+        .filter((ag: any) => {
+          return ag !== null && ag.ageRange && ag.ageRange !== '' && ag.ageRange !== 'null'
+        })
+
       return {
         id: platform.id,
         name: platform.name,
@@ -354,7 +393,7 @@ export default function ProfilePage() {
         followers: platform.followers ?? 0,
         engagementRate: (platform.engagementRate || platform.engagement_rate) ?? 0,
         topCountries: platform.topCountries || platform.top_countries || [],
-        topAgeGroups: platform.topAgeGroups || platform.top_age_groups || [],
+        topAgeGroups: topAgeGroups, // Already filtered and transformed (no empty age ranges)
         genderSplit: genderSplit,
       }
     })
@@ -556,9 +595,7 @@ export default function ProfilePage() {
       if (userType === 'creator') {
         try {
           const apiProfile = await creatorService.getMyProfile()
-          console.log('Raw API profile response:', apiProfile)
           const profile = transformCreatorProfile(apiProfile)
-          console.log('Transformed profile:', profile)
           setCreatorProfile(profile)
         } catch (error) {
           // Check if it's a 405 (Method Not Allowed) - endpoint not implemented yet
@@ -573,8 +610,6 @@ export default function ProfilePage() {
       } else if (userType === 'hotel') {
         try {
           const apiProfile = await hotelService.getMyProfile()
-          console.log('Loaded hotel profile from API:', apiProfile)
-          console.log('Picture field:', apiProfile.picture)
           // Transform API response to local HotelProfile format
           const profile: HotelProfile = {
             id: apiProfile.id,
@@ -806,8 +841,12 @@ export default function ProfilePage() {
         return `Platform ${i + 1}: Engagement rate must be greater than 0`
       }
       // Validate age groups - if any exist, they must have valid age ranges
+      // Handle both ageRange (camelCase) and age_range (snake_case) formats, and null values
       if (platform.topAgeGroups && platform.topAgeGroups.length > 0) {
-        const invalidAgeGroups = platform.topAgeGroups.filter(tag => !tag.ageRange || !tag.ageRange.trim())
+        const invalidAgeGroups = platform.topAgeGroups.filter((tag: any) => {
+          const ageRange = (tag.ageRange || tag.age_range || '').toString().trim()
+          return !ageRange || ageRange === '' || ageRange === 'null' || tag.ageRange === null || tag.age_range === null
+        })
         if (invalidAgeGroups.length > 0) {
           return `Platform ${i + 1}: All age groups must have a valid age range selected`
         }
@@ -831,32 +870,57 @@ export default function ProfilePage() {
       // Transform platforms to API format
       // IMPORTANT: API uses REPLACE strategy - must include ALL platforms
       // Use snake_case for nested fields as backend expects it
-      const platforms = editFormData.platforms.map(platform => ({
-        name: platform.name as 'Instagram' | 'TikTok' | 'YouTube' | 'Facebook',
-        handle: platform.handle.trim(),
-        followers: platform.followers,
-        engagement_rate: platform.engagementRate, // Use snake_case
-        ...(platform.topCountries && platform.topCountries.length > 0 && {
-          top_countries: platform.topCountries.map(tc => ({
-            country: tc.country,
-            percentage: tc.percentage,
-          })),
-        }),
-        ...(platform.topAgeGroups && platform.topAgeGroups.length > 0 && {
-          top_age_groups: platform.topAgeGroups
-            .filter(tag => tag.ageRange && tag.ageRange.trim() !== '') // Filter out empty age ranges
-            .map(tag => ({
-              age_range: tag.ageRange.trim(), // Use snake_case
-              percentage: tag.percentage,
+      const platforms = editFormData.platforms.map(platform => {
+        // Filter out empty or null age ranges first - handle both ageRange and age_range formats
+        const validAgeGroups = platform.topAgeGroups && platform.topAgeGroups.length > 0
+          ? platform.topAgeGroups
+              .map((tag: any) => {
+                // Handle both camelCase and snake_case formats, and null values
+                const ageRangeValue = tag.ageRange ?? tag.age_range ?? null
+                // Only process if we have a valid non-null value
+                if (ageRangeValue === null || ageRangeValue === undefined) {
+                  return null
+                }
+                const trimmedAgeRange = String(ageRangeValue).trim()
+                return {
+                  ageRange: trimmedAgeRange,
+                  percentage: tag.percentage ?? 0,
+                }
+              })
+              .filter((tag: any) => {
+                // Filter out null entries and invalid age ranges
+                if (!tag || tag === null) return false
+                return tag.ageRange && tag.ageRange !== '' && tag.ageRange !== 'null'
+              })
+              .map((tag: any) => ({
+                ageRange: tag.ageRange.trim(), // Use camelCase - backend expects ageRange not age_range
+                percentage: tag.percentage,
+              }))
+          : []
+
+        return {
+          name: platform.name as 'Instagram' | 'TikTok' | 'YouTube' | 'Facebook',
+          handle: platform.handle.trim(),
+          followers: platform.followers,
+          engagement_rate: platform.engagementRate, // Use snake_case
+          ...(platform.topCountries && platform.topCountries.length > 0 && {
+            top_countries: platform.topCountries.map(tc => ({
+              country: tc.country,
+              percentage: tc.percentage,
             })),
-        }),
-        ...(platform.genderSplit && (platform.genderSplit.male > 0 || platform.genderSplit.female > 0) && {
-          gender_split: {
-            male: platform.genderSplit.male,
-            female: platform.genderSplit.female,
-          },
-        }),
-      }))
+          }),
+          // Only include topAgeGroups if there are valid age groups (use camelCase like complete page)
+          ...(validAgeGroups.length > 0 && {
+            topAgeGroups: validAgeGroups,
+          }),
+          ...(platform.genderSplit && (platform.genderSplit.male > 0 || platform.genderSplit.female > 0) && {
+            gender_split: {
+              male: platform.genderSplit.male,
+              female: platform.genderSplit.female,
+            },
+          }),
+        }
+      })
 
       // Calculate audience size (sum of all platform followers)
       const audienceSize = platforms.reduce((sum, p) => sum + p.followers, 0)

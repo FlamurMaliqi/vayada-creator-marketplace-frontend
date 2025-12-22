@@ -874,32 +874,40 @@ export default function ProfileCompletePage() {
     try {
       // Prepare platform data
       // Use camelCase for genderSplit, snake_case for other fields
-      const platforms = creatorPlatforms.map(p => ({
-        name: p.name,
-        handle: p.handle,
-        followers: Number(p.followers),
-        engagementRate: Number(p.engagement_rate), // camelCase for engagementRate
-        ...(p.top_countries && p.top_countries.length > 0 && {
-          topCountries: p.top_countries.map(tc => ({
-            country: tc.country,
-            percentage: tc.percentage,
-          })),
-        }),
-        ...(p.top_age_groups && p.top_age_groups.length > 0 && {
-          topAgeGroups: p.top_age_groups
-            .filter(tag => tag.ageRange && tag.ageRange.trim() !== '') // Filter out empty age ranges
-            .map(tag => ({
-              ageRange: tag.ageRange.trim(),
-              percentage: tag.percentage,
+      const platforms = creatorPlatforms.map(p => {
+        // Filter out empty age ranges first
+        const validAgeGroups = p.top_age_groups && p.top_age_groups.length > 0
+          ? p.top_age_groups
+              .filter(tag => tag.ageRange && tag.ageRange.trim() !== '')
+              .map(tag => ({
+                ageRange: tag.ageRange.trim(),
+                percentage: tag.percentage,
+              }))
+          : []
+
+        return {
+          name: p.name,
+          handle: p.handle,
+          followers: Number(p.followers),
+          engagementRate: Number(p.engagement_rate), // camelCase for engagementRate
+          ...(p.top_countries && p.top_countries.length > 0 && {
+            topCountries: p.top_countries.map(tc => ({
+              country: tc.country,
+              percentage: tc.percentage,
             })),
-        }),
-        ...(p.gender_split && (p.gender_split.male > 0 || p.gender_split.female > 0) && {
-          genderSplit: {
-            male: p.gender_split.male,
-            female: p.gender_split.female,
-          },
-        }),
-      }))
+          }),
+          // Only include topAgeGroups if there are valid age groups
+          ...(validAgeGroups.length > 0 && {
+            topAgeGroups: validAgeGroups,
+          }),
+          ...(p.gender_split && (p.gender_split.male > 0 || p.gender_split.female > 0) && {
+            genderSplit: {
+              male: p.gender_split.male,
+              female: p.gender_split.female,
+            },
+          }),
+        }
+      })
 
       // Calculate total audience size from platforms
       const audienceSize = platforms.reduce((sum, p) => sum + p.followers, 0)
