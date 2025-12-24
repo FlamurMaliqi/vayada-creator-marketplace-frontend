@@ -7,7 +7,7 @@ import { useSidebar } from '@/components/layout/AuthenticatedNavigation'
 import { ROUTES } from '@/lib/constants/routes'
 import { Button, Input, Textarea, StarRating, ErrorModal } from '@/components/ui'
 import { MapPinIcon, CheckBadgeIcon, StarIcon, PencilIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/solid'
-import { TrashIcon, ChevronDownIcon, ChevronUpIcon, InformationCircleIcon, EnvelopeIcon, PhoneIcon, LinkIcon, UserIcon, BuildingOfficeIcon, BuildingOffice2Icon, GlobeAltIcon } from '@heroicons/react/24/outline'
+import { TrashIcon, ChevronDownIcon, ChevronUpIcon, InformationCircleIcon, EnvelopeIcon, PhoneIcon, LinkIcon, UserIcon, BuildingOfficeIcon, BuildingOffice2Icon, GlobeAltIcon, GiftIcon, CurrencyDollarIcon, TagIcon, CalendarDaysIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { StarIcon as StarIconOutline } from '@heroicons/react/24/outline'
 import { formatNumber } from '@/lib/utils'
 import type { CreatorRating, CollaborationReview, HotelProfile as ApiHotelProfile, HotelListing as ApiHotelListing, Creator as ApiCreator } from '@/lib/types'
@@ -108,6 +108,37 @@ const COLLABORATION_TYPES = ['Free Stay', 'Paid', 'Discount'] as const
 const AGE_GROUP_OPTIONS = ['18-24', '25-34', '35-44', '45-54', '55+']
 const COUNTRIES = ['USA', 'Germany', 'UK', 'France', 'Italy', 'Spain', 'Netherlands', 'Switzerland', 'Austria', 'Belgium', 'Canada', 'Australia', 'Japan', 'South Korea', 'Singapore', 'Thailand', 'Indonesia', 'Malaysia', 'Philippines', 'India', 'Brazil', 'Mexico', 'Argentina', 'Chile', 'South Africa', 'UAE', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Egypt']
 
+const HotelBadgeIcon = ({ active }: { active?: boolean }) => (
+  <div
+    className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+      active
+        ? 'bg-[#2F54EB] text-white'
+        : 'bg-[#EEF2FF] text-[#2F54EB]'
+    }`}
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-5 h-5"
+    >
+      <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
+      <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
+      <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
+      <path d="M10 6h4"></path>
+      <path d="M10 10h4"></path>
+      <path d="M10 14h4"></path>
+      <path d="M10 18h4"></path>
+    </svg>
+  </div>
+)
+
 export default function ProfilePage() {
   const router = useRouter()
   const { isCollapsed } = useSidebar()
@@ -138,8 +169,8 @@ export default function ProfilePage() {
   const [isSavingHotelProfile, setIsSavingHotelProfile] = useState(false)
   const [showPictureModal, setShowPictureModal] = useState(false)
   const [showHotelPictureModal, setShowHotelPictureModal] = useState(false)
-  const [showListingModal, setShowListingModal] = useState(false)
   const [editingListingId, setEditingListingId] = useState<string | null>(null)
+  const [isAddingNewListing, setIsAddingNewListing] = useState(false)
   const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null)
   const [hotelPicturePreview, setHotelPicturePreview] = useState<string | null>(null)
   const [listingImagePreview, setListingImagePreview] = useState<string | null>(null)
@@ -217,8 +248,11 @@ export default function ProfilePage() {
     targetGroupCountries: [] as string[],
     targetGroupAgeMin: undefined as number | undefined,
     targetGroupAgeMax: undefined as number | undefined,
+    targetGroupAgeGroups: [] as string[],
   })
   const [isSavingListing, setIsSavingListing] = useState(false)
+  const [listingCountryInput, setListingCountryInput] = useState('')
+  const [collapsedListingCards, setCollapsedListingCards] = useState<Set<string>>(new Set())
 
   // Load user type from localStorage on mount
   useEffect(() => {
@@ -696,6 +730,12 @@ export default function ProfilePage() {
       })
       setEmail(hotelProfile.email)
       setPhone(hotelProfile.phone || '')
+      // Ensure all listings are collapsed by default
+      if (hotelProfile.listings && hotelProfile.listings.length > 0) {
+        setCollapsedListingCards(new Set(hotelProfile.listings.map(listing => listing.id)))
+      } else {
+        setCollapsedListingCards(new Set())
+      }
     }
   }, [hotelProfile])
 
@@ -1339,10 +1379,13 @@ export default function ProfilePage() {
       targetGroupCountries: [],
       targetGroupAgeMin: undefined,
       targetGroupAgeMax: undefined,
+      targetGroupAgeGroups: [],
     })
     setEditingListingId(null)
     setListingImagePreview(null)
-    setShowListingModal(true)
+    setListingCountryInput('')
+    setIsAddingNewListing(true)
+    // Keep existing listings collapsed - don't modify collapsedListingCards
   }
 
   const openEditListingModal = (listing: HotelListing) => {
@@ -1364,10 +1407,16 @@ export default function ProfilePage() {
       targetGroupCountries: listing.targetGroupCountries || [],
       targetGroupAgeMin: listing.targetGroupAgeMin,
       targetGroupAgeMax: listing.targetGroupAgeMax,
+      targetGroupAgeGroups: [],
     })
     setEditingListingId(listing.id)
     setListingImagePreview(null)
-    setShowListingModal(true)
+    setListingCountryInput('')
+    setIsAddingNewListing(false)
+    // Ensure the listing card is expanded when editing
+    const newCollapsed = new Set(collapsedListingCards)
+    newCollapsed.delete(listing.id)
+    setCollapsedListingCards(newCollapsed)
   }
 
   const handleSaveListing = async () => {
@@ -1442,10 +1491,8 @@ export default function ProfilePage() {
       // Re-fetch full profile to get updated data
       await loadProfile()
       
-      setShowListingModal(false)
-      setEditingListingId(null)
+      handleCancelListing()
       setIsSavingListing(false)
-      setListingImagePreview(null)
     } catch (error: unknown) {
       const err = error as any
       const detail =
@@ -1464,9 +1511,30 @@ export default function ProfilePage() {
   }
 
   const handleCancelListing = () => {
-    setShowListingModal(false)
     setEditingListingId(null)
+    setIsAddingNewListing(false)
+    setListingFormData({
+      name: '',
+      location: '',
+      description: '',
+      images: [],
+      accommodationType: '',
+      collaborationTypes: [],
+      availability: [],
+      platforms: [],
+      freeStayMinNights: undefined,
+      freeStayMaxNights: undefined,
+      paidMaxAmount: undefined,
+      discountPercentage: undefined,
+      lookingForPlatforms: [],
+      lookingForMinFollowers: undefined,
+      targetGroupCountries: [],
+      targetGroupAgeMin: undefined,
+      targetGroupAgeMax: undefined,
+      targetGroupAgeGroups: [],
+    })
     setListingImagePreview(null)
+    setListingCountryInput('')
     if (listingImageInputRef.current) {
       listingImageInputRef.current.value = ''
     }
@@ -1522,6 +1590,12 @@ export default function ProfilePage() {
         showError('File Too Large', `${file.name} is larger than 5MB`)
         return
       }
+    }
+
+    // Limit to 10 images total
+    if (listingFormData.images.length + fileList.length > 10) {
+      showError('Too Many Images', 'Maximum 10 images allowed per listing')
+      return
     }
 
     try {
@@ -2758,146 +2832,1879 @@ export default function ProfilePage() {
                       </div>
                     )}
                     {activeHotelTab === 'listings' && (
-                      <div>
-                        <div className="flex items-center justify-between mb-6">
-                          <div className="flex items-center gap-3">
-                            <div className="w-1 h-8 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
-                            <h2 className="text-2xl font-bold text-gray-900">My Listings</h2>
+                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                        {/* Section Header */}
+                        <div className="mb-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="w-6 h-6 text-primary-600"
+                              >
+                                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
+                                <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
+                                <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
+                                <path d="M10 6h4"></path>
+                                <path d="M10 10h4"></path>
+                                <path d="M10 14h4"></path>
+                                <path d="M10 18h4"></path>
+                              </svg>
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <h2 className="text-2xl font-bold text-gray-900">Property Listings</h2>
+                                {hotelProfile.listings && hotelProfile.listings.length > 0 && (
+                                  <span className="px-2 py-0.5 bg-gray-200 text-gray-700 rounded-full text-xs font-semibold">
+                                    {hotelProfile.listings.length} listing{hotelProfile.listings.length !== 1 ? 's' : ''}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-500">Add and manage your property listings</p>
+                            </div>
                           </div>
-                          <Button
-                            variant="primary"
-                            onClick={openAddListingModal}
-                          >
-                            <PlusIcon className="w-5 h-5 mr-2" />
-                            Add Listing
-                          </Button>
+                          <div className="mt-2">
+                            <p className="text-sm text-gray-600">Define your property offerings and the type of creators you're looking for.</p>
+                          </div>
                         </div>
 
-                        {hotelProfile.listings && hotelProfile.listings.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {hotelProfile.listings.map((listing) => (
-                              <div
-                                key={listing.id}
-                                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                        {/* New Listing Card */}
+                        {isAddingNewListing && (
+                          <div className="mt-6 border border-gray-200 rounded-2xl p-5 bg-white shadow-sm">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-3">
+                                <HotelBadgeIcon active={false} />
+                                <h4 className="font-semibold text-gray-900 text-base">
+                                  {listingFormData.name || `Property Listing ${hotelProfile.listings ? hotelProfile.listings.length + 1 : 1}`}
+                                </h4>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={handleCancelListing}
+                                className="p-1 rounded-md text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors"
+                                title="Cancel"
                               >
-                                {/* Listing Image */}
-                                <div className="relative h-48 bg-gradient-to-br from-primary-100 to-primary-200">
-                                  {listing.images && listing.images.length > 0 ? (
-                                    <img
-                                      src={listing.images[0]}
-                                      alt={listing.name}
-                                      className="w-full h-full object-cover"
-                                      onError={(e) => {
-                                        e.currentTarget.style.display = 'none'
-                                      }}
-                                    />
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                      <span className="text-primary-600 text-3xl font-bold">
-                                        {listing.name.charAt(0)}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {/* Status Badge */}
-                                  <div className="absolute top-3 right-3">
-                                    <span
-                                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                        listing.status === 'verified'
-                                          ? 'bg-green-100 text-green-700'
-                                          : listing.status === 'pending'
-                                          ? 'bg-yellow-100 text-yellow-700'
-                                          : 'bg-red-100 text-red-700'
-                                      }`}
-                                    >
-                                      {listing.status === 'verified' ? 'Verified' : listing.status === 'pending' ? 'Pending' : 'Rejected'}
-                                    </span>
-                                  </div>
+                                <XMarkIcon className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <div className="space-y-6">
+                              {/* Basic Information Section */}
+                              <div>
+                                <div className="flex items-center gap-3 mb-4">
+                                  <div className="w-1 h-6 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
+                                  <h3 className="text-lg font-bold text-gray-900">Basic Information</h3>
                                 </div>
-
-                                {/* Listing Info */}
-                                <div className="p-6">
-                                  <h3 className="text-xl font-bold text-gray-900 mb-2">{listing.name}</h3>
-                                  <div className="flex items-center gap-2 text-gray-600 mb-3">
-                                    <MapPinIcon className="w-4 h-4" />
-                                    <span className="text-sm">{listing.location}</span>
+                                <div className="space-y-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <Input
+                                      label="Listing Name"
+                                      value={listingFormData.name}
+                                      onChange={(e) => setListingFormData({ ...listingFormData, name: e.target.value })}
+                                      required
+                                      placeholder="Luxury Beach Villa"
+                                      className="bg-gray-50 border-gray-200"
+                                    />
+                                    <Input
+                                      label="Location"
+                                      value={listingFormData.location}
+                                      onChange={(e) => setListingFormData({ ...listingFormData, location: e.target.value })}
+                                      required
+                                      placeholder="Bali, Indonesia"
+                                      className="bg-gray-50 border-gray-200"
+                                    />
                                   </div>
-                                  <p className="text-gray-700 text-sm mb-4 line-clamp-2">{listing.description}</p>
-
-                                  {/* Listing Details */}
-                                  <div className="space-y-2 mb-4">
-                                    {listing.accommodationType && (
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-xs text-gray-500">Type:</span>
-                                        <span className="text-xs font-medium text-gray-700">{listing.accommodationType}</span>
-                                      </div>
-                                    )}
-                                    {listing.collaborationTypes && listing.collaborationTypes.length > 0 && (
-                                      <div>
-                                        <span className="text-xs text-gray-500">Collaboration:</span>
-                                        <div className="flex flex-wrap gap-1 mt-1">
-                                          {listing.collaborationTypes.map((type, idx) => (
-                                            <span
-                                              key={idx}
-                                              className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 text-xs font-medium"
-                                            >
-                                              {type}
-                                            </span>
-                                          ))}
+                                  <div>
+                                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                      Accommodation Type <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                      value={listingFormData.accommodationType}
+                                      onChange={(e) => setListingFormData({ ...listingFormData, accommodationType: e.target.value })}
+                                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-gray-50 text-sm text-gray-900"
+                                      required
+                                    >
+                                      <option value="">Select type</option>
+                                      {HOTEL_CATEGORIES.map((cat) => (
+                                        <option key={cat} value={cat}>
+                                          {cat}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <Textarea
+                                    label="Description"
+                                    value={listingFormData.description}
+                                    onChange={(e) => setListingFormData({ ...listingFormData, description: e.target.value })}
+                                    required
+                                    rows={3}
+                                    placeholder="A stunning beachfront villa with private pool and ocean views."
+                                    className="bg-gray-50 border-gray-200"
+                                  />
+                                  {/* Images */}
+                                  <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                      Property Photos <span className="text-red-500">*</span>
+                                    </label>
+                                    {listingFormData.images.length > 0 ? (
+                                      <div className="space-y-2">
+                                        <div className="relative group w-full h-48 rounded-xl overflow-hidden shadow-md">
+                                          <img
+                                            src={listingFormData.images[0]}
+                                            alt={`${listingFormData.name || 'Listing'} - Main photo`}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                              e.currentTarget.style.display = 'none'
+                                            }}
+                                          />
+                                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="absolute bottom-3 right-3">
+                                              <button
+                                                type="button"
+                                                onClick={() => removeListingImage(0)}
+                                                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-lg transition-all flex items-center gap-1.5"
+                                              >
+                                                <XMarkIcon className="w-4 h-4" />
+                                                Remove
+                                              </button>
+                                            </div>
+                                          </div>
                                         </div>
+                                        {listingFormData.images.length > 1 && (
+                                          <div className="grid grid-cols-4 gap-2">
+                                            {listingFormData.images.slice(1, 5).map((image, imageIndex) => (
+                                              <div key={imageIndex + 1} className="relative group aspect-square">
+                                                <img
+                                                  src={image}
+                                                  alt={`Photo ${imageIndex + 2}`}
+                                                  className="w-full h-full object-cover rounded-lg border-2 border-gray-200"
+                                                  onError={(e) => {
+                                                    e.currentTarget.style.display = 'none'
+                                                  }}
+                                                />
+                                                <button
+                                                  type="button"
+                                                  onClick={() => removeListingImage(imageIndex + 1)}
+                                                  className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                                >
+                                                  <XMarkIcon className="w-4 h-4 text-white" />
+                                                </button>
+                                              </div>
+                                            ))}
+                                            {listingFormData.images.length < 10 && (
+                                              <button
+                                                type="button"
+                                                onClick={() => listingImageInputRef.current?.click()}
+                                                className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-primary-400 hover:bg-primary-50"
+                                              >
+                                                <PlusIcon className="w-5 h-5 mb-1" />
+                                                <span className="text-[10px] font-medium">Add</span>
+                                              </button>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div 
+                                        className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:border-primary-400 hover:bg-primary-50 transition-all group cursor-pointer"
+                                        onClick={() => listingImageInputRef.current?.click()}
+                                      >
+                                        <div className="w-16 h-16 rounded-full bg-white border-2 border-gray-200 group-hover:border-primary-400 flex items-center justify-center mb-3">
+                                          <PlusIcon className="w-8 h-8 text-gray-400 group-hover:text-primary-500" />
+                                        </div>
+                                        <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-600 mb-1">Upload Property Photos</p>
+                                        <p className="text-xs text-gray-500">JPG, PNG, WEBP • Max 5MB per image</p>
                                       </div>
                                     )}
-                                    {listing.platforms && listing.platforms.length > 0 && (
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-xs text-gray-500">Platforms:</span>
-                                        <span className="text-xs font-medium text-gray-700">{listing.platforms.join(', ')}</span>
-                                      </div>
-                                    )}
-                                    {listing.availability && listing.availability.length > 0 && (
-                                      <div>
-                                        <span className="text-xs text-gray-500">Availability:</span>
-                                        <span className="text-xs font-medium text-gray-700 ml-1">
-                                          {listing.availability.length} months
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Actions */}
-                                  <div className="flex gap-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="flex-1"
-                                      onClick={() => openEditListingModal(listing)}
-                                    >
-                                      <PencilIcon className="w-4 h-4 mr-1" />
-                                      Edit
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-red-600 hover:text-red-700 hover:border-red-300"
-                                      onClick={() => handleDeleteListing(listing.id)}
-                                    >
-                                      <TrashIcon className="w-4 h-4" />
-                                    </Button>
+                                    <input
+                                      ref={listingImageInputRef}
+                                      type="file"
+                                      accept="image/jpeg,image/png,image/webp"
+                                      className="hidden"
+                                      onChange={handleListingImageChange}
+                                      multiple
+                                    />
                                   </div>
                                 </div>
                               </div>
-                            ))}
+
+                              {/* Offerings Section */}
+                              <div className="pt-4 border-t border-gray-100">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="w-1.5 h-5 bg-primary-600 rounded-full"></div>
+                                  <h5 className="text-lg font-semibold text-gray-900">Offerings</h5>
+                                </div>
+                                <div className="space-y-4 bg-gray-50 border border-gray-200 rounded-2xl p-4">
+                                  {/* Collaboration Types */}
+                                  <div>
+                                    <label className="block text-base font-semibold text-gray-900 mb-3">
+                                      Collaboration Types <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                      {COLLABORATION_TYPES.map((type) => {
+                                        const isSelected = listingFormData.collaborationTypes.includes(type)
+                                        const icons = {
+                                          'Free Stay': GiftIcon,
+                                          'Paid': CurrencyDollarIcon,
+                                          'Discount': TagIcon,
+                                        }
+                                        const Icon = icons[type as keyof typeof icons]
+
+                                        return (
+                                          <label
+                                            key={type}
+                                            className={`relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border cursor-pointer transition-all text-center ${
+                                              isSelected
+                                                ? 'bg-purple-50 border-[#2F54EB] shadow-sm'
+                                                : 'bg-[#F7F7FA] border-[#E5E7EB] text-gray-800 hover:border-primary-200'
+                                            }`}
+                                          >
+                                            <input
+                                              type="checkbox"
+                                              checked={isSelected}
+                                              onChange={(e) => {
+                                                if (e.target.checked) {
+                                                  setListingFormData({
+                                                    ...listingFormData,
+                                                    collaborationTypes: [...listingFormData.collaborationTypes, type],
+                                                  })
+                                                } else {
+                                                  setListingFormData({
+                                                    ...listingFormData,
+                                                    collaborationTypes: listingFormData.collaborationTypes.filter((t) => t !== type),
+                                                  })
+                                                }
+                                              }}
+                                              className="sr-only"
+                                            />
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                              isSelected ? 'bg-[#2F54EB] text-white' : 'bg-white text-gray-700'
+                                            }`}>
+                                              <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-700'}`} />
+                                            </div>
+                                            <div className={`text-sm font-semibold ${isSelected ? 'text-gray-900' : 'text-gray-900'}`}>
+                                              {type}
+                                            </div>
+                                            {isSelected && (
+                                              <div className="flex items-center gap-1 text-xs font-medium text-[#2F54EB]">
+                                                <CheckCircleIcon className="w-3.5 h-3.5" />
+                                                <span>Selected</span>
+                                              </div>
+                                            )}
+                                          </label>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+
+                                  {/* Free Stay Details */}
+                                  {listingFormData.collaborationTypes.includes('Free Stay') && (
+                                    <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#2F54EB] flex items-center justify-center">
+                                          <GiftIcon className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                          <h6 className="font-semibold text-gray-900 text-base">Free Stay Details</h6>
+                                          <p className="text-sm text-gray-600">Specify the night range for free stays</p>
+                                        </div>
+                                      </div>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <Input
+                                          label="Min. Nights"
+                                          type="number"
+                                          value={listingFormData.freeStayMinNights || ''}
+                                          min={1}
+                                          onChange={(e) => {
+                                            const { value } = e.target
+                                            if (value === '') {
+                                              setListingFormData({ ...listingFormData, freeStayMinNights: undefined })
+                                              return
+                                            }
+                                            const parsed = parseInt(value)
+                                            setListingFormData({
+                                              ...listingFormData,
+                                              freeStayMinNights: Number.isNaN(parsed) ? undefined : Math.max(1, parsed),
+                                            })
+                                          }}
+                                          placeholder="1"
+                                          required
+                                          className="bg-gray-50 border-gray-200"
+                                        />
+                                        <Input
+                                          label="Max. Nights"
+                                          type="number"
+                                          value={listingFormData.freeStayMaxNights || ''}
+                                          min={1}
+                                          onChange={(e) => {
+                                            const { value } = e.target
+                                            if (value === '') {
+                                              setListingFormData({ ...listingFormData, freeStayMaxNights: undefined })
+                                              return
+                                            }
+                                            const parsed = parseInt(value)
+                                            setListingFormData({
+                                              ...listingFormData,
+                                              freeStayMaxNights: Number.isNaN(parsed) ? undefined : Math.max(1, parsed),
+                                            })
+                                          }}
+                                          placeholder="5"
+                                          required
+                                          className="bg-gray-50 border-gray-200"
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Paid Details */}
+                                  {listingFormData.collaborationTypes.includes('Paid') && (
+                                    <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#2F54EB] flex items-center justify-center">
+                                          <CurrencyDollarIcon className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                          <h6 className="font-semibold text-gray-900 text-base">Paid Details</h6>
+                                          <p className="text-sm text-gray-600">Set the maximum payment amount</p>
+                                        </div>
+                                      </div>
+                                      <Input
+                                        label="Max. Amount ($)"
+                                        type="number"
+                                        value={listingFormData.paidMaxAmount || ''}
+                                        onChange={(e) => setListingFormData({
+                                          ...listingFormData,
+                                          paidMaxAmount: parseInt(e.target.value) || undefined,
+                                        })}
+                                        placeholder="5000"
+                                        required
+                                        className="bg-gray-50 border-gray-200"
+                                      />
+                                    </div>
+                                  )}
+
+                                  {/* Discount Details */}
+                                  {listingFormData.collaborationTypes.includes('Discount') && (
+                                    <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#2F54EB] flex items-center justify-center">
+                                          <TagIcon className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                          <h6 className="font-semibold text-gray-900 text-base">Discount Details</h6>
+                                          <p className="text-sm text-gray-600">Set the discount percentage</p>
+                                        </div>
+                                      </div>
+                                      <Input
+                                        label="Discount Percentage (%)"
+                                        type="number"
+                                        value={listingFormData.discountPercentage || ''}
+                                        onChange={(e) => setListingFormData({
+                                          ...listingFormData,
+                                          discountPercentage: parseInt(e.target.value) || undefined,
+                                        })}
+                                        placeholder="20"
+                                        min={1}
+                                        max={100}
+                                        required
+                                        className="bg-gray-50 border-gray-200"
+                                      />
+                                    </div>
+                                  )}
+
+                                  {/* Availability */}
+                                  <div>
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <CalendarDaysIcon className="w-5 h-5 text-primary-600" />
+                                      <label className="block text-base font-semibold text-gray-900">
+                                        Availability <span className="text-red-500">*</span>
+                                      </label>
+                                    </div>
+                                    <div className="bg-white border border-gray-200 rounded-2xl p-3 shadow-sm">
+                                      <div className="grid grid-cols-6 gap-2">
+                                        {MONTHS.map((month) => {
+                                          const isSelected = listingFormData.availability.includes(month)
+                                          const monthAbbr = month.substring(0, 3)
+
+                                          return (
+                                            <label
+                                              key={month}
+                                              className={`relative flex flex-col items-center justify-center py-2 rounded-xl border cursor-pointer transition-all text-xs ${
+                                                isSelected
+                                                  ? 'bg-[#2F54EB] border-[#2F54EB] text-white'
+                                                  : 'bg-gray-100 border-gray-200 text-gray-700 hover:border-gray-300'
+                                              }`}
+                                            >
+                                              <input
+                                                type="checkbox"
+                                                checked={isSelected}
+                                                onChange={(e) => {
+                                                  if (e.target.checked) {
+                                                    setListingFormData({
+                                                      ...listingFormData,
+                                                      availability: [...listingFormData.availability, month],
+                                                    })
+                                                  } else {
+                                                    setListingFormData({
+                                                      ...listingFormData,
+                                                      availability: listingFormData.availability.filter((m) => m !== month),
+                                                    })
+                                                  }
+                                                }}
+                                                className="sr-only"
+                                              />
+                                              <div className={`font-semibold ${isSelected ? 'text-white' : 'text-gray-700'}`}>{monthAbbr}</div>
+                                            </label>
+                                          )
+                                        })}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Platforms */}
+                                  <div>
+                                    <label className="block text-base font-semibold text-gray-900 mb-1">Property posting platforms</label>
+                                    <p className="text-sm text-gray-600 mb-3">On which platforms is your property active?</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {PLATFORM_OPTIONS.map((platform) => {
+                                        const isSelected = listingFormData.platforms.includes(platform)
+                                        return (
+                                          <label
+                                            key={platform}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer transition-all ${
+                                              isSelected
+                                                ? 'border-[#2F54EB] bg-blue-50 text-[#2F54EB]'
+                                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                                            }`}
+                                          >
+                                            <input
+                                              type="checkbox"
+                                              checked={isSelected}
+                                              onChange={(e) => {
+                                                if (e.target.checked) {
+                                                  setListingFormData({
+                                                    ...listingFormData,
+                                                    platforms: [...listingFormData.platforms, platform],
+                                                  })
+                                                } else {
+                                                  setListingFormData({
+                                                    ...listingFormData,
+                                                    platforms: listingFormData.platforms.filter((p) => p !== platform),
+                                                  })
+                                                }
+                                              }}
+                                              className="sr-only"
+                                            />
+                                            <span
+                                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                                isSelected
+                                                  ? 'border-[#2F54EB] bg-[#2F54EB]'
+                                                  : 'border-gray-400 bg-white'
+                                              }`}
+                                            >
+                                              {isSelected && (
+                                                <span className="w-2 h-2 rounded-full bg-white"></span>
+                                              )}
+                                            </span>
+                                            <span className={isSelected ? 'text-[#2F54EB]' : 'text-gray-700'}>
+                                              {platform}
+                                            </span>
+                                          </label>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Looking For Section */}
+                              <div className="pt-4 border-t border-gray-100">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="w-1.5 h-5 bg-orange-500 rounded-full"></div>
+                                  <h5 className="text-lg font-semibold text-gray-900">Looking For</h5>
+                                </div>
+                                <div className="space-y-4 bg-gray-50 border border-gray-200 rounded-2xl p-4">
+                                  {/* Platforms */}
+                                  <div>
+                                    <label className="block text-base font-semibold text-gray-900 mb-1">Creator's platforms</label>
+                                    <p className="text-sm text-gray-600 mb-3">Which platforms should the creator have?</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {PLATFORM_OPTIONS.map((platform) => {
+                                        const isSelected = listingFormData.lookingForPlatforms.includes(platform)
+                                        return (
+                                          <label
+                                            key={platform}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer transition-all ${
+                                              isSelected
+                                                ? 'border-[#2F54EB] bg-blue-50 text-[#2F54EB]'
+                                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                                            }`}
+                                          >
+                                            <input
+                                              type="checkbox"
+                                              checked={isSelected}
+                                              onChange={(e) => {
+                                                if (e.target.checked) {
+                                                  setListingFormData({
+                                                    ...listingFormData,
+                                                    lookingForPlatforms: [...listingFormData.lookingForPlatforms, platform],
+                                                  })
+                                                } else {
+                                                  setListingFormData({
+                                                    ...listingFormData,
+                                                    lookingForPlatforms: listingFormData.lookingForPlatforms.filter((p) => p !== platform),
+                                                  })
+                                                }
+                                              }}
+                                              className="sr-only"
+                                            />
+                                            <span
+                                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                                isSelected
+                                                  ? 'border-[#2F54EB] bg-[#2F54EB]'
+                                                  : 'border-gray-400 bg-white'
+                                              }`}
+                                            >
+                                              {isSelected && (
+                                                <span className="w-2 h-2 rounded-full bg-white"></span>
+                                              )}
+                                            </span>
+                                            <span className={isSelected ? 'text-[#2F54EB]' : 'text-gray-700'}>
+                                              {platform}
+                                            </span>
+                                          </label>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+
+                                  {/* Min Followers */}
+                                  <div>
+                                    <label className="block text-base font-semibold text-gray-900 mb-2">Min. Followers (optional)</label>
+                                    <Input
+                                      type="number"
+                                      value={listingFormData.lookingForMinFollowers || ''}
+                                      onChange={(e) => setListingFormData({
+                                        ...listingFormData,
+                                        lookingForMinFollowers: parseInt(e.target.value) || undefined,
+                                      })}
+                                      placeholder="e.g., 50000"
+                                      className="bg-gray-50"
+                                    />
+                                  </div>
+
+                                  {/* Top Countries */}
+                                  <div>
+                                    <label className="block text-base font-semibold text-gray-900 mb-1">Top Countries</label>
+                                    <p className="text-sm text-gray-600 mb-3">Select up to 3 countries your target audience is from</p>
+                                    <div className="space-y-2">
+                                      <input
+                                        type="text"
+                                        value={listingCountryInput}
+                                        onChange={(e) => {
+                                          setListingCountryInput(e.target.value)
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.preventDefault()
+                                            const country = listingCountryInput.trim()
+                                            if (country && COUNTRIES.includes(country) && !listingFormData.targetGroupCountries.includes(country) && listingFormData.targetGroupCountries.length < 3) {
+                                              setListingFormData({
+                                                ...listingFormData,
+                                                targetGroupCountries: [...listingFormData.targetGroupCountries, country],
+                                              })
+                                              setListingCountryInput('')
+                                            }
+                                          }
+                                        }}
+                                        placeholder="Search countries..."
+                                        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-200"
+                                      />
+                                      {listingCountryInput && COUNTRIES.filter(c => 
+                                        c.toLowerCase().includes(listingCountryInput.toLowerCase()) &&
+                                        !listingFormData.targetGroupCountries.includes(c)
+                                      ).length > 0 && (
+                                        <div className="max-h-40 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+                                          {COUNTRIES.filter(c => 
+                                            c.toLowerCase().includes(listingCountryInput.toLowerCase()) &&
+                                            !listingFormData.targetGroupCountries.includes(c)
+                                          ).map((country) => (
+                                            <button
+                                              key={country}
+                                              type="button"
+                                              onClick={() => {
+                                                if (listingFormData.targetGroupCountries.length < 3 && !listingFormData.targetGroupCountries.includes(country)) {
+                                                  setListingFormData({
+                                                    ...listingFormData,
+                                                    targetGroupCountries: [...listingFormData.targetGroupCountries, country],
+                                                  })
+                                                  setListingCountryInput('')
+                                                }
+                                              }}
+                                              className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-50"
+                                            >
+                                              {country}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                      {listingFormData.targetGroupCountries.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                          {listingFormData.targetGroupCountries.map((country, countryIndex) => (
+                                            <span key={countryIndex} className="inline-flex items-center gap-1 rounded-full bg-primary-50 text-primary-700 text-xs font-semibold px-3 py-1 border border-primary-100">
+                                              {country}
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  setListingFormData({
+                                                    ...listingFormData,
+                                                    targetGroupCountries: listingFormData.targetGroupCountries.filter((c) => c !== country),
+                                                  })
+                                                }}
+                                                className="text-primary-500 hover:text-primary-700"
+                                              >
+                                                <XMarkIcon className="w-3 h-3" />
+                                              </button>
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Age Groups */}
+                                  <div>
+                                    <label className="block text-base font-semibold text-gray-900 mb-1">Age Groups</label>
+                                    <p className="text-sm text-gray-600 mb-3">Select up to 3 age groups you want to target</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {AGE_GROUP_OPTIONS.map((range) => {
+                                        const isSelected = listingFormData.targetGroupAgeGroups?.includes(range) || false
+                                        return (
+                                          <button
+                                            key={range}
+                                            type="button"
+                                            onClick={() => {
+                                              const currentGroups = listingFormData.targetGroupAgeGroups || []
+                                              if (isSelected) {
+                                                setListingFormData({
+                                                  ...listingFormData,
+                                                  targetGroupAgeGroups: currentGroups.filter((g) => g !== range),
+                                                })
+                                              } else {
+                                                if (currentGroups.length < 3) {
+                                                  setListingFormData({
+                                                    ...listingFormData,
+                                                    targetGroupAgeGroups: [...currentGroups, range],
+                                                  })
+                                                }
+                                              }
+                                            }}
+                                            disabled={!isSelected && (listingFormData.targetGroupAgeGroups?.length || 0) >= 3}
+                                            className={`px-3 py-1.5 rounded-full border text-sm font-semibold transition-colors ${
+                                              isSelected
+                                                ? 'bg-primary-50 text-primary-700 border-primary-200'
+                                                : 'bg-white text-gray-700 border-gray-200 hover:border-primary-200 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                                            }`}
+                                          >
+                                            {range}
+                                          </button>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Footer Buttons */}
+                              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                                <Button
+                                  variant="outline"
+                                  onClick={handleCancelListing}
+                                  disabled={isSavingListing}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  variant="primary"
+                                  onClick={handleSaveListing}
+                                  isLoading={isSavingListing}
+                                  disabled={!listingFormData.name || !listingFormData.location || !listingFormData.description}
+                                >
+                                  Create Listing
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {hotelProfile.listings && hotelProfile.listings.length > 0 ? (
+                          <div className={`mt-6 space-y-3 ${isAddingNewListing ? '' : 'mt-6'}`}>
+                            {hotelProfile.listings.map((listing, index) => {
+                              const isCollapsed = collapsedListingCards.has(listing.id)
+                              const isComplete = listing.name.trim() &&
+                                listing.location.trim() &&
+                                listing.accommodationType &&
+                                listing.description.trim() &&
+                                listing.collaborationTypes.length > 0 &&
+                                listing.availability.length > 0
+
+                              return (
+                                <div
+                                  key={listing.id}
+                                  className="border border-gray-200 rounded-2xl p-5 bg-white shadow-sm"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newCollapsed = new Set(collapsedListingCards)
+                                        if (isCollapsed) {
+                                          newCollapsed.delete(listing.id)
+                                        } else {
+                                          newCollapsed.add(listing.id)
+                                        }
+                                        setCollapsedListingCards(newCollapsed)
+                                      }}
+                                      className="flex items-center gap-3 flex-1 text-left hover:opacity-80 transition-opacity"
+                                    >
+                                      <HotelBadgeIcon active={isComplete} />
+                                      <div className="flex-1">
+                                        <h4 className="font-semibold text-gray-900 text-base">
+                                          {listing.name || `Property Listing ${index + 1}`}
+                                        </h4>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        {hotelProfile.listings.length > 1 && (
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              handleDeleteListing(listing.id)
+                                            }}
+                                            className="p-1 rounded-md text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                                            title="Remove listing"
+                                          >
+                                            <XMarkIcon className="w-3.5 h-3.5" />
+                                          </button>
+                                        )}
+                                        {isCollapsed ? (
+                                          <ChevronDownIcon className="w-4 h-4 text-gray-500" />
+                                        ) : (
+                                          <ChevronUpIcon className="w-4 h-4 text-gray-500" />
+                                        )}
+                                      </div>
+                                    </button>
+                                  </div>
+
+                                  {!isCollapsed && (
+                                    <div className="mt-4 pt-4 border-t border-gray-100">
+                                      {editingListingId === listing.id ? (
+                                        <div className="space-y-6">
+                                          {/* Basic Information Section */}
+                                          <div>
+                                            <div className="flex items-center gap-3 mb-4">
+                                              <div className="w-1 h-6 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
+                                              <h3 className="text-lg font-bold text-gray-900">Basic Information</h3>
+                                            </div>
+                                            <div className="space-y-4">
+                                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <Input
+                                                  label="Listing Name"
+                                                  value={listingFormData.name}
+                                                  onChange={(e) => setListingFormData({ ...listingFormData, name: e.target.value })}
+                                                  required
+                                                  placeholder="Luxury Beach Villa"
+                                                  className="bg-gray-50 border-gray-200"
+                                                />
+                                                <Input
+                                                  label="Location"
+                                                  value={listingFormData.location}
+                                                  onChange={(e) => setListingFormData({ ...listingFormData, location: e.target.value })}
+                                                  required
+                                                  placeholder="Bali, Indonesia"
+                                                  className="bg-gray-50 border-gray-200"
+                                                />
+                                              </div>
+                                              <div>
+                                                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                                  Accommodation Type <span className="text-red-500">*</span>
+                                                </label>
+                                                <select
+                                                  value={listingFormData.accommodationType}
+                                                  onChange={(e) => setListingFormData({ ...listingFormData, accommodationType: e.target.value })}
+                                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-gray-50 text-sm text-gray-900"
+                                                  required
+                                                >
+                                                  <option value="">Select type</option>
+                                                  {HOTEL_CATEGORIES.map((cat) => (
+                                                    <option key={cat} value={cat}>
+                                                      {cat}
+                                                    </option>
+                                                  ))}
+                                                </select>
+                                              </div>
+                                              <Textarea
+                                                label="Description"
+                                                value={listingFormData.description}
+                                                onChange={(e) => setListingFormData({ ...listingFormData, description: e.target.value })}
+                                                required
+                                                rows={3}
+                                                placeholder="A stunning beachfront villa with private pool and ocean views."
+                                                className="bg-gray-50 border-gray-200"
+                                              />
+                                              {/* Images */}
+                                              <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                                  Property Photos <span className="text-red-500">*</span>
+                                                </label>
+                                                {listingFormData.images.length > 0 ? (
+                                                  <div className="space-y-2">
+                                                    <div className="relative group w-full h-48 rounded-xl overflow-hidden shadow-md">
+                                                      <img
+                                                        src={listingFormData.images[0]}
+                                                        alt={`${listingFormData.name || 'Listing'} - Main photo`}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                          e.currentTarget.style.display = 'none'
+                                                        }}
+                                                      />
+                                                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <div className="absolute bottom-3 right-3">
+                                                          <button
+                                                            type="button"
+                                                            onClick={() => removeListingImage(0)}
+                                                            className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-lg transition-all flex items-center gap-1.5"
+                                                          >
+                                                            <XMarkIcon className="w-4 h-4" />
+                                                            Remove
+                                                          </button>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                    {listingFormData.images.length > 1 && (
+                                                      <div className="grid grid-cols-4 gap-2">
+                                                        {listingFormData.images.slice(1, 5).map((image, imageIndex) => (
+                                                          <div key={imageIndex + 1} className="relative group aspect-square">
+                                                            <img
+                                                              src={image}
+                                                              alt={`Photo ${imageIndex + 2}`}
+                                                              className="w-full h-full object-cover rounded-lg border-2 border-gray-200"
+                                                              onError={(e) => {
+                                                                e.currentTarget.style.display = 'none'
+                                                              }}
+                                                            />
+                                                            <button
+                                                              type="button"
+                                                              onClick={() => removeListingImage(imageIndex + 1)}
+                                                              className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                                            >
+                                                              <XMarkIcon className="w-4 h-4 text-white" />
+                                                            </button>
+                                                          </div>
+                                                        ))}
+                                                        {listingFormData.images.length < 10 && (
+                                                          <button
+                                                            type="button"
+                                                            onClick={() => listingImageInputRef.current?.click()}
+                                                            className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-primary-400 hover:bg-primary-50"
+                                                          >
+                                                            <PlusIcon className="w-5 h-5 mb-1" />
+                                                            <span className="text-[10px] font-medium">Add</span>
+                                                          </button>
+                                                        )}
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                ) : (
+                                                  <div 
+                                                    className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:border-primary-400 hover:bg-primary-50 transition-all group cursor-pointer"
+                                                    onClick={() => listingImageInputRef.current?.click()}
+                                                  >
+                                                    <div className="w-16 h-16 rounded-full bg-white border-2 border-gray-200 group-hover:border-primary-400 flex items-center justify-center mb-3">
+                                                      <PlusIcon className="w-8 h-8 text-gray-400 group-hover:text-primary-500" />
+                                                    </div>
+                                                    <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-600 mb-1">Upload Property Photos</p>
+                                                    <p className="text-xs text-gray-500">JPG, PNG, WEBP • Max 5MB per image</p>
+                                                  </div>
+                                                )}
+                                                <input
+                                                  ref={listingImageInputRef}
+                                                  type="file"
+                                                  accept="image/jpeg,image/png,image/webp"
+                                                  className="hidden"
+                                                  onChange={handleListingImageChange}
+                                                  multiple
+                                                />
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* Offerings Section */}
+                                          <div className="pt-4 border-t border-gray-100">
+                                            <div className="flex items-center gap-2 mb-3">
+                                              <div className="w-1.5 h-5 bg-primary-600 rounded-full"></div>
+                                              <h5 className="text-lg font-semibold text-gray-900">Offerings</h5>
+                                            </div>
+                                            <div className="space-y-4 bg-gray-50 border border-gray-200 rounded-2xl p-4">
+                                              {/* Collaboration Types */}
+                                              <div>
+                                                <label className="block text-base font-semibold text-gray-900 mb-3">
+                                                  Collaboration Types <span className="text-red-500">*</span>
+                                                </label>
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                  {COLLABORATION_TYPES.map((type) => {
+                                                    const isSelected = listingFormData.collaborationTypes.includes(type)
+                                                    const icons = {
+                                                      'Free Stay': GiftIcon,
+                                                      'Paid': CurrencyDollarIcon,
+                                                      'Discount': TagIcon,
+                                                    }
+                                                    const Icon = icons[type as keyof typeof icons]
+
+                                                    return (
+                                                      <label
+                                                        key={type}
+                                                        className={`relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border cursor-pointer transition-all text-center ${
+                                                          isSelected
+                                                            ? 'bg-purple-50 border-[#2F54EB] shadow-sm'
+                                                            : 'bg-[#F7F7FA] border-[#E5E7EB] text-gray-800 hover:border-primary-200'
+                                                        }`}
+                                                      >
+                                                        <input
+                                                          type="checkbox"
+                                                          checked={isSelected}
+                                                          onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                              setListingFormData({
+                                                                ...listingFormData,
+                                                                collaborationTypes: [...listingFormData.collaborationTypes, type],
+                                                              })
+                                                            } else {
+                                                              setListingFormData({
+                                                                ...listingFormData,
+                                                                collaborationTypes: listingFormData.collaborationTypes.filter((t) => t !== type),
+                                                              })
+                                                            }
+                                                          }}
+                                                          className="sr-only"
+                                                        />
+                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                                          isSelected ? 'bg-[#2F54EB] text-white' : 'bg-white text-gray-700'
+                                                        }`}>
+                                                          <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-700'}`} />
+                                                        </div>
+                                                        <div className={`text-sm font-semibold ${isSelected ? 'text-gray-900' : 'text-gray-900'}`}>
+                                                          {type}
+                                                        </div>
+                                                        {isSelected && (
+                                                          <div className="flex items-center gap-1 text-xs font-medium text-[#2F54EB]">
+                                                            <CheckCircleIcon className="w-3.5 h-3.5" />
+                                                            <span>Selected</span>
+                                                          </div>
+                                                        )}
+                                                      </label>
+                                                    )
+                                                  })}
+                                                </div>
+                                              </div>
+
+                                              {/* Free Stay Details */}
+                                              {listingFormData.collaborationTypes.includes('Free Stay') && (
+                                                <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
+                                                  <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#2F54EB] flex items-center justify-center">
+                                                      <GiftIcon className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                      <h6 className="font-semibold text-gray-900 text-base">Free Stay Details</h6>
+                                                      <p className="text-sm text-gray-600">Specify the night range for free stays</p>
+                                                    </div>
+                                                  </div>
+                                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <Input
+                                                      label="Min. Nights"
+                                                      type="number"
+                                                      value={listingFormData.freeStayMinNights || ''}
+                                                      min={1}
+                                                      onChange={(e) => {
+                                                        const { value } = e.target
+                                                        if (value === '') {
+                                                          setListingFormData({ ...listingFormData, freeStayMinNights: undefined })
+                                                          return
+                                                        }
+                                                        const parsed = parseInt(value)
+                                                        setListingFormData({
+                                                          ...listingFormData,
+                                                          freeStayMinNights: Number.isNaN(parsed) ? undefined : Math.max(1, parsed),
+                                                        })
+                                                      }}
+                                                      placeholder="1"
+                                                      required
+                                                      className="bg-gray-50 border-gray-200"
+                                                    />
+                                                    <Input
+                                                      label="Max. Nights"
+                                                      type="number"
+                                                      value={listingFormData.freeStayMaxNights || ''}
+                                                      min={1}
+                                                      onChange={(e) => {
+                                                        const { value } = e.target
+                                                        if (value === '') {
+                                                          setListingFormData({ ...listingFormData, freeStayMaxNights: undefined })
+                                                          return
+                                                        }
+                                                        const parsed = parseInt(value)
+                                                        setListingFormData({
+                                                          ...listingFormData,
+                                                          freeStayMaxNights: Number.isNaN(parsed) ? undefined : Math.max(1, parsed),
+                                                        })
+                                                      }}
+                                                      placeholder="5"
+                                                      required
+                                                      className="bg-gray-50 border-gray-200"
+                                                    />
+                                                  </div>
+                                                </div>
+                                              )}
+
+                                              {/* Paid Details */}
+                                              {listingFormData.collaborationTypes.includes('Paid') && (
+                                                <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
+                                                  <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#2F54EB] flex items-center justify-center">
+                                                      <CurrencyDollarIcon className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                      <h6 className="font-semibold text-gray-900 text-base">Paid Details</h6>
+                                                      <p className="text-sm text-gray-600">Set the maximum payment amount</p>
+                                                    </div>
+                                                  </div>
+                                                  <Input
+                                                    label="Max. Amount ($)"
+                                                    type="number"
+                                                    value={listingFormData.paidMaxAmount || ''}
+                                                    onChange={(e) => setListingFormData({
+                                                      ...listingFormData,
+                                                      paidMaxAmount: parseInt(e.target.value) || undefined,
+                                                    })}
+                                                    placeholder="5000"
+                                                    required
+                                                    className="bg-gray-50 border-gray-200"
+                                                  />
+                                                </div>
+                                              )}
+
+                                              {/* Discount Details */}
+                                              {listingFormData.collaborationTypes.includes('Discount') && (
+                                                <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
+                                                  <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#2F54EB] flex items-center justify-center">
+                                                      <TagIcon className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                      <h6 className="font-semibold text-gray-900 text-base">Discount Details</h6>
+                                                      <p className="text-sm text-gray-600">Set the discount percentage</p>
+                                                    </div>
+                                                  </div>
+                                                  <Input
+                                                    label="Discount Percentage (%)"
+                                                    type="number"
+                                                    value={listingFormData.discountPercentage || ''}
+                                                    onChange={(e) => setListingFormData({
+                                                      ...listingFormData,
+                                                      discountPercentage: parseInt(e.target.value) || undefined,
+                                                    })}
+                                                    placeholder="20"
+                                                    min={1}
+                                                    max={100}
+                                                    required
+                                                    className="bg-gray-50 border-gray-200"
+                                                  />
+                                                </div>
+                                              )}
+
+                                              {/* Availability */}
+                                              <div>
+                                                <div className="flex items-center gap-2 mb-3">
+                                                  <CalendarDaysIcon className="w-5 h-5 text-primary-600" />
+                                                  <label className="block text-base font-semibold text-gray-900">
+                                                    Availability <span className="text-red-500">*</span>
+                                                  </label>
+                                                </div>
+                                                <div className="bg-white border border-gray-200 rounded-2xl p-3 shadow-sm">
+                                                  <div className="grid grid-cols-6 gap-2">
+                                                    {MONTHS.map((month) => {
+                                                      const isSelected = listingFormData.availability.includes(month)
+                                                      const monthAbbr = month.substring(0, 3)
+
+                                                      return (
+                                                        <label
+                                                          key={month}
+                                                          className={`relative flex flex-col items-center justify-center py-2 rounded-xl border cursor-pointer transition-all text-xs ${
+                                                            isSelected
+                                                              ? 'bg-[#2F54EB] border-[#2F54EB] text-white'
+                                                              : 'bg-gray-100 border-gray-200 text-gray-700 hover:border-gray-300'
+                                                          }`}
+                                                        >
+                                                          <input
+                                                            type="checkbox"
+                                                            checked={isSelected}
+                                                            onChange={(e) => {
+                                                              if (e.target.checked) {
+                                                                setListingFormData({
+                                                                  ...listingFormData,
+                                                                  availability: [...listingFormData.availability, month],
+                                                                })
+                                                              } else {
+                                                                setListingFormData({
+                                                                  ...listingFormData,
+                                                                  availability: listingFormData.availability.filter((m) => m !== month),
+                                                                })
+                                                              }
+                                                            }}
+                                                            className="sr-only"
+                                                          />
+                                                          <div className={`font-semibold ${isSelected ? 'text-white' : 'text-gray-700'}`}>{monthAbbr}</div>
+                                                        </label>
+                                                      )
+                                                    })}
+                                                  </div>
+                                                </div>
+                                              </div>
+
+                                              {/* Platforms */}
+                                              <div>
+                                                <label className="block text-base font-semibold text-gray-900 mb-1">Property posting platforms</label>
+                                                <p className="text-sm text-gray-600 mb-3">On which platforms is your property active?</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                  {PLATFORM_OPTIONS.map((platform) => {
+                                                    const isSelected = listingFormData.platforms.includes(platform)
+                                                    return (
+                                                      <label
+                                                        key={platform}
+                                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer transition-all ${
+                                                          isSelected
+                                                            ? 'border-[#2F54EB] bg-blue-50 text-[#2F54EB]'
+                                                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                                                        }`}
+                                                      >
+                                                        <input
+                                                          type="checkbox"
+                                                          checked={isSelected}
+                                                          onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                              setListingFormData({
+                                                                ...listingFormData,
+                                                                platforms: [...listingFormData.platforms, platform],
+                                                              })
+                                                            } else {
+                                                              setListingFormData({
+                                                                ...listingFormData,
+                                                                platforms: listingFormData.platforms.filter((p) => p !== platform),
+                                                              })
+                                                            }
+                                                          }}
+                                                          className="sr-only"
+                                                        />
+                                                        <span
+                                                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                                            isSelected
+                                                              ? 'border-[#2F54EB] bg-[#2F54EB]'
+                                                              : 'border-gray-400 bg-white'
+                                                          }`}
+                                                        >
+                                                          {isSelected && (
+                                                            <span className="w-2 h-2 rounded-full bg-white"></span>
+                                                          )}
+                                                        </span>
+                                                        <span className={isSelected ? 'text-[#2F54EB]' : 'text-gray-700'}>
+                                                          {platform}
+                                                        </span>
+                                                      </label>
+                                                    )
+                                                  })}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* Looking For Section */}
+                                          <div className="pt-4 border-t border-gray-100">
+                                            <div className="flex items-center gap-2 mb-3">
+                                              <div className="w-1.5 h-5 bg-orange-500 rounded-full"></div>
+                                              <h5 className="text-lg font-semibold text-gray-900">Looking For</h5>
+                                            </div>
+                                            <div className="space-y-4 bg-gray-50 border border-gray-200 rounded-2xl p-4">
+                                              {/* Platforms */}
+                                              <div>
+                                                <label className="block text-base font-semibold text-gray-900 mb-1">Creator's platforms</label>
+                                                <p className="text-sm text-gray-600 mb-3">Which platforms should the creator have?</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                  {PLATFORM_OPTIONS.map((platform) => {
+                                                    const isSelected = listingFormData.lookingForPlatforms.includes(platform)
+                                                    return (
+                                                      <label
+                                                        key={platform}
+                                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer transition-all ${
+                                                          isSelected
+                                                            ? 'border-[#2F54EB] bg-blue-50 text-[#2F54EB]'
+                                                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                                                        }`}
+                                                      >
+                                                        <input
+                                                          type="checkbox"
+                                                          checked={isSelected}
+                                                          onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                              setListingFormData({
+                                                                ...listingFormData,
+                                                                lookingForPlatforms: [...listingFormData.lookingForPlatforms, platform],
+                                                              })
+                                                            } else {
+                                                              setListingFormData({
+                                                                ...listingFormData,
+                                                                lookingForPlatforms: listingFormData.lookingForPlatforms.filter((p) => p !== platform),
+                                                              })
+                                                            }
+                                                          }}
+                                                          className="sr-only"
+                                                        />
+                                                        <span
+                                                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                                            isSelected
+                                                              ? 'border-[#2F54EB] bg-[#2F54EB]'
+                                                              : 'border-gray-400 bg-white'
+                                                          }`}
+                                                        >
+                                                          {isSelected && (
+                                                            <span className="w-2 h-2 rounded-full bg-white"></span>
+                                                          )}
+                                                        </span>
+                                                        <span className={isSelected ? 'text-[#2F54EB]' : 'text-gray-700'}>
+                                                          {platform}
+                                                        </span>
+                                                      </label>
+                                                    )
+                                                  })}
+                                                </div>
+                                              </div>
+
+                                              {/* Min Followers */}
+                                              <div>
+                                                <label className="block text-base font-semibold text-gray-900 mb-2">Min. Followers (optional)</label>
+                                                <Input
+                                                  type="number"
+                                                  value={listingFormData.lookingForMinFollowers || ''}
+                                                  onChange={(e) => setListingFormData({
+                                                    ...listingFormData,
+                                                    lookingForMinFollowers: parseInt(e.target.value) || undefined,
+                                                  })}
+                                                  placeholder="e.g., 50000"
+                                                  className="bg-gray-50"
+                                                />
+                                              </div>
+
+                                              {/* Top Countries */}
+                                              <div>
+                                                <label className="block text-base font-semibold text-gray-900 mb-1">Top Countries</label>
+                                                <p className="text-sm text-gray-600 mb-3">Select up to 3 countries your target audience is from</p>
+                                                <div className="space-y-2">
+                                                  <input
+                                                    type="text"
+                                                    value={listingCountryInput}
+                                                    onChange={(e) => {
+                                                      setListingCountryInput(e.target.value)
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                      if (e.key === 'Enter') {
+                                                        e.preventDefault()
+                                                        const country = listingCountryInput.trim()
+                                                        if (country && COUNTRIES.includes(country) && !listingFormData.targetGroupCountries.includes(country) && listingFormData.targetGroupCountries.length < 3) {
+                                                          setListingFormData({
+                                                            ...listingFormData,
+                                                            targetGroupCountries: [...listingFormData.targetGroupCountries, country],
+                                                          })
+                                                          setListingCountryInput('')
+                                                        }
+                                                      }
+                                                    }}
+                                                    placeholder="Search countries..."
+                                                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-200"
+                                                  />
+                                                  {listingCountryInput && COUNTRIES.filter(c => 
+                                                    c.toLowerCase().includes(listingCountryInput.toLowerCase()) &&
+                                                    !listingFormData.targetGroupCountries.includes(c)
+                                                  ).length > 0 && (
+                                                    <div className="max-h-40 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+                                                      {COUNTRIES.filter(c => 
+                                                        c.toLowerCase().includes(listingCountryInput.toLowerCase()) &&
+                                                        !listingFormData.targetGroupCountries.includes(c)
+                                                      ).map((country) => (
+                                                        <button
+                                                          key={country}
+                                                          type="button"
+                                                          onClick={() => {
+                                                            if (listingFormData.targetGroupCountries.length < 3 && !listingFormData.targetGroupCountries.includes(country)) {
+                                                              setListingFormData({
+                                                                ...listingFormData,
+                                                                targetGroupCountries: [...listingFormData.targetGroupCountries, country],
+                                                              })
+                                                              setListingCountryInput('')
+                                                            }
+                                                          }}
+                                                          className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-50"
+                                                        >
+                                                          {country}
+                                                        </button>
+                                                      ))}
+                                                    </div>
+                                                  )}
+                                                  {listingFormData.targetGroupCountries.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2">
+                                                      {listingFormData.targetGroupCountries.map((country, countryIndex) => (
+                                                        <span key={countryIndex} className="inline-flex items-center gap-1 rounded-full bg-primary-50 text-primary-700 text-xs font-semibold px-3 py-1 border border-primary-100">
+                                                          {country}
+                                                          <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                              setListingFormData({
+                                                                ...listingFormData,
+                                                                targetGroupCountries: listingFormData.targetGroupCountries.filter((c) => c !== country),
+                                                              })
+                                                            }}
+                                                            className="text-primary-500 hover:text-primary-700"
+                                                          >
+                                                            <XMarkIcon className="w-3 h-3" />
+                                                          </button>
+                                                        </span>
+                                                      ))}
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+
+                                              {/* Age Groups */}
+                                              <div>
+                                                <label className="block text-base font-semibold text-gray-900 mb-1">Age Groups</label>
+                                                <p className="text-sm text-gray-600 mb-3">Select up to 3 age groups you want to target</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                  {AGE_GROUP_OPTIONS.map((range) => {
+                                                    const isSelected = listingFormData.targetGroupAgeGroups?.includes(range) || false
+                                                    return (
+                                                      <button
+                                                        key={range}
+                                                        type="button"
+                                                        onClick={() => {
+                                                          const currentGroups = listingFormData.targetGroupAgeGroups || []
+                                                          if (isSelected) {
+                                                            setListingFormData({
+                                                              ...listingFormData,
+                                                              targetGroupAgeGroups: currentGroups.filter((g) => g !== range),
+                                                            })
+                                                          } else {
+                                                            if (currentGroups.length < 3) {
+                                                              setListingFormData({
+                                                                ...listingFormData,
+                                                                targetGroupAgeGroups: [...currentGroups, range],
+                                                              })
+                                                            }
+                                                          }
+                                                        }}
+                                                        disabled={!isSelected && (listingFormData.targetGroupAgeGroups?.length || 0) >= 3}
+                                                        className={`px-3 py-1.5 rounded-full border text-sm font-semibold transition-colors ${
+                                                          isSelected
+                                                            ? 'bg-primary-50 text-primary-700 border-primary-200'
+                                                            : 'bg-white text-gray-700 border-gray-200 hover:border-primary-200 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                                                        }`}
+                                                      >
+                                                        {range}
+                                                      </button>
+                                                    )
+                                                  })}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* Footer Buttons */}
+                                          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                                            <Button
+                                              variant="outline"
+                                              onClick={handleCancelListing}
+                                              disabled={isSavingListing}
+                                            >
+                                              Cancel
+                                            </Button>
+                                            <Button
+                                              variant="primary"
+                                              onClick={handleSaveListing}
+                                              isLoading={isSavingListing}
+                                              disabled={!listingFormData.name || !listingFormData.location || !listingFormData.description}
+                                            >
+                                              {editingListingId ? 'Save Changes' : 'Create Listing'}
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="space-y-6">
+                                          {/* Basic Information Section */}
+                                          <div>
+                                            <div className="flex items-center gap-3 mb-4">
+                                              <div className="w-1 h-6 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
+                                              <h3 className="text-lg font-bold text-gray-900">Basic Information</h3>
+                                            </div>
+                                            <div className="space-y-4">
+                                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <Input
+                                                  label="Listing Name"
+                                                  value={listing.name || ''}
+                                                  onChange={() => {}}
+                                                  disabled
+                                                  placeholder="Luxury Beach Villa"
+                                                  className="bg-gray-50 border-gray-200"
+                                                />
+                                                <Input
+                                                  label="Location"
+                                                  value={listing.location || ''}
+                                                  onChange={() => {}}
+                                                  disabled
+                                                  placeholder="Bali, Indonesia"
+                                                  className="bg-gray-50 border-gray-200"
+                                                />
+                                              </div>
+                                              <div>
+                                                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                                                  Accommodation Type
+                                                </label>
+                                                <select
+                                                  value={listing.accommodationType || ''}
+                                                  onChange={() => {}}
+                                                  disabled
+                                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-900 cursor-not-allowed opacity-60"
+                                                >
+                                                  <option value="">Select type</option>
+                                                  {HOTEL_CATEGORIES.map((cat) => (
+                                                    <option key={cat} value={cat}>
+                                                      {cat}
+                                                    </option>
+                                                  ))}
+                                                </select>
+                                              </div>
+                                              <Textarea
+                                                label="Description"
+                                                value={listing.description || ''}
+                                                onChange={() => {}}
+                                                disabled
+                                                rows={3}
+                                                placeholder="A stunning beachfront villa with private pool and ocean views."
+                                                className="bg-gray-50 border-gray-200"
+                                              />
+                                              {/* Images */}
+                                              <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                                  Property Photos
+                                                </label>
+                                                {listing.images && listing.images.length > 0 ? (
+                                                  <div className="space-y-2">
+                                                    <div className="relative group w-full h-48 rounded-xl overflow-hidden shadow-md">
+                                                      <img
+                                                        src={listing.images[0]}
+                                                        alt={`${listing.name || 'Listing'} - Main photo`}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                          e.currentTarget.style.display = 'none'
+                                                        }}
+                                                      />
+                                                    </div>
+                                                    {listing.images.length > 1 && (
+                                                      <div className="grid grid-cols-4 gap-2">
+                                                        {listing.images.slice(1, 5).map((image, imageIndex) => (
+                                                          <div key={imageIndex + 1} className="relative group aspect-square">
+                                                            <img
+                                                              src={image}
+                                                              alt={`Photo ${imageIndex + 2}`}
+                                                              className="w-full h-full object-cover rounded-lg border-2 border-gray-200"
+                                                              onError={(e) => {
+                                                                e.currentTarget.style.display = 'none'
+                                                              }}
+                                                            />
+                                                          </div>
+                                                        ))}
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                ) : (
+                                                  <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
+                                                    <p className="text-sm text-gray-500">No photos uploaded</p>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* Offerings Section */}
+                                          <div className="pt-4 border-t border-gray-100">
+                                            <div className="flex items-center gap-2 mb-3">
+                                              <div className="w-1.5 h-5 bg-primary-600 rounded-full"></div>
+                                              <h5 className="text-lg font-semibold text-gray-900">Offerings</h5>
+                                            </div>
+                                            <div className="space-y-4 bg-gray-50 border border-gray-200 rounded-2xl p-4">
+                                              {/* Collaboration Types */}
+                                              <div>
+                                                <label className="block text-base font-semibold text-gray-900 mb-3">
+                                                  Collaboration Types
+                                                </label>
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                  {COLLABORATION_TYPES.map((type) => {
+                                                    const isSelected = listing.collaborationTypes?.includes(type) || false
+                                                    const icons = {
+                                                      'Free Stay': GiftIcon,
+                                                      'Paid': CurrencyDollarIcon,
+                                                      'Discount': TagIcon,
+                                                    }
+                                                    const Icon = icons[type as keyof typeof icons]
+
+                                                    return (
+                                                      <div
+                                                        key={type}
+                                                        className={`relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border transition-all text-center ${
+                                                          isSelected
+                                                            ? 'bg-purple-50 border-[#2F54EB] shadow-sm'
+                                                            : 'bg-[#F7F7FA] border-[#E5E7EB] text-gray-800 opacity-50'
+                                                        }`}
+                                                      >
+                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                                          isSelected ? 'bg-[#2F54EB] text-white' : 'bg-white text-gray-700'
+                                                        }`}>
+                                                          <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-700'}`} />
+                                                        </div>
+                                                        <div className={`text-sm font-semibold ${isSelected ? 'text-gray-900' : 'text-gray-900'}`}>
+                                                          {type}
+                                                        </div>
+                                                        {isSelected && (
+                                                          <div className="flex items-center gap-1 text-xs font-medium text-[#2F54EB]">
+                                                            <CheckCircleIcon className="w-3.5 h-3.5" />
+                                                            <span>Selected</span>
+                                                          </div>
+                                                        )}
+                                                      </div>
+                                                    )
+                                                  })}
+                                                </div>
+                                              </div>
+
+                                              {/* Free Stay Details */}
+                                              {listing.collaborationTypes?.includes('Free Stay') && (
+                                                <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
+                                                  <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#2F54EB] flex items-center justify-center">
+                                                      <GiftIcon className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                      <h6 className="font-semibold text-gray-900 text-base">Free Stay Details</h6>
+                                                      <p className="text-sm text-gray-600">Specify the night range for free stays</p>
+                                                    </div>
+                                                  </div>
+                                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <Input
+                                                      label="Min. Nights"
+                                                      type="number"
+                                                      value={listing.freeStayMinNights || ''}
+                                                      onChange={() => {}}
+                                                      disabled
+                                                      placeholder="1"
+                                                      className="bg-gray-50 border-gray-200"
+                                                    />
+                                                    <Input
+                                                      label="Max. Nights"
+                                                      type="number"
+                                                      value={listing.freeStayMaxNights || ''}
+                                                      onChange={() => {}}
+                                                      disabled
+                                                      placeholder="5"
+                                                      className="bg-gray-50 border-gray-200"
+                                                    />
+                                                  </div>
+                                                </div>
+                                              )}
+
+                                              {/* Paid Details */}
+                                              {listing.collaborationTypes?.includes('Paid') && (
+                                                <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
+                                                  <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#2F54EB] flex items-center justify-center">
+                                                      <CurrencyDollarIcon className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                      <h6 className="font-semibold text-gray-900 text-base">Paid Details</h6>
+                                                      <p className="text-sm text-gray-600">Set the maximum payment amount</p>
+                                                    </div>
+                                                  </div>
+                                                  <Input
+                                                    label="Max. Amount ($)"
+                                                    type="number"
+                                                    value={listing.paidMaxAmount || ''}
+                                                    onChange={() => {}}
+                                                    disabled
+                                                    placeholder="5000"
+                                                    className="bg-gray-50 border-gray-200"
+                                                  />
+                                                </div>
+                                              )}
+
+                                              {/* Discount Details */}
+                                              {listing.collaborationTypes?.includes('Discount') && (
+                                                <div className="p-4 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
+                                                  <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#2F54EB] flex items-center justify-center">
+                                                      <TagIcon className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                      <h6 className="font-semibold text-gray-900 text-base">Discount Details</h6>
+                                                      <p className="text-sm text-gray-600">Set the discount percentage</p>
+                                                    </div>
+                                                  </div>
+                                                  <Input
+                                                    label="Discount Percentage (%)"
+                                                    type="number"
+                                                    value={listing.discountPercentage || ''}
+                                                    onChange={() => {}}
+                                                    disabled
+                                                    placeholder="20"
+                                                    className="bg-gray-50 border-gray-200"
+                                                  />
+                                                </div>
+                                              )}
+
+                                              {/* Availability */}
+                                              <div>
+                                                <div className="flex items-center gap-2 mb-3">
+                                                  <CalendarDaysIcon className="w-5 h-5 text-primary-600" />
+                                                  <label className="block text-base font-semibold text-gray-900">
+                                                    Availability
+                                                  </label>
+                                                </div>
+                                                <div className="bg-white border border-gray-200 rounded-2xl p-3 shadow-sm">
+                                                  <div className="grid grid-cols-6 gap-2">
+                                                    {MONTHS.map((month) => {
+                                                      const isSelected = listing.availability?.includes(month) || false
+                                                      const monthAbbr = month.substring(0, 3)
+
+                                                      return (
+                                                        <div
+                                                          key={month}
+                                                          className={`relative flex flex-col items-center justify-center py-2 rounded-xl border transition-all text-xs ${
+                                                            isSelected
+                                                              ? 'bg-[#2F54EB] border-[#2F54EB] text-white'
+                                                              : 'bg-gray-100 border-gray-200 text-gray-700 opacity-50'
+                                                          }`}
+                                                        >
+                                                          <div className={`font-semibold ${isSelected ? 'text-white' : 'text-gray-700'}`}>{monthAbbr}</div>
+                                                        </div>
+                                                      )
+                                                    })}
+                                                  </div>
+                                                </div>
+                                              </div>
+
+                                              {/* Platforms */}
+                                              <div>
+                                                <label className="block text-base font-semibold text-gray-900 mb-1">Property posting platforms</label>
+                                                <p className="text-sm text-gray-600 mb-3">On which platforms is your property active?</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                  {PLATFORM_OPTIONS.map((platform) => {
+                                                    const isSelected = listing.platforms?.includes(platform) || false
+                                                    return (
+                                                      <div
+                                                        key={platform}
+                                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                                                          isSelected
+                                                            ? 'border-[#2F54EB] bg-blue-50 text-[#2F54EB]'
+                                                            : 'border-gray-200 bg-white text-gray-700 opacity-50'
+                                                        }`}
+                                                      >
+                                                        <span
+                                                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                                            isSelected
+                                                              ? 'border-[#2F54EB] bg-[#2F54EB]'
+                                                              : 'border-gray-400 bg-white'
+                                                          }`}
+                                                        >
+                                                          {isSelected && (
+                                                            <span className="w-2 h-2 rounded-full bg-white"></span>
+                                                          )}
+                                                        </span>
+                                                        <span className={isSelected ? 'text-[#2F54EB]' : 'text-gray-700'}>
+                                                          {platform}
+                                                        </span>
+                                                      </div>
+                                                    )
+                                                  })}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* Looking For Section */}
+                                          <div className="pt-4 border-t border-gray-100">
+                                            <div className="flex items-center gap-2 mb-3">
+                                              <div className="w-1.5 h-5 bg-orange-500 rounded-full"></div>
+                                              <h5 className="text-lg font-semibold text-gray-900">Looking For</h5>
+                                            </div>
+                                            <div className="space-y-4 bg-gray-50 border border-gray-200 rounded-2xl p-4">
+                                              {/* Platforms */}
+                                              <div>
+                                                <label className="block text-base font-semibold text-gray-900 mb-1">Creator's platforms</label>
+                                                <p className="text-sm text-gray-600 mb-3">Which platforms should the creator have?</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                  {PLATFORM_OPTIONS.map((platform) => {
+                                                    const isSelected = listing.lookingForPlatforms?.includes(platform) || false
+                                                    return (
+                                                      <div
+                                                        key={platform}
+                                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                                                          isSelected
+                                                            ? 'border-[#2F54EB] bg-blue-50 text-[#2F54EB]'
+                                                            : 'border-gray-200 bg-white text-gray-700 opacity-50'
+                                                        }`}
+                                                      >
+                                                        <span
+                                                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                                            isSelected
+                                                              ? 'border-[#2F54EB] bg-[#2F54EB]'
+                                                              : 'border-gray-400 bg-white'
+                                                          }`}
+                                                        >
+                                                          {isSelected && (
+                                                            <span className="w-2 h-2 rounded-full bg-white"></span>
+                                                          )}
+                                                        </span>
+                                                        <span className={isSelected ? 'text-[#2F54EB]' : 'text-gray-700'}>
+                                                          {platform}
+                                                        </span>
+                                                      </div>
+                                                    )
+                                                  })}
+                                                </div>
+                                              </div>
+
+                                              {/* Min Followers */}
+                                              <div>
+                                                <label className="block text-base font-semibold text-gray-900 mb-2">Min. Followers (optional)</label>
+                                                <Input
+                                                  type="number"
+                                                  value={listing.lookingForMinFollowers || ''}
+                                                  onChange={() => {}}
+                                                  disabled
+                                                  placeholder="e.g., 50000"
+                                                  className="bg-gray-50"
+                                                />
+                                              </div>
+
+                                              {/* Top Countries */}
+                                              <div>
+                                                <label className="block text-base font-semibold text-gray-900 mb-1">Top Countries</label>
+                                                <p className="text-sm text-gray-600 mb-3">Select up to 3 countries your target audience is from</p>
+                                                {listing.targetGroupCountries && listing.targetGroupCountries.length > 0 ? (
+                                                  <div className="flex flex-wrap gap-2">
+                                                    {listing.targetGroupCountries.map((country, countryIndex) => (
+                                                      <span key={countryIndex} className="inline-flex items-center gap-1 rounded-full bg-primary-50 text-primary-700 text-xs font-semibold px-3 py-1 border border-primary-100">
+                                                        {country}
+                                                      </span>
+                                                    ))}
+                                                  </div>
+                                                ) : (
+                                                  <p className="text-sm text-gray-500">No countries selected</p>
+                                                )}
+                                              </div>
+
+                                              {/* Age Groups */}
+                                              <div>
+                                                <label className="block text-base font-semibold text-gray-900 mb-1">Age Groups</label>
+                                                <p className="text-sm text-gray-600 mb-3">Select up to 3 age groups you want to target</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                  {AGE_GROUP_OPTIONS.map((range) => {
+                                                    const isSelected = listing.targetGroupAgeGroups?.includes(range) || false
+                                                    return (
+                                                      <div
+                                                        key={range}
+                                                        className={`px-3 py-1.5 rounded-full border text-sm font-semibold transition-colors ${
+                                                          isSelected
+                                                            ? 'bg-primary-50 text-primary-700 border-primary-200'
+                                                            : 'bg-white text-gray-700 border-gray-200 opacity-50'
+                                                        }`}
+                                                      >
+                                                        {range}
+                                                      </div>
+                                                    )
+                                                  })}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* Footer Buttons */}
+                                          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => openEditListingModal(listing)}
+                                            >
+                                              <PencilIcon className="w-4 h-4 mr-1" />
+                                              Edit
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })}
                           </div>
                         ) : (
-                          <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-gray-500 text-lg mb-4">No listings yet</p>
+                          <div className="mt-6 text-center py-16">
+                            <div className="w-20 h-20 mx-auto mb-4 rounded-xl bg-gray-100 flex items-center justify-center">
+                              <BuildingOffice2Icon className="w-10 h-10 text-gray-400" />
+                            </div>
+                            <p className="text-lg font-semibold text-gray-900 mb-2">No listings added yet</p>
+                            <p className="text-sm text-gray-600 mb-6">Add property listings to complete your profile.</p>
                             <Button
-                              variant="primary"
+                              variant="outline"
                               onClick={openAddListingModal}
+                              className="border-2 border-dashed border-gray-300 hover:border-primary-400 hover:bg-primary-50"
                             >
                               <PlusIcon className="w-5 h-5 mr-2" />
-                              Create Your First Listing
+                              Add Property Listing
                             </Button>
                           </div>
                         )}
+
+                        {/* Add Property Listing Button - shown when listings exist */}
+                        {hotelProfile.listings && hotelProfile.listings.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={openAddListingModal}
+                            className="w-full mt-3 py-3 border-2 border-dashed border-primary-200 rounded-lg text-primary-700 hover:border-primary-400 hover:bg-primary-50 transition-all flex items-center justify-center gap-2 font-semibold text-sm group"
+                          >
+                            <PlusIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                            Add Property Listing
+                          </button>
+                        )}
+
+                        {/* Informational Note */}
+                        <div className="mt-6 flex items-start gap-3 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3">
+                          <InformationCircleIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <p className="text-sm text-gray-700 leading-snug">
+                            Each listing can have different collaboration types, availability, and target audience settings.
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -3160,8 +4967,8 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Listing Edit/Add Modal */}
-      {showListingModal && (
+      {/* Modal removed - form is now inline in listing cards */}
+      {false && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto"
           onClick={handleCancelListing}
@@ -3192,13 +4999,14 @@ export default function ProfilePage() {
                   <h2 className="text-xl font-bold text-gray-900">Basic Information</h2>
                 </div>
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <Input
                       label="Listing Name"
                       value={listingFormData.name}
                       onChange={(e) => setListingFormData({ ...listingFormData, name: e.target.value })}
                       required
                       placeholder="Luxury Beach Villa"
+                      className="bg-gray-50 border-gray-200"
                     />
                     <Input
                       label="Location"
@@ -3206,16 +5014,17 @@ export default function ProfilePage() {
                       onChange={(e) => setListingFormData({ ...listingFormData, location: e.target.value })}
                       required
                       placeholder="Bali, Indonesia"
+                      className="bg-gray-50 border-gray-200"
                     />
                   </div>
                   <div>
-                    <label className="block text-base font-medium text-gray-900 mb-2">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
                       Accommodation Type <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={listingFormData.accommodationType}
                       onChange={(e) => setListingFormData({ ...listingFormData, accommodationType: e.target.value })}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-gray-50 text-sm text-gray-900"
                       required
                     >
                       <option value="">Select type</option>
@@ -3226,189 +5035,264 @@ export default function ProfilePage() {
                       ))}
                     </select>
                   </div>
+                  <Textarea
+                    label="Description"
+                    value={listingFormData.description}
+                    onChange={(e) => setListingFormData({ ...listingFormData, description: e.target.value })}
+                    required
+                    rows={3}
+                    placeholder="A stunning beachfront villa with private pool and ocean views."
+                    className="bg-gray-50 border-gray-200"
+                  />
+                  {/* Images - Booking.com Style */}
                   <div>
-                    <Textarea
-                      label="Description"
-                      value={listingFormData.description}
-                      onChange={(e) => setListingFormData({ ...listingFormData, description: e.target.value })}
-                      required
-                      rows={4}
-                      placeholder="Describe your listing..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-base font-medium text-gray-900 mb-2">Images</label>
-                    <div className="space-y-4">
-                      {listingFormData.images.length > 0 && (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          {listingFormData.images.map((image, index) => (
-                            <div key={index} className="relative group">
-                              <img
-                                src={image}
-                                alt={`Listing ${index + 1}`}
-                                className="w-full h-32 object-cover rounded-lg border border-gray-200"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none'
-                                }}
-                              />
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Property Photos <span className="text-red-500">*</span>
+                    </label>
+                    {listingFormData.images.length > 0 ? (
+                      <div className="space-y-2">
+                        {/* Main Featured Image */}
+                        <div className="relative group w-full h-64 md:h-80 rounded-xl overflow-hidden shadow-md">
+                          <img
+                            src={listingFormData.images[0]}
+                            alt={`${listingFormData.name || 'Listing'} - Main photo`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute bottom-3 right-3">
                               <button
                                 type="button"
-                                onClick={() => removeListingImage(index)}
-                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => removeListingImage(0)}
+                                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-lg transition-all transform hover:scale-105 flex items-center gap-1.5"
                               >
                                 <XMarkIcon className="w-4 h-4" />
+                                Remove
                               </button>
                             </div>
-                          ))}
+                          </div>
                         </div>
-                      )}
-                      <input
-                        ref={listingImageInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleListingImageChange}
-                      />
-                      <Button
-                        variant="outline"
-                        type="button"
-                        onClick={addListingImage}
+                        
+                        {/* Thumbnail Grid */}
+                        {listingFormData.images.length > 1 && (
+                          <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
+                            {listingFormData.images.slice(1, 6).map((image, imageIndex) => (
+                              <div key={imageIndex + 1} className="relative group aspect-square">
+                                <img
+                                  src={image}
+                                  alt={`${listingFormData.name || 'Listing'} - Photo ${imageIndex + 2}`}
+                                  className="w-full h-full object-cover rounded-lg border-2 border-gray-200 shadow-sm group-hover:border-primary-400 group-hover:shadow-md transition-all cursor-pointer"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none'
+                                  }}
+                                />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-lg transition-all flex items-center justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => removeListingImage(imageIndex + 1)}
+                                    className="p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg transform hover:scale-110"
+                                    title="Remove image"
+                                  >
+                                    <XMarkIcon className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            {/* Add More Button */}
+                            {listingFormData.images.length < 10 && (
+                              <button
+                                type="button"
+                                onClick={() => listingImageInputRef.current?.click()}
+                                className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-500 transition-all group cursor-pointer bg-gray-50"
+                              >
+                                <PlusIcon className="w-5 h-5 mb-1" />
+                                <span className="text-[10px] font-medium">Add</span>
+                              </button>
+                            )}
+                            
+                            {/* Show remaining count if more than 6 images */}
+                            {listingFormData.images.length > 6 && (
+                              <div className="aspect-square rounded-lg bg-gray-800/80 flex items-center justify-center text-white text-xs font-semibold">
+                                +{listingFormData.images.length - 6}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Add First Image Button (if only one image) */}
+                        {listingFormData.images.length === 1 && listingFormData.images.length < 10 && (
+                          <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => listingImageInputRef.current?.click()}
+                              className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-500 transition-all group cursor-pointer bg-gray-50"
+                            >
+                              <PlusIcon className="w-5 h-5 mb-1" />
+                              <span className="text-[10px] font-medium">Add More</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div 
+                        className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:border-primary-400 hover:bg-primary-50 transition-all group cursor-pointer"
+                        onClick={() => listingImageInputRef.current?.click()}
                       >
-                        <PlusIcon className="w-5 h-5 mr-2" />
-                        Add Image
-                      </Button>
-                    </div>
+                        <div className="w-20 h-20 rounded-full bg-white border-2 border-gray-200 group-hover:border-primary-400 flex items-center justify-center mb-4 transition-all shadow-sm">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 text-gray-400 group-hover:text-primary-500 transition-colors">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                          </svg>
+                        </div>
+                        <p className="text-base font-semibold text-gray-700 group-hover:text-primary-600 transition-colors mb-1">Upload Property Photos</p>
+                        <p className="text-sm text-gray-500">Showcase your property with high-quality images</p>
+                        <p className="text-xs text-gray-400 mt-2">JPG, PNG, WEBP • Max 5MB per image</p>
+                      </div>
+                    )}
+                    <input
+                      ref={listingImageInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleListingImageChange}
+                      multiple
+                    />
                   </div>
                 </div>
               </div>
 
               {/* Offerings Section */}
-              <div className="pt-6 border-t border-gray-200">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-1 h-8 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
-                  <h2 className="text-xl font-bold text-gray-900">Offerings</h2>
+              <div className="pt-2 border-t border-gray-100">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1.5 h-5 bg-primary-600 rounded-full"></div>
+                  <h5 className="text-lg font-semibold text-gray-900">Offerings</h5>
                 </div>
-                <div className="space-y-6">
+                <div className="space-y-5 bg-gray-50 border border-gray-200 rounded-2xl p-4">
                   {/* Collaboration Types */}
                   <div>
-                    <label className="block text-base font-medium text-gray-900 mb-3">
-                      Collaboration Types
+                    <label className="block text-base font-semibold text-gray-900 mb-3">
+                      Collaboration Types <span className="text-red-500">*</span>
                     </label>
-                    <div className="flex flex-wrap gap-3">
-                      {COLLABORATION_TYPES.map((type) => (
-                        <label key={type} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={listingFormData.collaborationTypes.includes(type)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setListingFormData({
-                                  ...listingFormData,
-                                  collaborationTypes: [...listingFormData.collaborationTypes, type],
-                                })
-                              } else {
-                                setListingFormData({
-                                  ...listingFormData,
-                                  collaborationTypes: listingFormData.collaborationTypes.filter((t) => t !== type),
-                                })
-                              }
-                            }}
-                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                          />
-                          <span className="ml-2 text-gray-700">{type}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {COLLABORATION_TYPES.map((type) => {
+                        const isSelected = listingFormData.collaborationTypes.includes(type)
+                        const icons = {
+                          'Free Stay': GiftIcon,
+                          'Paid': CurrencyDollarIcon,
+                          'Discount': TagIcon,
+                        }
+                        const Icon = icons[type as keyof typeof icons]
 
-                  {/* Availability */}
-                  <div>
-                    <label className="block text-base font-medium text-gray-900 mb-3">Availability (Months)</label>
-                    <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-                      {MONTHS.map((month) => (
-                        <label key={month} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={listingFormData.availability.includes(month)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setListingFormData({
-                                  ...listingFormData,
-                                  availability: [...listingFormData.availability, month],
-                                })
-                              } else {
-                                setListingFormData({
-                                  ...listingFormData,
-                                  availability: listingFormData.availability.filter((m) => m !== month),
-                                })
-                              }
-                            }}
-                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                          />
-                          <span className="ml-2 text-gray-700 text-sm">{month}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Platforms */}
-                  <div>
-                    <label className="block text-base font-medium text-gray-900 mb-3">Platforms</label>
-                    <div className="flex flex-wrap gap-3">
-                      {PLATFORM_OPTIONS.map((platform) => (
-                        <label key={platform} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={listingFormData.platforms.includes(platform)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setListingFormData({
-                                  ...listingFormData,
-                                  platforms: [...listingFormData.platforms, platform],
-                                })
-                              } else {
-                                setListingFormData({
-                                  ...listingFormData,
-                                  platforms: listingFormData.platforms.filter((p) => p !== platform),
-                                })
-                              }
-                            }}
-                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                          />
-                          <span className="ml-2 text-gray-700">{platform}</span>
-                        </label>
-                      ))}
+                        return (
+                          <label
+                            key={type}
+                            className={`relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border cursor-pointer transition-all text-center ${
+                              isSelected
+                                ? 'bg-purple-50 border-[#2F54EB] shadow-sm'
+                                : 'bg-[#F7F7FA] border-[#E5E7EB] text-gray-800 hover:border-primary-200'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setListingFormData({
+                                    ...listingFormData,
+                                    collaborationTypes: [...listingFormData.collaborationTypes, type],
+                                  })
+                                } else {
+                                  setListingFormData({
+                                    ...listingFormData,
+                                    collaborationTypes: listingFormData.collaborationTypes.filter((t) => t !== type),
+                                  })
+                                }
+                              }}
+                              className="sr-only"
+                            />
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                              isSelected ? 'bg-[#2F54EB] text-white' : 'bg-white text-gray-700'
+                            }`}>
+                              <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-700'}`} />
+                            </div>
+                            <div className={`text-sm font-semibold ${isSelected ? 'text-gray-900' : 'text-gray-900'}`}>
+                              {type}
+                            </div>
+                            {isSelected && (
+                              <div className="flex items-center gap-1 text-xs font-medium text-[#2F54EB]">
+                                <CheckCircleIcon className="w-3.5 h-3.5" />
+                                <span>Selected</span>
+                              </div>
+                            )}
+                          </label>
+                        )
+                      })}
                     </div>
                   </div>
 
                   {/* Free Stay Details */}
                   {listingFormData.collaborationTypes.includes('Free Stay') && (
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <h4 className="font-semibold text-gray-900 mb-4">Free Stay Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 md:p-5 bg-white rounded-2xl border border-gray-200 shadow-sm transition-all space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#2F54EB] flex items-center justify-center">
+                          <GiftIcon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h6 className="font-semibold text-gray-900 text-base">Free Stay Details</h6>
+                          <p className="text-sm text-gray-600">Specify the night range for free stays</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <Input
                           label="Min. Nights"
                           type="number"
                           value={listingFormData.freeStayMinNights || ''}
-                          onChange={(e) =>
+                          min={1}
+                          onChange={(e) => {
+                            const { value } = e.target
+                            if (value === '') {
+                              setListingFormData({
+                                ...listingFormData,
+                                freeStayMinNights: undefined,
+                              })
+                              return
+                            }
+                            const parsed = parseInt(value)
                             setListingFormData({
                               ...listingFormData,
-                              freeStayMinNights: parseInt(e.target.value) || undefined,
+                              freeStayMinNights: Number.isNaN(parsed) ? undefined : Math.max(1, parsed),
                             })
-                          }
-                          placeholder="2"
+                          }}
+                          placeholder="1"
+                          required
+                          className="bg-gray-50 border-gray-200"
                         />
                         <Input
                           label="Max. Nights"
                           type="number"
                           value={listingFormData.freeStayMaxNights || ''}
-                          onChange={(e) =>
+                          min={1}
+                          onChange={(e) => {
+                            const { value } = e.target
+                            if (value === '') {
+                              setListingFormData({
+                                ...listingFormData,
+                                freeStayMaxNights: undefined,
+                              })
+                              return
+                            }
+                            const parsed = parseInt(value)
                             setListingFormData({
                               ...listingFormData,
-                              freeStayMaxNights: parseInt(e.target.value) || undefined,
+                              freeStayMaxNights: Number.isNaN(parsed) ? undefined : Math.max(1, parsed),
                             })
-                          }
+                          }}
                           placeholder="5"
+                          required
+                          className="bg-gray-50 border-gray-200"
                         />
                       </div>
                     </div>
@@ -3416,155 +5300,360 @@ export default function ProfilePage() {
 
                   {/* Paid Details */}
                   {listingFormData.collaborationTypes.includes('Paid') && (
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <h4 className="font-semibold text-gray-900 mb-4">Paid Details</h4>
+                    <div className="p-4 md:p-5 bg-white rounded-2xl border border-gray-200 shadow-sm transition-all space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#2F54EB] flex items-center justify-center">
+                          <CurrencyDollarIcon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h6 className="font-semibold text-gray-900 text-base">Paid Details</h6>
+                          <p className="text-sm text-gray-600">Set the maximum payment amount</p>
+                        </div>
+                      </div>
                       <Input
                         label="Max. Amount ($)"
                         type="number"
                         value={listingFormData.paidMaxAmount || ''}
-                        onChange={(e) =>
-                          setListingFormData({
-                            ...listingFormData,
-                            paidMaxAmount: parseInt(e.target.value) || undefined,
-                          })
-                        }
+                        onChange={(e) => setListingFormData({
+                          ...listingFormData,
+                          paidMaxAmount: parseInt(e.target.value) || undefined,
+                        })}
                         placeholder="5000"
+                        required
+                        className="bg-gray-50 border-gray-200"
                       />
                     </div>
                   )}
 
                   {/* Discount Details */}
                   {listingFormData.collaborationTypes.includes('Discount') && (
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <h4 className="font-semibold text-gray-900 mb-4">Discount Details</h4>
+                    <div className="p-4 md:p-5 bg-white rounded-2xl border border-gray-200 shadow-sm transition-all space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] text-[#2F54EB] flex items-center justify-center">
+                          <TagIcon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h6 className="font-semibold text-gray-900 text-base">Discount Details</h6>
+                          <p className="text-sm text-gray-600">Set the discount percentage</p>
+                        </div>
+                      </div>
                       <Input
                         label="Discount Percentage (%)"
                         type="number"
                         value={listingFormData.discountPercentage || ''}
-                        onChange={(e) =>
-                          setListingFormData({
-                            ...listingFormData,
-                            discountPercentage: parseInt(e.target.value) || undefined,
-                          })
-                        }
-                        placeholder="30"
+                        onChange={(e) => setListingFormData({
+                          ...listingFormData,
+                          discountPercentage: parseInt(e.target.value) || undefined,
+                        })}
+                        placeholder="20"
+                        min={1}
+                        max={100}
+                        required
+                        className="bg-gray-50 border-gray-200"
                       />
                     </div>
                   )}
+
+                  {/* Availability */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <CalendarDaysIcon className="w-5 h-5 text-primary-600" />
+                      <label className="block text-base font-semibold text-gray-900">
+                        Availability <span className="text-red-500">*</span>
+                      </label>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-2xl p-3 shadow-sm">
+                      <div className="grid grid-cols-6 gap-2">
+                        {MONTHS.map((month) => {
+                          const isSelected = listingFormData.availability.includes(month)
+                          const monthAbbr = month.substring(0, 3)
+
+                          return (
+                            <label
+                              key={month}
+                              className={`relative flex flex-col items-center justify-center py-3 rounded-xl border cursor-pointer transition-all ${
+                                isSelected
+                                  ? 'bg-[#2F54EB] border-[#2F54EB] text-white'
+                                  : 'bg-gray-100 border-gray-200 text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setListingFormData({
+                                      ...listingFormData,
+                                      availability: [...listingFormData.availability, month],
+                                    })
+                                  } else {
+                                    setListingFormData({
+                                      ...listingFormData,
+                                      availability: listingFormData.availability.filter((m) => m !== month),
+                                    })
+                                  }
+                                }}
+                                className="sr-only"
+                              />
+                              <div className={`text-sm font-semibold ${isSelected ? 'text-white' : 'text-gray-700'}`}>{monthAbbr}</div>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Platforms */}
+                  <div>
+                    <label className="block text-base font-semibold text-gray-900 mb-1">Property posting platforms</label>
+                    <p className="text-sm text-gray-600 mb-3">On which platforms is your property active?</p>
+                    <div className="flex flex-wrap gap-2">
+                      {PLATFORM_OPTIONS.map((platform) => {
+                        const isSelected = listingFormData.platforms.includes(platform)
+                        return (
+                          <label
+                            key={platform}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-[#2F54EB] bg-blue-50 text-[#2F54EB]'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setListingFormData({
+                                    ...listingFormData,
+                                    platforms: [...listingFormData.platforms, platform],
+                                  })
+                                } else {
+                                  setListingFormData({
+                                    ...listingFormData,
+                                    platforms: listingFormData.platforms.filter((p) => p !== platform),
+                                  })
+                                }
+                              }}
+                              className="sr-only"
+                            />
+                            <span
+                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                isSelected
+                                  ? 'border-[#2F54EB] bg-[#2F54EB]'
+                                  : 'border-gray-400 bg-white'
+                              }`}
+                            >
+                              {isSelected && (
+                                <span className="w-2 h-2 rounded-full bg-white"></span>
+                              )}
+                            </span>
+                            <span className={isSelected ? 'text-[#2F54EB]' : 'text-gray-700'}>
+                              {platform}
+                            </span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
               {/* Looking For Section */}
-              <div className="pt-6 border-t border-gray-200">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-1 h-8 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
-                  <h2 className="text-xl font-bold text-gray-900">Looking For</h2>
+              <div className="pt-2 border-t border-gray-100">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1.5 h-5 bg-orange-500 rounded-full"></div>
+                  <h5 className="text-lg font-semibold text-gray-900">Looking For</h5>
                 </div>
-                <div className="space-y-6">
+                <div className="space-y-5 bg-gray-50 border border-gray-200 rounded-2xl p-4">
                   {/* Platforms */}
                   <div>
-                    <label className="block text-base font-medium text-gray-900 mb-3">Platforms</label>
-                    <div className="flex flex-wrap gap-3">
-                      {PLATFORM_OPTIONS.map((platform) => (
-                        <label key={platform} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={listingFormData.lookingForPlatforms.includes(platform)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setListingFormData({
-                                  ...listingFormData,
-                                  lookingForPlatforms: [...listingFormData.lookingForPlatforms, platform],
-                                })
-                              } else {
-                                setListingFormData({
-                                  ...listingFormData,
-                                  lookingForPlatforms: listingFormData.lookingForPlatforms.filter((p) => p !== platform),
-                                })
-                              }
-                            }}
-                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                          />
-                          <span className="ml-2 text-gray-700">{platform}</span>
-                        </label>
-                      ))}
+                    <label className="block text-base font-semibold text-gray-900 mb-1">Creator's platforms</label>
+                    <p className="text-sm text-gray-600 mb-3">Which platforms should the creator have?</p>
+                    <div className="flex flex-wrap gap-2">
+                      {PLATFORM_OPTIONS.map((platform) => {
+                        const isSelected = listingFormData.lookingForPlatforms.includes(platform)
+                        return (
+                          <label
+                            key={platform}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-[#2F54EB] bg-blue-50 text-[#2F54EB]'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setListingFormData({
+                                    ...listingFormData,
+                                    lookingForPlatforms: [...listingFormData.lookingForPlatforms, platform],
+                                  })
+                                } else {
+                                  setListingFormData({
+                                    ...listingFormData,
+                                    lookingForPlatforms: listingFormData.lookingForPlatforms.filter((p) => p !== platform),
+                                  })
+                                }
+                              }}
+                              className="sr-only"
+                            />
+                            <span
+                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                isSelected
+                                  ? 'border-[#2F54EB] bg-[#2F54EB]'
+                                  : 'border-gray-400 bg-white'
+                              }`}
+                            >
+                              {isSelected && (
+                                <span className="w-2 h-2 rounded-full bg-white"></span>
+                              )}
+                            </span>
+                            <span className={isSelected ? 'text-[#2F54EB]' : 'text-gray-700'}>
+                              {platform}
+                            </span>
+                          </label>
+                        )
+                      })}
                     </div>
                   </div>
 
                   {/* Min Followers */}
                   <div>
+                    <label className="block text-base font-semibold text-gray-900 mb-2">Min. Followers (optional)</label>
                     <Input
-                      label="Min. Follower Amount (optional)"
                       type="number"
                       value={listingFormData.lookingForMinFollowers || ''}
-                      onChange={(e) =>
-                        setListingFormData({
-                          ...listingFormData,
-                          lookingForMinFollowers: parseInt(e.target.value) || undefined,
-                        })
-                      }
-                      placeholder="50000"
+                      onChange={(e) => setListingFormData({
+                        ...listingFormData,
+                        lookingForMinFollowers: parseInt(e.target.value) || undefined,
+                      })}
+                      placeholder="e.g., 50000"
+                      className="bg-gray-50"
                     />
                   </div>
 
-                  {/* Target Group Countries */}
+                  {/* Top Countries */}
                   <div>
-                    <label className="block text-base font-medium text-gray-900 mb-3">Target Group - Countries</label>
-                    <div className="grid grid-cols-3 md:grid-cols-4 gap-3 max-h-60 overflow-y-auto p-4 border border-gray-200 rounded-lg">
-                      {COUNTRIES.map((country) => (
-                        <label key={country} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={listingFormData.targetGroupCountries.includes(country)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setListingFormData({
-                                  ...listingFormData,
-                                  targetGroupCountries: [...listingFormData.targetGroupCountries, country],
-                                })
-                              } else {
-                                setListingFormData({
-                                  ...listingFormData,
-                                  targetGroupCountries: listingFormData.targetGroupCountries.filter((c) => c !== country),
-                                })
-                              }
-                            }}
-                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                          />
-                          <span className="ml-2 text-gray-700 text-sm">{country}</span>
-                        </label>
-                      ))}
+                    <label className="block text-base font-semibold text-gray-900 mb-1">Top Countries</label>
+                    <p className="text-sm text-gray-600 mb-3">Select up to 3 countries your target audience is from</p>
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={listingCountryInput}
+                        onChange={(e) => {
+                          setListingCountryInput(e.target.value)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            const country = listingCountryInput.trim()
+                            if (country && COUNTRIES.includes(country) && !listingFormData.targetGroupCountries.includes(country) && listingFormData.targetGroupCountries.length < 3) {
+                              setListingFormData({
+                                ...listingFormData,
+                                targetGroupCountries: [...listingFormData.targetGroupCountries, country],
+                              })
+                              setListingCountryInput('')
+                            }
+                          }
+                        }}
+                        placeholder="Search countries..."
+                        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-200"
+                      />
+                      {/* Dropdown suggestions */}
+                      {listingCountryInput && COUNTRIES.filter(c => 
+                        c.toLowerCase().includes(listingCountryInput.toLowerCase()) &&
+                        !listingFormData.targetGroupCountries.includes(c)
+                      ).length > 0 && (
+                        <div className="max-h-40 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+                          {COUNTRIES.filter(c => 
+                            c.toLowerCase().includes(listingCountryInput.toLowerCase()) &&
+                            !listingFormData.targetGroupCountries.includes(c)
+                          ).map((country) => (
+                            <button
+                              key={country}
+                              type="button"
+                              onClick={() => {
+                                if (listingFormData.targetGroupCountries.length < 3 && !listingFormData.targetGroupCountries.includes(country)) {
+                                  setListingFormData({
+                                    ...listingFormData,
+                                    targetGroupCountries: [...listingFormData.targetGroupCountries, country],
+                                  })
+                                  setListingCountryInput('')
+                                }
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-50"
+                            >
+                              {country}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {listingFormData.targetGroupCountries.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {listingFormData.targetGroupCountries.map((country, countryIndex) => (
+                            <span key={countryIndex} className="inline-flex items-center gap-1 rounded-full bg-primary-50 text-primary-700 text-xs font-semibold px-3 py-1 border border-primary-100">
+                              {country}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setListingFormData({
+                                    ...listingFormData,
+                                    targetGroupCountries: listingFormData.targetGroupCountries.filter((c) => c !== country),
+                                  })
+                                }}
+                                className="text-primary-500 hover:text-primary-700"
+                              >
+                                <XMarkIcon className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Target Group Age */}
+                  {/* Age Groups */}
                   <div>
-                    <label className="block text-base font-medium text-gray-900 mb-3">Target Group - Age Group</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Min. Age (optional)"
-                        type="number"
-                        value={listingFormData.targetGroupAgeMin || ''}
-                        onChange={(e) =>
-                          setListingFormData({
-                            ...listingFormData,
-                            targetGroupAgeMin: parseInt(e.target.value) || undefined,
-                          })
-                        }
-                        placeholder="25"
-                      />
-                      <Input
-                        label="Max. Age (optional)"
-                        type="number"
-                        value={listingFormData.targetGroupAgeMax || ''}
-                        onChange={(e) =>
-                          setListingFormData({
-                            ...listingFormData,
-                            targetGroupAgeMax: parseInt(e.target.value) || undefined,
-                          })
-                        }
-                        placeholder="45"
-                      />
+                    <label className="block text-base font-semibold text-gray-900 mb-1">Age Groups</label>
+                    <p className="text-sm text-gray-600 mb-3">Select up to 3 age groups you want to target</p>
+                    <div className="flex flex-wrap gap-2">
+                      {AGE_GROUP_OPTIONS.map((range) => {
+                        const isSelected = listingFormData.targetGroupAgeGroups?.includes(range) || false
+                        return (
+                          <button
+                            key={range}
+                            type="button"
+                            onClick={() => {
+                              const currentGroups = listingFormData.targetGroupAgeGroups || []
+                              if (isSelected) {
+                                setListingFormData({
+                                  ...listingFormData,
+                                  targetGroupAgeGroups: currentGroups.filter((g) => g !== range),
+                                })
+                              } else {
+                                if (currentGroups.length < 3) {
+                                  setListingFormData({
+                                    ...listingFormData,
+                                    targetGroupAgeGroups: [...currentGroups, range],
+                                  })
+                                }
+                              }
+                            }}
+                            disabled={!isSelected && (listingFormData.targetGroupAgeGroups?.length || 0) >= 3}
+                            className={`px-3 py-1.5 rounded-full border text-sm font-semibold transition-colors ${
+                              isSelected
+                                ? 'bg-primary-50 text-primary-700 border-primary-200'
+                                : 'bg-white text-gray-700 border-gray-200 hover:border-primary-200 hover:text-primary-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                            }`}
+                          >
+                            {range}
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
                 </div>
