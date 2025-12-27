@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Hotel } from '@/lib/types'
 import { Button } from '@/components/ui'
-import { MapPinIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { HotelDetailModal } from './HotelDetailModal'
 import { CollaborationApplicationModal, type CollaborationApplicationData } from './CollaborationApplicationModal'
 
@@ -65,6 +65,7 @@ const getMonthAbbr = (month: string): string => {
 export function HotelCard({ hotel }: HotelCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showApplicationModal, setShowApplicationModal] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   const handleApplicationSubmit = (data: CollaborationApplicationData) => {
     // TODO: Implement actual submission logic
@@ -72,21 +73,82 @@ export function HotelCard({ hotel }: HotelCardProps) {
     setShowApplicationModal(false)
   }
 
+  const images = hotel.images && hotel.images.length > 0 ? hotel.images : []
+  const hasMultipleImages = images.length > 1
+
+  const goToPreviousImage = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+  }
+
+  const goToNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+  }
+
+  const goToImage = (index: number) => {
+    setCurrentImageIndex(index)
+  }
+
   return (
     <>
     <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow overflow-hidden border border-gray-200 flex flex-col h-full">
-      {/* Image */}
-      <div className="relative h-48 bg-gradient-to-br from-primary-100 to-primary-200 flex-shrink-0">
-        {hotel.images && hotel.images.length > 0 ? (
-          <img
-            src={hotel.images[0]}
-            alt={hotel.name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              // Fallback to gradient if image fails
-              e.currentTarget.style.display = 'none'
-            }}
-          />
+      {/* Image Gallery */}
+      <div className="relative h-48 bg-gradient-to-br from-primary-100 to-primary-200 flex-shrink-0 overflow-hidden">
+        {images.length > 0 ? (
+          <>
+            {/* Current Image */}
+            <img
+              src={images[currentImageIndex]}
+              alt={`${hotel.name} - Image ${currentImageIndex + 1}`}
+              className="w-full h-full object-cover transition-opacity duration-300"
+              onError={(e) => {
+                // Fallback to gradient if image fails
+                e.currentTarget.style.display = 'none'
+              }}
+            />
+            
+            {/* Navigation Arrows */}
+            {hasMultipleImages && (
+              <>
+                <button
+                  onClick={goToPreviousImage}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors z-10"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeftIcon className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={goToNextImage}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors z-10"
+                  aria-label="Next image"
+                >
+                  <ChevronRightIcon className="w-5 h-5" />
+                </button>
+              </>
+            )}
+            
+            {/* Image Indicators/Dots */}
+            {hasMultipleImages && (
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      goToImage(index)
+                    }}
+                    className={`h-2 rounded-full transition-all ${
+                      index === currentImageIndex
+                        ? 'w-6 bg-white'
+                        : 'w-2 bg-white/50 hover:bg-white/75'
+                    }`}
+                    aria-label={`Go to image ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <span className="text-primary-600 text-3xl font-bold">

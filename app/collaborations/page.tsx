@@ -6,7 +6,6 @@ import { AuthenticatedNavigation, ProfileWarningBanner } from '@/components/layo
 import { useSidebar } from '@/components/layout/AuthenticatedNavigation'
 import { CollaborationCard, CollaborationRejectedModal, CollaborationRequestDetailModal } from '@/components/marketplace'
 import { Button, Input } from '@/components/ui'
-import { FeatureUnavailableModal } from '@/components/ui/FeatureUnavailableModal'
 import { ROUTES } from '@/lib/constants/routes'
 import type { Collaboration, CollaborationStatus, Hotel, Creator, UserType } from '@/lib/types'
 import { collaborationService } from '@/services/api/collaborations'
@@ -35,7 +34,6 @@ function CollaborationsPageContent() {
   const [detailCollaboration, setDetailCollaboration] = useState<
     (Collaboration & { hotel?: Hotel; creator?: Creator }) | null
   >(null)
-  const [showUnavailableModal, setShowUnavailableModal] = useState(false)
   
   // Initialize userType from searchParams (available on both server and client)
   // This ensures server and client render the same initial value
@@ -67,30 +65,78 @@ function CollaborationsPageContent() {
 
   // Load collaborations whenever dependencies change
   useEffect(() => {
-    loadCollaborations()
+    if (currentUserId) {
+      loadCollaborations()
+    }
   }, [statusFilter, userType, currentUserId])
 
   const loadCollaborations = async () => {
+    if (!currentUserId) return
+    
     setLoading(true)
-    // Collaboration endpoints have been removed from backend
-    // Backend only supports authentication endpoints
-    console.warn('Collaboration endpoints are not available. Backend only supports authentication.')
-    setCollaborations([])
-    setLoading(false)
+    try {
+      const params: {
+        page?: number
+        limit?: number
+        status?: string
+        hotelId?: string
+        creatorId?: string
+      } = {
+        limit: 100, // Load a reasonable number of collaborations
+      }
+
+      // Add status filter if not 'all'
+      if (statusFilter !== 'all') {
+        params.status = statusFilter
+      }
+
+      // Filter by current user
+      if (userType === 'hotel') {
+        params.hotelId = currentUserId
+      } else if (userType === 'creator') {
+        params.creatorId = currentUserId
+      }
+
+      const response = await collaborationService.getAll(params)
+      
+      // Fetch hotel and creator details for each collaboration
+      const collaborationsWithDetails = await Promise.all(
+        response.data.map(async (collab) => {
+          try {
+            const [hotel, creator] = await Promise.all([
+              collab.hotelId ? hotelService.getById(collab.hotelId).catch(() => null) : Promise.resolve(null),
+              collab.creatorId ? creatorService.getById(collab.creatorId).catch(() => null) : Promise.resolve(null),
+            ])
+            return { ...collab, hotel: hotel || undefined, creator: creator || undefined }
+          } catch (error) {
+            console.error('Error loading collaboration details:', error)
+            return { ...collab, hotel: undefined, creator: undefined }
+          }
+        })
+      )
+
+      setCollaborations(collaborationsWithDetails)
+    } catch (error) {
+      console.error('Error loading collaborations:', error)
+      setCollaborations([])
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Show modal when collaborations are unavailable
-  useEffect(() => {
-    if (!loading && collaborations.length === 0) {
-      setShowUnavailableModal(true)
-    }
-  }, [loading, collaborations.length])
-
   const handleStatusUpdate = async (id: string, newStatus: CollaborationStatus) => {
-    // Collaboration endpoints have been removed from backend
-    console.warn('Collaboration update endpoints are not available. Backend only supports authentication.')
-    alert('Collaboration management is not available. Backend only supports authentication endpoints.')
-    setUpdatingId(null)
+    setUpdatingId(id)
+    try {
+      await collaborationService.updateStatus(id, newStatus)
+      // Reload collaborations after status update
+      await loadCollaborations()
+    } catch (error) {
+      console.error('Error updating collaboration status:', error)
+      const apiError = error as ApiErrorResponse
+      alert(apiError.message || 'Failed to update collaboration status')
+    } finally {
+      setUpdatingId(null)
+    }
   }
 
   const handleViewDetails = (collaboration: Collaboration & { hotel?: Hotel; creator?: Creator }) => {
@@ -306,12 +352,6 @@ function CollaborationsPageContent() {
         onDecline={handleDeclineFromModal}
       />
 
-      {/* Feature Unavailable Modal */}
-      <FeatureUnavailableModal
-        isOpen={showUnavailableModal}
-        onClose={() => setShowUnavailableModal(false)}
-        featureName="Collaborations"
-      />
     </main>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Hotel } from '@/lib/types'
 import { Button } from '@/components/ui'
 import {
@@ -9,6 +9,8 @@ import {
   XMarkIcon,
   CalendarIcon,
   UserGroupIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline'
 import { CollaborationApplicationModal, type CollaborationApplicationData } from './CollaborationApplicationModal'
 
@@ -78,6 +80,14 @@ const formatNumber = (num: number): string => {
 
 export function HotelDetailModal({ hotel, isOpen, onClose }: HotelDetailModalProps) {
   const [showApplicationModal, setShowApplicationModal] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  // Reset image index when modal opens (must be before early return)
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentImageIndex(0)
+    }
+  }, [isOpen])
 
   if (!isOpen || !hotel) return null
 
@@ -91,6 +101,21 @@ export function HotelDetailModal({ hotel, isOpen, onClose }: HotelDetailModalPro
     // Close both modals
     setShowApplicationModal(false)
     onClose()
+  }
+
+  const images = hotel.images && hotel.images.length > 0 ? hotel.images : []
+  const hasMultipleImages = images.length > 1
+
+  const goToPreviousImage = () => {
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+  }
+
+  const goToNextImage = () => {
+    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+  }
+
+  const goToImage = (index: number) => {
+    setCurrentImageIndex(index)
   }
 
   return (
@@ -133,17 +158,63 @@ export function HotelDetailModal({ hotel, isOpen, onClose }: HotelDetailModalPro
             )}
           </div>
 
-          {/* Main Image */}
-          {hotel.images && hotel.images.length > 0 && (
+          {/* Image Gallery */}
+          {images.length > 0 && (
             <div className="relative h-80 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl overflow-hidden">
+              {/* Current Image */}
               <img
-                src={hotel.images[0]}
-                alt={hotel.name}
-                className="w-full h-full object-cover"
+                src={images[currentImageIndex]}
+                alt={`${hotel.name} - Image ${currentImageIndex + 1}`}
+                className="w-full h-full object-cover transition-opacity duration-300"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none'
                 }}
               />
+              
+              {/* Navigation Arrows */}
+              {hasMultipleImages && (
+                <>
+                  <button
+                    onClick={goToPreviousImage}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors z-10"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeftIcon className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={goToNextImage}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors z-10"
+                    aria-label="Next image"
+                  >
+                    <ChevronRightIcon className="w-6 h-6" />
+                  </button>
+                </>
+              )}
+              
+              {/* Image Indicators/Dots */}
+              {hasMultipleImages && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                  {images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => goToImage(index)}
+                      className={`h-2.5 rounded-full transition-all ${
+                        index === currentImageIndex
+                          ? 'w-8 bg-white'
+                          : 'w-2.5 bg-white/50 hover:bg-white/75'
+                      }`}
+                      aria-label={`Go to image ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+              
+              {/* Image Counter */}
+              {hasMultipleImages && (
+                <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium z-10">
+                  {currentImageIndex + 1} / {images.length}
+                </div>
+              )}
             </div>
           )}
 
@@ -291,9 +362,25 @@ export function HotelDetailModal({ hotel, isOpen, onClose }: HotelDetailModalPro
               {/* Number of Followers */}
               {hotel.minFollowers && (
                 <div>
-                  <div className="text-sm text-gray-500 mb-2">Number of followers</div>
+                  <div className="text-sm text-gray-500 mb-2">Minimum Followers</div>
                   <div className="text-gray-900 font-medium">
-                    {formatNumber(hotel.minFollowers)}+ Follower
+                    {formatNumber(hotel.minFollowers)}+ followers
+                  </div>
+                </div>
+              )}
+
+              {/* Age Range */}
+              {(hotel.targetAgeMin || hotel.targetAgeMax) && (
+                <div>
+                  <div className="text-sm text-gray-500 mb-2">Target Age Range</div>
+                  <div className="text-gray-900 font-medium">
+                    {hotel.targetAgeMin && hotel.targetAgeMax
+                      ? `${hotel.targetAgeMin} - ${hotel.targetAgeMax} years`
+                      : hotel.targetAgeMin
+                      ? `${hotel.targetAgeMin}+ years`
+                      : hotel.targetAgeMax
+                      ? `Up to ${hotel.targetAgeMax} years`
+                      : ''}
                   </div>
                 </div>
               )}

@@ -4,10 +4,35 @@
 
 import { apiClient } from './client'
 import type { Creator, PaginatedResponse, CreatorProfileStatus } from '@/lib/types'
+import { transformCreatorMarketplaceResponse } from '@/lib/utils'
+
+// Backend API response type for marketplace endpoint
+interface CreatorMarketplaceResponse {
+  id: string
+  name: string
+  location: string
+  shortDescription: string
+  portfolioLink: string | null
+  profilePicture: string | null
+  platforms: Array<{
+    id: string
+    name: "Instagram" | "TikTok" | "YouTube" | "Facebook"
+    handle: string
+    followers: number
+    engagementRate: number
+    topCountries: Array<{ country: string; percentage: number }> | null
+    topAgeGroups: Array<{ ageRange: string; percentage: number }> | null
+    genderSplit: { male: number; female: number } | null
+  }>
+  audienceSize: number
+  averageRating: number
+  totalReviews: number
+  createdAt: string
+}
 
 export const creatorService = {
   /**
-   * Get all creators
+   * Get all creators (marketplace endpoint - returns direct array)
    */
   getAll: async (params?: { 
     page?: number
@@ -20,7 +45,22 @@ export const creatorService = {
     if (params?.location) queryParams.append('location', params.location)
     
     const query = queryParams.toString()
-    return apiClient.get<PaginatedResponse<Creator>>(`/creators${query ? `?${query}` : ''}`)
+    // Backend returns direct array, not paginated response
+    const response = await apiClient.get<CreatorMarketplaceResponse[]>(`/creators${query ? `?${query}` : ''}`)
+    
+    // Transform API response to frontend format
+    const creators = response.map(transformCreatorMarketplaceResponse)
+    
+    // Return as paginated response for consistency with frontend expectations
+    return {
+      data: creators,
+      pagination: {
+        page: params?.page || 1,
+        limit: params?.limit || creators.length,
+        total: creators.length,
+        totalPages: 1,
+      },
+    }
   },
 
   /**

@@ -82,6 +82,8 @@ export interface Hotel {
   numberOfNights?: number // Maximum number of nights for free collaboration
   targetAudience?: string[] // Target audience regions: 'Asia', 'Africa', 'Middle East', 'Australia', 'North America', 'South America'
   minFollowers?: number // Minimum number of followers required (e.g., 10000)
+  targetAgeMin?: number // Minimum target age
+  targetAgeMax?: number // Maximum target age
   socialLinks?: {
     instagram?: string
     tiktok?: string
