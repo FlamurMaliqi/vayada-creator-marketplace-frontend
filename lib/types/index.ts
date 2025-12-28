@@ -205,6 +205,7 @@ export interface PlatformAgeGroup {
 export interface PlatformGenderSplit {
   male: number
   female: number
+  other?: number
 }
 
 export interface Platform {

@@ -1,10 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { Collaboration, Hotel, Creator, UserType } from '@/lib/types'
 import { Button, StarRating } from '@/components/ui'
 import { XMarkIcon } from '@heroicons/react/24/solid'
-import { CheckBadgeIcon, MapPinIcon, StarIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
+import { CheckBadgeIcon, MapPinIcon, StarIcon } from '@heroicons/react/24/outline'
 import { formatNumber } from '@/lib/utils'
 
 interface CollaborationRequestDetailModalProps {
@@ -86,21 +85,7 @@ export function CollaborationRequestDetailModal({
   onAccept,
   onDecline,
 }: CollaborationRequestDetailModalProps) {
-  const [expandedPlatforms, setExpandedPlatforms] = useState<Set<number>>(new Set())
-
   if (!isOpen || !collaboration) return null
-
-  const togglePlatform = (index: number) => {
-    setExpandedPlatforms(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(index)) {
-        newSet.delete(index)
-      } else {
-        newSet.add(index)
-      }
-      return newSet
-    })
-  }
 
   const getTotalFollowers = () => {
     if (currentUserType === 'hotel' && collaboration.creator?.platforms) {
@@ -314,147 +299,94 @@ export function CollaborationRequestDetailModal({
           {/* Social Media Platform Metrics */}
           {currentUserType === 'hotel' && collaboration.creator?.platforms && collaboration.creator.platforms.length > 0 && (
             <div>
-              <h5 className="font-bold text-gray-900 mb-4">Social Media Platforms</h5>
-              <div className="space-y-3">
-                {collaboration.creator.platforms.map((platform, index) => {
-                  const isExpanded = expandedPlatforms.has(index)
-                  return (
-                    <div
-                      key={index}
-                      className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden"
-                    >
-                      {/* Platform Header - Clickable */}
-                      <button
-                        onClick={() => togglePlatform(index)}
-                        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="w-10 h-10 flex items-center justify-center text-primary-600">
-                            {getPlatformIcon(platform.name)}
-                          </div>
-                          <div className="flex-1 text-left">
-                            <div className="flex items-center gap-2">
-                              <h6 className="text-lg font-bold text-gray-900">
-                                {platform.name === 'YT' ? 'YouTube' : platform.name}
-                              </h6>
-                              {platform.handle && (
-                                <span className="text-sm text-gray-600">@{platform.handle}</span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-4 mt-1">
-                              <span className="text-sm text-gray-600">
-                                {formatNumber(platform.followers)} followers
-                              </span>
-                              <span className="text-sm text-gray-600">
-                                {(typeof platform.engagementRate === 'number' ? platform.engagementRate : 0).toFixed(1)}% engagement
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        {isExpanded ? (
-                          <ChevronUpIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                        ) : (
-                          <ChevronDownIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                        )}
-                      </button>
-
-                      {/* Expanded Content */}
-                      {isExpanded && (
-                        <div className="px-4 pb-6 border-t border-gray-200 pt-4 space-y-6">
-                          {/* Key Metrics */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-sm text-gray-600 mb-1">Followers</p>
-                              <p className="text-2xl font-bold text-gray-900">
-                                {formatNumber(platform.followers)}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-600 mb-1">Engagement Rate</p>
-                              <p className="text-2xl font-bold text-gray-900">
-                                {(typeof platform.engagementRate === 'number' ? platform.engagementRate : 0).toFixed(1)}%
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Top Countries */}
-                          {platform.topCountries && platform.topCountries.length > 0 && (
-                            <div>
-                              <h6 className="text-sm font-semibold text-gray-900 mb-3">Top Countries</h6>
-                              <div className="space-y-2">
-                                {platform.topCountries.map((country, idx) => (
-                                  <div key={idx} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-lg">🏳️</span>
-                                      <span className="text-sm text-gray-700">{country.country}</span>
-                                    </div>
-                                    <span className="text-sm font-semibold text-gray-900">
-                                      {country.percentage}%
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Top Age Groups */}
-                          {platform.topAgeGroups && platform.topAgeGroups.length > 0 && (
-                            <div>
-                              <h6 className="text-sm font-semibold text-gray-900 mb-3">Top Age Groups</h6>
-                              <div className="space-y-2">
-                                {platform.topAgeGroups.map((ageGroup, idx) => (
-                                  <div key={idx} className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-700">{ageGroup.ageRange}</span>
-                                    <span className="text-sm font-semibold text-gray-900">
-                                      {ageGroup.percentage}%
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Gender Split */}
-                          {platform.genderSplit && (
-                            <div>
-                              <h6 className="text-sm font-semibold text-gray-900 mb-3">Gender Split</h6>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <div className="flex items-center justify-between mb-1">
-                                    <span className="text-sm text-gray-700">Male</span>
-                                    <span className="text-sm font-semibold text-gray-900">
-                                      {platform.genderSplit.male}%
-                                    </span>
-                                  </div>
-                                  <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div
-                                      className="bg-blue-600 h-2 rounded-full"
-                                      style={{ width: `${platform.genderSplit.male}%` }}
-                                    />
-                                  </div>
-                                </div>
-                                <div>
-                                  <div className="flex items-center justify-between mb-1">
-                                    <span className="text-sm text-gray-700">Female</span>
-                                    <span className="text-sm font-semibold text-gray-900">
-                                      {platform.genderSplit.female}%
-                                    </span>
-                                  </div>
-                                  <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div
-                                      className="bg-pink-600 h-2 rounded-full"
-                                      style={{ width: `${platform.genderSplit.female}%` }}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
+              <h5 className="font-bold text-gray-900 mb-4">Platform Metrics</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {collaboration.creator.platforms.map((platform, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm"
+                  >
+                    {/* Header */}
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 flex items-center justify-center text-gray-900 bg-gray-100 rounded-lg">
+                        {getPlatformIcon(platform.name)}
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        {platform.name === 'YT' ? 'YouTube' : platform.name}
+                      </h3>
                     </div>
-                  )
-                })}
+
+                    {/* Main Stats */}
+                    <div className="grid grid-cols-2 gap-8 mb-6">
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Followers</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {formatNumber(platform.followers)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Engagement</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {(typeof platform.engagementRate === 'number' ? platform.engagementRate : 0).toFixed(1)}%
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Top Countries */}
+                    {platform.topCountries && platform.topCountries.length > 0 && (
+                      <div className="mb-6">
+                        <p className="text-sm text-gray-500 mb-3">Top Countries</p>
+                        <div className="space-y-2">
+                          {platform.topCountries.slice(0, 3).map((country, idx) => (
+                            <div key={idx} className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {/* Simple flag mapping could go here, for now just text or emoji if possible */}
+                                <span className="text-sm font-medium text-gray-900">{country.country}</span>
+                              </div>
+                              <span className="text-sm font-bold text-gray-900">
+                                {country.percentage}%
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Top Age Groups */}
+                    {platform.topAgeGroups && platform.topAgeGroups.length > 0 && (
+                      <div className="mb-6">
+                        <p className="text-sm text-gray-500 mb-3">Top Age Groups</p>
+                        <div className="space-y-2">
+                          {platform.topAgeGroups.slice(0, 3).map((ageGroup, idx) => (
+                            <div key={idx} className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-900">{ageGroup.ageRange}</span>
+                              <span className="text-sm font-bold text-gray-900">
+                                {ageGroup.percentage}%
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Gender Split */}
+                    {platform.genderSplit && (
+                      <div>
+                        <p className="text-sm text-gray-500 mb-3">Gender Split</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-900">Male</span>
+                            <span className="text-sm font-bold text-gray-900">{platform.genderSplit.male}%</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-900">Female</span>
+                            <span className="text-sm font-bold text-gray-900">{platform.genderSplit.female}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -463,79 +395,66 @@ export function CollaborationRequestDetailModal({
           {currentUserType === 'hotel' && collaboration.creator?.rating && (
             <div>
               <h5 className="font-bold text-gray-900 mb-4">Reviews & Ratings</h5>
-              <div className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
-                {/* Overall Rating Summary */}
+              <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
                 {collaboration.creator.rating.totalReviews > 0 ? (
                   <>
-                    <div className="mb-6 pb-6 border-b border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Overall Rating</h3>
-                      <div className="flex items-center gap-4">
-                        <StarRating
-                          rating={collaboration.creator.rating.averageRating}
-                          totalReviews={collaboration.creator.rating.totalReviews}
-                          size="lg"
-                        />
-                        <div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-bold text-gray-900">
-                              {collaboration.creator.rating.averageRating.toFixed(1)}
+                    {/* Header with Overall Rating */}
+                    <div className="bg-gray-50 px-5 py-4 flex items-center justify-between border-b border-gray-200">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold text-gray-900">
+                            {collaboration.creator.rating.averageRating.toFixed(1)}
+                          </span>
+                          <div className="flex flex-col">
+                            <StarRating
+                              rating={collaboration.creator.rating.averageRating}
+                              size="sm"
+                              showNumber={false}
+                              showReviews={false}
+                            />
+                            <span className="text-xs text-gray-500">
+                              {collaboration.creator.rating.totalReviews} reviews
                             </span>
-                            <span className="text-lg text-gray-500">/ 5.0</span>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Reviews List */}
-                    {collaboration.creator.rating.reviews && collaboration.creator.rating.reviews.length > 0 ? (
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                          All Reviews ({collaboration.creator.rating.reviews.length})
-                        </h3>
-                        <div className="space-y-4">
-                          {collaboration.creator.rating.reviews.map((review) => (
-                            <div
-                              key={review.id}
-                              className="p-6 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
-                            >
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex-1">
-                                  <h4 className="font-semibold text-gray-900 mb-1">
-                                    {review.hotelName}
-                                  </h4>
-                                  <p className="text-sm text-gray-500">
-                                    {new Date(review.createdAt).toLocaleDateString('en-US', {
-                                      year: 'numeric',
-                                      month: 'long',
-                                      day: 'numeric',
-                                    })}
-                                  </p>
-                                </div>
-                                <StarRating
-                                  rating={review.rating}
-                                  size="sm"
-                                  showNumber={false}
-                                  showReviews={false}
-                                />
-                              </div>
-                              {review.comment && (
-                                <p className="text-gray-700 leading-relaxed mt-3">
-                                  {review.comment}
+                    {/* Scrollable Reviews List */}
+                    {collaboration.creator.rating.reviews && collaboration.creator.rating.reviews.length > 0 && (
+                      <div className="max-h-60 overflow-y-auto divide-y divide-gray-100">
+                        {collaboration.creator.rating.reviews.map((review) => (
+                          <div key={review.id} className="p-4 hover:bg-gray-50 transition-colors">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h6 className="font-semibold text-gray-900 text-sm">{review.hotelName}</h6>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(review.createdAt).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                  })}
                                 </p>
-                              )}
+                              </div>
+                              <StarRating
+                                rating={review.rating}
+                                size="sm"
+                                showNumber={false}
+                                showReviews={false}
+                              />
                             </div>
-                          ))}
-                        </div>
+                            {review.comment && (
+                              <p className="text-sm text-gray-600 line-clamp-2">{review.comment}</p>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ) : null}
+                    )}
                   </>
                 ) : (
-                  <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-                    <StarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 font-medium">No reviews yet</p>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Reviews from hotels will appear here after collaborations
-                    </p>
+                  <div className="text-center py-8">
+                    <StarIcon className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">No reviews yet</p>
                   </div>
                 )}
               </div>

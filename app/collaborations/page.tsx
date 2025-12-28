@@ -138,8 +138,19 @@ function CollaborationsPageContent() {
     }
   }
 
-  const handleViewDetails = (collaboration: Collaboration & { hotel?: Hotel; creator?: Creator }) => {
+  const handleViewDetails = async (collaboration: Collaboration & { hotel?: Hotel; creator?: Creator }) => {
     setDetailCollaboration(collaboration)
+
+    // For hotel users, fetch the full details (platforms, deliverables, etc.)
+    if (userType === 'hotel') {
+      try {
+        const detailResponse = await collaborationService.getHotelCollaborationDetails(collaboration.id)
+        const detailedCollaboration = transformCollaborationResponse(detailResponse)
+        setDetailCollaboration(detailedCollaboration)
+      } catch (error) {
+        console.error('Error fetching collaboration details:', error)
+      }
+    }
   }
 
   const handleAcceptFromModal = (id: string) => {

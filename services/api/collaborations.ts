@@ -57,7 +57,18 @@ export interface CollaborationResponse {
   creator_id: string
   creator_name: string
   creator_profile_picture: string | null
+
   creator_portfolio_link?: string | null
+  portfolio_link?: string | null
+  platforms?: Array<{
+    name: "Instagram" | "TikTok" | "YouTube" | "Facebook"
+    handle: string
+    followers: number
+    engagement_rate: number
+    top_countries?: Array<{ country: string; percentage: number }> | null
+    top_age_groups?: Array<{ ageRange: string; percentage: number }> | null
+    gender_split?: { male: number; female: number; other?: number } | null
+  }>
   hotel_id: string
   hotel_name: string
   hotel_picture?: string | null
@@ -76,8 +87,20 @@ export interface CollaborationResponse {
   preferred_date_from: string | null
   preferred_date_to: string | null
   preferred_months: string[] | null
+
   why_great_fit: string | null
-  platform_deliverables: PlatformDeliverablesItem[]
+  platform_deliverables?: PlatformDeliverablesItem[]
+  reputation?: {
+    average_rating: number
+    total_reviews: number
+    reviews: Array<{
+      id: string
+      hotel_name: string
+      rating: number
+      comment?: string
+      created_at: string
+    }>
+  }
   consent: boolean | null
   created_at: string
   updated_at: string
@@ -126,6 +149,14 @@ export const collaborationService = {
     // Log the raw backend response
     console.log('GET /hotels/me/collaborations - Raw backend response:', JSON.stringify(response, null, 2))
 
+    return response
+  },
+
+  /**
+   * Get hotel collaboration details by ID
+   */
+  getHotelCollaborationDetails: async (id: string): Promise<CollaborationResponse> => {
+    const response = await apiClient.get<CollaborationResponse>(`/hotels/me/collaborations/${id}`)
     return response
   },
 
@@ -225,14 +256,35 @@ export function transformCollaborationResponse(
       email: '',
       name: response.creator_name,
       location: '',
-      platforms: [],
+      platforms: response.platforms?.map(p => ({
+        name: p.name,
+        handle: p.handle,
+        followers: p.followers,
+        engagementRate: p.engagement_rate,
+        topCountries: p.top_countries || undefined,
+        topAgeGroups: p.top_age_groups || undefined,
+        genderSplit: p.gender_split || undefined,
+      })) || [],
       audienceSize: response.total_followers ?? 0,
       avgEngagementRate: response.avg_engagement_rate ?? undefined,
-      rating: {
-        averageRating: 0,
-        totalReviews: 0,
-      },
-      portfolioLink: response.creator_portfolio_link || undefined,
+      rating: response.reputation
+        ? {
+          averageRating: response.reputation.average_rating,
+          totalReviews: response.reputation.total_reviews,
+          reviews: response.reputation.reviews.map(r => ({
+            id: r.id,
+            hotelId: '', // Not provided in simplified response, likely not needed for display
+            hotelName: r.hotel_name,
+            rating: r.rating,
+            comment: r.comment,
+            createdAt: new Date(r.created_at)
+          }))
+        }
+        : {
+          averageRating: 0,
+          totalReviews: 0,
+        },
+      portfolioLink: response.portfolio_link || response.creator_portfolio_link || undefined,
       shortDescription: undefined,
       phone: null,
       profilePicture: response.creator_profile_picture || undefined,
