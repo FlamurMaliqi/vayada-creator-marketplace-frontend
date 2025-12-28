@@ -70,28 +70,28 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 import type { HotelListing, Hotel, Creator, Platform } from '@/lib/types'
 
-// Backend API response types for marketplace
+// Backend API response types for marketplace (snake_case from backend)
 interface CreatorMarketplaceResponse {
   id: string
   name: string
   location: string
-  shortDescription: string
-  portfolioLink: string | null
-  profilePicture: string | null
+  short_description: string
+  portfolio_link: string | null
+  profile_picture: string | null
   platforms: Array<{
     id: string
     name: "Instagram" | "TikTok" | "YouTube" | "Facebook"
     handle: string
     followers: number
-    engagementRate: number
-    topCountries: Array<{ country: string; percentage: number }> | null
-    topAgeGroups: Array<{ ageRange: string; percentage: number }> | null
-    genderSplit: { male: number; female: number } | null
+    engagement_rate: number
+    top_countries: Array<{ country: string; percentage: number }> | null
+    top_age_groups: Array<{ ageRange: string; percentage: number }> | null
+    gender_split: { male: number; female: number; other?: number } | null
   }>
-  audienceSize: number
-  averageRating: number
-  totalReviews: number
-  createdAt: string
+  audience_size: number
+  average_rating: number
+  total_reviews: number
+  created_at: string
 }
 
 interface ListingMarketplaceResponse {
@@ -136,15 +136,15 @@ interface ListingMarketplaceResponse {
  * Transform CreatorMarketplaceResponse from API to Creator type for frontend
  */
 export function transformCreatorMarketplaceResponse(apiCreator: CreatorMarketplaceResponse): Creator {
-  // Transform platforms - remove id field and map to Platform type
+  // Transform platforms - remove id field and map from snake_case to camelCase
   const platforms: Platform[] = apiCreator.platforms.map((platform) => ({
     name: platform.name,
     handle: platform.handle,
     followers: platform.followers,
-    engagementRate: platform.engagementRate,
-    topCountries: platform.topCountries || undefined,
-    topAgeGroups: platform.topAgeGroups || undefined,
-    genderSplit: platform.genderSplit || undefined,
+    engagementRate: typeof platform.engagement_rate === 'number' ? platform.engagement_rate : 0,
+    topCountries: platform.top_countries || undefined,
+    topAgeGroups: platform.top_age_groups || undefined,
+    genderSplit: platform.gender_split || undefined,
   }))
 
   return {
@@ -152,19 +152,19 @@ export function transformCreatorMarketplaceResponse(apiCreator: CreatorMarketpla
     email: '', // Not provided by marketplace endpoint
     name: apiCreator.name,
     platforms,
-    audienceSize: apiCreator.audienceSize,
+    audienceSize: apiCreator.audience_size,
     location: apiCreator.location,
-    portfolioLink: apiCreator.portfolioLink || undefined,
-    shortDescription: apiCreator.shortDescription || undefined,
+    portfolioLink: apiCreator.portfolio_link || undefined,
+    shortDescription: apiCreator.short_description || undefined,
     phone: null,
-    profilePicture: apiCreator.profilePicture || undefined,
+    profilePicture: apiCreator.profile_picture || undefined,
     rating: {
-      averageRating: apiCreator.averageRating,
-      totalReviews: apiCreator.totalReviews,
+      averageRating: apiCreator.average_rating,
+      totalReviews: apiCreator.total_reviews,
     },
     status: 'verified' as const, // Marketplace only returns active/verified creators
-    createdAt: new Date(apiCreator.createdAt),
-    updatedAt: new Date(apiCreator.createdAt), // Use createdAt as fallback
+    createdAt: new Date(apiCreator.created_at),
+    updatedAt: new Date(apiCreator.created_at), // Use created_at as fallback
   }
 }
 

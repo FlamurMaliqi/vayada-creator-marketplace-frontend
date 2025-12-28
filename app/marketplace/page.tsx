@@ -27,6 +27,10 @@ export default function MarketplacePage() {
     offering?: string | string[]
     availability?: string | string[]
     budget?: number
+    minFollowers?: number
+    minEngagementRate?: number
+    creatorPlatforms?: string | string[]
+    topCountries?: string | string[]
   }>({})
   // Get userType from localStorage on mount
   useEffect(() => {
@@ -153,8 +157,53 @@ export default function MarketplacePage() {
       if (!matchesSearch) return false
     }
 
-    // Creator-specific filters can be added here when needed
-    // Currently, only hotel filters are implemented
+    // Minimum Followers filter
+    if (filters.minFollowers) {
+      if (creator.audienceSize < filters.minFollowers) {
+        return false
+      }
+    }
+
+    // Minimum Engagement Rate filter
+    if (filters.minEngagementRate) {
+      const avgEngagementRate = creator.platforms.length > 0
+        ? creator.platforms.reduce((sum, platform) => sum + (platform.engagementRate || 0), 0) / creator.platforms.length
+        : 0
+      if (avgEngagementRate < filters.minEngagementRate) {
+        return false
+      }
+    }
+
+    // Platforms filter (multiselect)
+    if (filters.creatorPlatforms) {
+      const selectedPlatforms = Array.isArray(filters.creatorPlatforms)
+        ? filters.creatorPlatforms
+        : [filters.creatorPlatforms]
+      
+      const creatorPlatformNames = creator.platforms.map(p => p.name)
+      const hasMatchingPlatform = selectedPlatforms.some(platform =>
+        creatorPlatformNames.includes(platform)
+      )
+      
+      if (!hasMatchingPlatform) return false
+    }
+
+    // Top Countries filter (multiselect)
+    if (filters.topCountries) {
+      const selectedCountries = Array.isArray(filters.topCountries)
+        ? filters.topCountries
+        : [filters.topCountries]
+      
+      // Check if any platform has any of the selected countries in topCountries
+      const hasMatchingCountry = creator.platforms.some(platform => {
+        if (!platform.topCountries || platform.topCountries.length === 0) return false
+        return platform.topCountries.some(countryData =>
+          selectedCountries.includes(countryData.country)
+        )
+      })
+      
+      if (!hasMatchingCountry) return false
+    }
 
     return true
   })

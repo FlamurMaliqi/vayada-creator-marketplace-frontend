@@ -66,7 +66,7 @@ function CollaborationsPageContent() {
   // Load collaborations whenever dependencies change
   useEffect(() => {
     if (currentUserId) {
-      loadCollaborations()
+    loadCollaborations()
     }
   }, [statusFilter, userType, currentUserId])
 
@@ -118,10 +118,10 @@ function CollaborationsPageContent() {
       setCollaborations(collaborationsWithDetails)
     } catch (error) {
       console.error('Error loading collaborations:', error)
-      setCollaborations([])
+    setCollaborations([])
     } finally {
-      setLoading(false)
-    }
+    setLoading(false)
+  }
   }
 
   const handleStatusUpdate = async (id: string, newStatus: CollaborationStatus) => {
@@ -135,7 +135,7 @@ function CollaborationsPageContent() {
       const apiError = error as ApiErrorResponse
       alert(apiError.message || 'Failed to update collaboration status')
     } finally {
-      setUpdatingId(null)
+    setUpdatingId(null)
     }
   }
 

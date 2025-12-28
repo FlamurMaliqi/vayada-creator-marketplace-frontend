@@ -111,7 +111,7 @@ export function CollaborationRequestDetailModal({
 
   const getAvgEngagement = () => {
     if (currentUserType === 'hotel' && collaboration.creator?.platforms) {
-      const total = collaboration.creator.platforms.reduce((sum, p) => sum + p.engagementRate, 0)
+      const total = collaboration.creator.platforms.reduce((sum, p) => sum + (typeof p.engagementRate === 'number' ? p.engagementRate : 0), 0)
       return (total / collaboration.creator.platforms.length).toFixed(1)
     }
     return '0.0'
@@ -304,7 +304,7 @@ export function CollaborationRequestDetailModal({
                                 {formatNumber(platform.followers)} followers
                               </span>
                               <span className="text-sm text-gray-600">
-                                {platform.engagementRate.toFixed(1)}% engagement
+                                {(typeof platform.engagementRate === 'number' ? platform.engagementRate : 0).toFixed(1)}% engagement
                               </span>
                             </div>
                           </div>
@@ -330,7 +330,7 @@ export function CollaborationRequestDetailModal({
                             <div>
                               <p className="text-sm text-gray-600 mb-1">Engagement Rate</p>
                               <p className="text-2xl font-bold text-gray-900">
-                                {platform.engagementRate.toFixed(1)}%
+                                {(typeof platform.engagementRate === 'number' ? platform.engagementRate : 0).toFixed(1)}%
                               </p>
                             </div>
                           </div>

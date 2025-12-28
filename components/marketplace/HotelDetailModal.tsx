@@ -13,6 +13,8 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/24/outline'
 import { CollaborationApplicationModal, type CollaborationApplicationData } from './CollaborationApplicationModal'
+import { collaborationService, type CreateCreatorCollaborationRequest } from '@/services/api/collaborations'
+import { getCurrentUserInfo } from '@/lib/utils/accessControl'
 
 interface HotelDetailModalProps {
   hotel: Hotel | null
@@ -95,12 +97,43 @@ export function HotelDetailModal({ hotel, isOpen, onClose }: HotelDetailModalPro
     setShowApplicationModal(true)
   }
 
-  const handleApplicationSubmit = (data: CollaborationApplicationData) => {
-    // TODO: Implement actual submission logic
-    console.log('Application submitted:', data)
-    // Close both modals
-    setShowApplicationModal(false)
-    onClose()
+  const handleApplicationSubmit = async (data: CollaborationApplicationData) => {
+    try {
+      const userInfo = getCurrentUserInfo()
+      if (!userInfo.userId) {
+        alert('Please log in to apply for collaborations')
+        return
+      }
+
+      // Transform frontend data to API format
+      const request: CreateCreatorCollaborationRequest = {
+        initiator_type: 'creator',
+        listing_id: hotel.id,
+        creator_id: userInfo.userId,
+        why_great_fit: data.whyGreatFit,
+        consent: data.consent,
+        travel_date_from: data.travelDateFrom || undefined,
+        travel_date_to: data.travelDateTo || undefined,
+        preferred_months: data.preferredMonths.length > 0 ? data.preferredMonths : undefined,
+        platform_deliverables: data.platformDeliverables.map(pd => ({
+          platform: pd.platform as 'Instagram' | 'TikTok' | 'YouTube',
+          deliverables: pd.deliverables.map(d => ({
+            type: d.type,
+            quantity: d.quantity,
+          })),
+        })),
+      }
+
+      await collaborationService.create(request)
+      // Close both modals
+      setShowApplicationModal(false)
+      onClose()
+      // Optionally show success message
+      alert('Application submitted successfully!')
+    } catch (error) {
+      console.error('Failed to submit application:', error)
+      alert(error instanceof Error ? error.message : 'Failed to submit application. Please try again.')
+    }
   }
 
   const images = hotel.images && hotel.images.length > 0 ? hotel.images : []

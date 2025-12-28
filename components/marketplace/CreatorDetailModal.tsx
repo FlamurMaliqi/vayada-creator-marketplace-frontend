@@ -9,6 +9,8 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { HotelInvitationModal, type HotelInvitationData } from './HotelInvitationModal'
+import { collaborationService, type CreateHotelCollaborationRequest } from '@/services/api/collaborations'
+import { getCurrentUserInfo } from '@/lib/utils/accessControl'
 
 interface CreatorDetailModalProps {
   creator: Creator | null
@@ -135,15 +137,57 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
     setShowInvitationModal(true)
   }
 
-  const handleInvitationSubmit = (data: HotelInvitationData) => {
-    // TODO: Implement actual invitation submission logic
-    console.log('Invitation submitted:', data)
-    setShowInvitationModal(false)
+  const handleInvitationSubmit = async (data: HotelInvitationData) => {
+    try {
+      const userInfo = getCurrentUserInfo()
+      if (!userInfo.userId) {
+        alert('Please log in to invite creators')
+        return
+      }
+
+      if (!creator) {
+        alert('Creator information is missing')
+        return
+      }
+
+      // Transform frontend data to API format
+      const request: CreateHotelCollaborationRequest = {
+        initiator_type: 'hotel',
+        listing_id: data.listingId,
+        creator_id: creator.id,
+        collaboration_type: data.collaborationType,
+        free_stay_min_nights: data.freeStayMinNights,
+        free_stay_max_nights: data.freeStayMaxNights,
+        paid_amount: data.paidAmount,
+        discount_percentage: data.discountPercentage,
+        preferred_date_from: data.preferredDateFrom || undefined,
+        preferred_date_to: data.preferredDateTo || undefined,
+        preferred_months: data.preferredMonths.length > 0 ? data.preferredMonths : undefined,
+        platform_deliverables: data.platformDeliverables.map(pd => ({
+          platform: pd.platform as 'Instagram' | 'TikTok' | 'YouTube' | 'Facebook',
+          deliverables: pd.deliverables.map(d => ({
+            type: d.type,
+            quantity: d.quantity,
+          })),
+        })),
+        message: data.message || undefined,
+      }
+
+      await collaborationService.create(request)
+      setShowInvitationModal(false)
+      // Optionally show success message
+      alert('Invitation sent successfully!')
+    } catch (error) {
+      console.error('Failed to send invitation:', error)
+      alert(error instanceof Error ? error.message : 'Failed to send invitation. Please try again.')
+    }
   }
 
   // Calculate total followers and average engagement
   const totalFollowers = creator.platforms.reduce((sum, platform) => sum + platform.followers, 0)
-  const avgEngagementRate = creator.platforms.reduce((sum, platform) => sum + platform.engagementRate, 0) / creator.platforms.length
+  const avgEngagementRate = creator.platforms.length > 0
+    ? creator.platforms.reduce((sum, platform) => sum + (typeof platform.engagementRate === 'number' ? platform.engagementRate : 0), 0) / creator.platforms.length
+    : 0
 
   // Get primary platform handle (first platform's handle)
   const primaryHandle = creator.platforms.length > 0 
@@ -173,14 +217,37 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
 
         {/* Modal Content */}
         <div className="p-6 space-y-6">
-          {/* Profile Header Section */}
+          {/* Profile Header Section - Profile Picture, Name, Platform Badges, Reviews */}
           <div className="flex items-start gap-6">
             {/* Profile Picture */}
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-3xl flex-shrink-0">
-              {creator.name.charAt(0)}
+            <div className="w-24 h-24 rounded-full flex-shrink-0 overflow-hidden">
+              {creator.profilePicture ? (
+                <img
+                  src={creator.profilePicture}
+                  alt={creator.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to gradient placeholder if image fails to load
+                    const target = e.target as HTMLImageElement
+                    target.style.display = 'none'
+                    const parent = target.parentElement
+                    if (parent && !parent.querySelector('.fallback-placeholder')) {
+                      const fallback = document.createElement('div')
+                      fallback.className = 'fallback-placeholder w-full h-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-3xl'
+                      fallback.textContent = creator.name.charAt(0)
+                      parent.appendChild(fallback)
+                    }
+                  }}
+                />
+              ) : null}
+              {(!creator.profilePicture || !creator.profilePicture.trim()) && (
+                <div className="w-full h-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-3xl">
+                  {creator.name.charAt(0)}
+                </div>
+              )}
             </div>
 
-            {/* Name and Info */}
+            {/* Name, Handle, Platform Badges, and Reviews */}
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-gray-900 mb-1">{creator.name}</h2>
               <p className="text-gray-600 mb-3">@{primaryHandle}</p>
@@ -200,7 +267,7 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
 
               {/* Rating */}
               {creator.rating && (
-                <div className="mb-4">
+                <div>
                   <StarRating
                     rating={creator.rating.averageRating}
                     totalReviews={creator.rating.totalReviews}
@@ -208,24 +275,30 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
                   />
                 </div>
               )}
+            </div>
+          </div>
 
-              {/* Key Metrics */}
-              <div className="flex items-center gap-6 mb-4">
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">{formatFollowers(totalFollowers)}</div>
-                  <div className="text-sm text-gray-600">Followers</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">{avgEngagementRate.toFixed(1)}%</div>
-                  <div className="text-sm text-gray-600">Engagement</div>
-                </div>
+          {/* Metrics Section - Followers, Engagement Rate, Location */}
+          <div className="border-t border-gray-200 pt-4">
+            <div className="flex items-center gap-6 mb-4">
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{formatFollowers(totalFollowers)}</div>
+                <div className="text-sm text-gray-600">Followers</div>
               </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {typeof avgEngagementRate === 'number' 
+                    ? avgEngagementRate.toFixed(1) 
+                    : '0.0'}%
+                </div>
+                <div className="text-sm text-gray-600">Engagement</div>
+              </div>
+            </div>
 
-              {/* Location */}
-              <div className="flex items-center gap-2 text-gray-600">
-                <MapPinIcon className="w-4 h-4" />
-                <span>{creator.location}</span>
-              </div>
+            {/* Location */}
+            <div className="flex items-center gap-2 text-gray-600">
+              <MapPinIcon className="w-4 h-4" />
+              <span>{creator.location}</span>
             </div>
           </div>
 
@@ -301,7 +374,11 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
                     </div>
                     <div>
                       <div className="text-sm text-gray-600 mb-1">Engagement</div>
-                      <div className="text-2xl font-bold text-gray-900">{platform.engagementRate.toFixed(1)}%</div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {typeof platform.engagementRate === 'number' 
+                          ? platform.engagementRate.toFixed(1) 
+                          : '0.0'}%
+                      </div>
                     </div>
                   </div>
 
