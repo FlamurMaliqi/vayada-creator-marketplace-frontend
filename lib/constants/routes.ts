@@ -14,6 +14,7 @@ export const ROUTES = {
   CREATOR_BENEFITS: '/creator-benefits',
   HOTEL_BENEFITS: '/hotel-benefits',
   CALENDAR: '/calendar',
+  CHAT: '/chat',
 
   // Auth routes
   LOGIN: '/login',

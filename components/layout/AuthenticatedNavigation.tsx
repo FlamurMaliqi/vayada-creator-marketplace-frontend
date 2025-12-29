@@ -83,6 +83,21 @@ const CalendarCustomIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
+const MessageCustomIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+  </svg>
+)
+
 export const useSidebar = () => useContext(SidebarContext)
 
 export default function AuthenticatedNavigation() {
@@ -127,6 +142,11 @@ export default function AuthenticatedNavigation() {
       href: ROUTES.CALENDAR,
       label: 'Calendar',
       icon: CalendarCustomIcon,
+    },
+    {
+      href: ROUTES.CHAT,
+      label: 'Messages',
+      icon: MessageCustomIcon,
     },
     {
       href: ROUTES.COLLABORATIONS,
