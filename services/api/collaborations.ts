@@ -57,6 +57,9 @@ export interface CollaborationResponse {
   creator_id: string
   creator_name: string
   creator_profile_picture: string | null
+  handle: string | null
+  creator_location: string | null
+  is_verified: boolean
 
   creator_portfolio_link?: string | null
   portfolio_link?: string | null
@@ -74,6 +77,8 @@ export interface CollaborationResponse {
   hotel_picture?: string | null
   total_followers?: number
   avg_engagement_rate?: number
+  active_platform?: string
+  primary_handle?: string
   listing_id: string
   listing_name: string
   listing_location: string

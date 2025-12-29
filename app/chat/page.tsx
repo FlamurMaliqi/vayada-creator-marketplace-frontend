@@ -1,8 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { collaborationService } from '@/services/api/collaborations'
 import { AuthenticatedNavigation } from '@/components/layout'
 import { useSidebar } from '@/components/layout/AuthenticatedNavigation'
+import SuggestChangesModal from './SuggestChangesModal'
 import {
     MagnifyingGlassIcon,
     CheckIcon,
@@ -20,8 +22,14 @@ import {
     UserIcon,
     CheckCircleIcon
 } from '@heroicons/react/24/outline'
-import SuggestChangesModal from './SuggestChangesModal'
 
+// Helper for formatting numbers (e.g. 125000 -> 125.0K)
+const formatNumber = (num: number | undefined) => {
+    if (!num) return '0'
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
+    return num.toString()
+}
 // Social Media Icons
 const InstagramIcon = ({ className = "w-3 h-3" }) => (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
@@ -40,43 +48,6 @@ const TikTokIcon = ({ className = "w-3 h-3" }) => (
         <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
     </svg>
 )
-
-// Mock Data
-const PENDING_REQUESTS = [
-    {
-        id: 1,
-        name: 'Sarah Johnson',
-        time: '2 days ago',
-        followers: '125.0K',
-        followersPlatform: 'instagram',
-        engagement: '4.2%',
-        engagementPlatform: 'youtube',
-        avatarColor: 'bg-pink-100 text-pink-600',
-        initials: 'SJ'
-    },
-    {
-        id: 2,
-        name: 'Mike Chen',
-        time: '1 week ago',
-        followers: '89.0K',
-        followersPlatform: 'instagram',
-        engagement: '5.1%',
-        engagementPlatform: 'tiktok',
-        avatarColor: 'bg-blue-100 text-blue-600',
-        initials: 'MC'
-    },
-    {
-        id: 3,
-        name: 'Emma Rodriguez',
-        time: '3 days ago',
-        followers: '45.2K',
-        followersPlatform: 'instagram',
-        engagement: '6.8%',
-        engagementPlatform: 'instagram',
-        avatarColor: 'bg-purple-100 text-purple-600',
-        initials: 'ER'
-    }
-]
 
 const ACTIVE_CHATS = [
     {
@@ -161,6 +132,40 @@ function ChatPageContent() {
     const [messageInput, setMessageInput] = useState('')
     const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false)
 
+    // State for pending applications
+    const [pendingRequests, setPendingRequests] = useState<any[]>([])
+
+    useEffect(() => {
+        const fetchPendingRequests = async () => {
+            try {
+                // Fetch pending collaborations initiated by creators
+                const data = await collaborationService.getHotelCollaborations({
+                    status: 'pending'
+                })
+
+                // Map API response to UI format
+                const formattedRequests = data.map(collab => ({
+                    id: collab.id,
+                    name: collab.creator_name,
+                    // Calculate relative time (simple approximation)
+                    time: new Date(collab.created_at).toLocaleDateString(),
+                    followers: formatNumber(collab.total_followers),
+                    followersPlatform: (collab.active_platform || 'instagram').toLowerCase(),
+                    engagement: (collab.avg_engagement_rate || 0).toFixed(1) + '%',
+                    engagementPlatform: (collab.active_platform || 'instagram').toLowerCase(), // Fallback to active platform
+                    avatarColor: 'bg-blue-100 text-blue-600', // Default color
+                    initials: collab.creator_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+                }))
+
+                setPendingRequests(formattedRequests)
+            } catch (error) {
+                console.error('Failed to fetch pending requests:', error)
+            }
+        }
+
+        fetchPendingRequests()
+    }, [])
+
     const activeChat = selectedChatId ? ACTIVE_CHATS.find(c => c.id === selectedChatId) : null
     const messages = selectedChatId ? MOCK_MESSAGES[selectedChatId] : []
     const details = selectedChatId ? COLLABORATION_DETAILS[1] : null // Mock details for all
@@ -209,10 +214,10 @@ function ChatPageContent() {
                                     <div className="w-2 h-2 rounded-full bg-blue-600"></div>
                                     <span className="text-xs font-bold text-blue-600 tracking-wide uppercase">New Applications</span>
                                 </div>
-                                <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{PENDING_REQUESTS.length} pending</span>
+                                <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{pendingRequests.length} pending</span>
                             </div>
                             <div className="divide-y divide-gray-200">
-                                {PENDING_REQUESTS.map((request) => (
+                                {pendingRequests.map((request) => (
                                     <div key={request.id} className="p-3 hover:bg-gray-50 transition-colors cursor-pointer group">
                                         <div className="flex items-center gap-3">
                                             <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold ${request.avatarColor}`}>{request.initials}</div>
