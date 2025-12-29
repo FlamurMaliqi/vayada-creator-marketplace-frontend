@@ -125,7 +125,7 @@ export default function AuthenticatedNavigation() {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sidebar Logo */}
-        <div className={`h-16 flex items-center border-b border-gray-100 ${isCollapsed ? 'justify-center' : 'px-6'}`}>
+        <div className="h-16 flex items-center justify-center border-b border-gray-100">
           <Link
             href={ROUTES.MARKETPLACE}
             className="flex items-center justify-center transition-opacity hover:opacity-80"
@@ -133,7 +133,7 @@ export default function AuthenticatedNavigation() {
             <Image
               src="/vayada-logo-navbar.png"
               alt="vayada"
-              width={isCollapsed ? 64 : 110}
+              width={isCollapsed ? 32 : 110}
               height={32}
               className={`object-contain transition-all duration-300 ${isCollapsed ? 'w-8 h-8' : 'h-8 w-auto'}`}
               priority
@@ -193,19 +193,12 @@ export default function AuthenticatedNavigation() {
             </button>
           )}
 
-          {/* Logo - Centered - Hidden on desktop since it's in sidebar */}
+          {/* Logo - Centered - Visible on all screens */}
           <Link
             href={ROUTES.MARKETPLACE}
-            className="md:hidden absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center transition-opacity hover:opacity-80"
+            className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors"
           >
-            <Image
-              src="/vayada-logo.png"
-              alt="vayada"
-              width={100}
-              height={28}
-              className="h-7 w-auto object-contain"
-              priority
-            />
+            vayada
           </Link>
         </div>
       </header>
