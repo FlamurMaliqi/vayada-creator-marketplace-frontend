@@ -55,20 +55,6 @@ export function YearlyCalendar({ collaborations = [] }: YearlyCalendarProps) {
         }
     }
 
-    // Monthly View Helper: Mock Data for Visuals
-    const getMockEvents = (d: number) => {
-        // Specific hardcoded events to match the provided image
-        if (view === 'month' && month === 0 && year === 2026) {
-            // Emma: 15-18
-            if (d >= 15 && d <= 18) return { name: 'Emma', color: 'bg-purple-500', isStart: d === 15, isEnd: d === 18 }
-            // Marcus: 22-25
-            if (d >= 22 && d <= 25) return { name: 'Marcus', color: 'bg-orange-400', isStart: d === 22, isEnd: d === 25 }
-            // Marcus: 26-28
-            if (d >= 26 && d <= 28) return { name: 'Marcus', color: 'bg-orange-400', isStart: d === 26, isEnd: d === 28 }
-        }
-        return null
-    }
-
     const renderMonthlyGrid = () => {
         const daysInCurrentMonth = getDaysInMonth(month, year)
         const firstDayOfWeek = new Date(year, month, 1).getDay() // 0 = Sun
@@ -83,15 +69,9 @@ export function YearlyCalendar({ collaborations = [] }: YearlyCalendarProps) {
 
         // Days for current month
         for (let d = 1; d <= daysInCurrentMonth; d++) {
-            const event = getMockEvents(d)
             slots.push(
                 <div key={d} className="min-h-[120px] bg-white border border-gray-100 p-2 relative rounded-lg hover:border-gray-200 transition-colors">
                     <span className="text-sm font-medium text-gray-700 block mb-2">{d}</span>
-                    {event && (
-                        <div className={`text-xs text-white px-2 py-1 rounded w-full mb-1 ${event.color} shadow-sm`}>
-                            {event.name}
-                        </div>
-                    )}
                 </div>
             )
         }
