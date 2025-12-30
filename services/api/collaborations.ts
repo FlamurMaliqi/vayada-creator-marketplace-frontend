@@ -125,6 +125,18 @@ export interface ConversationResponse {
   my_role: 'creator' | 'hotel'
 }
 
+export interface MessageResponse {
+  id: string
+  collaboration_id: string
+  sender_id: string | null
+  sender_name: string | null
+  sender_avatar: string | null
+  content: string
+  content_type: 'text' | 'image' | 'system'
+  metadata: any | null
+  created_at: string
+}
+
 export const collaborationService = {
   /**
    * Get creator collaborations
@@ -230,6 +242,26 @@ export const collaborationService = {
    */
   getConversations: async (): Promise<ConversationResponse[]> => {
     return apiClient.get<ConversationResponse[]>('/collaborations/conversations')
+  },
+
+  /**
+   * Get messages for a collaboration
+   */
+  getMessages: async (collaborationId: string, before?: string): Promise<MessageResponse[]> => {
+    const queryParams = new URLSearchParams()
+    if (before) queryParams.append('before', before)
+    const query = queryParams.toString()
+    return apiClient.get<MessageResponse[]>(`/collaborations/${collaborationId}/messages${query ? `?${query}` : ''}`)
+  },
+
+  /**
+   * Send a message to a collaboration
+   */
+  sendMessage: async (collaborationId: string, content: string, contentType: 'text' | 'image' = 'text'): Promise<MessageResponse> => {
+    return apiClient.post<MessageResponse>(`/collaborations/${collaborationId}/messages`, {
+      content,
+      message_type: contentType
+    })
   },
 }
 

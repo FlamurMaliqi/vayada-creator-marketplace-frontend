@@ -52,47 +52,7 @@ const TikTokIcon = ({ className = "w-3 h-3" }) => (
     </svg>
 )
 
-const ACTIVE_CHATS = [
-    {
-        id: 1,
-        name: 'Sarah Mitchell',
-        handle: '@sarahtravels',
-        status: 'Staying',
-        statusColor: 'bg-blue-100 text-blue-700',
-        time: '2 minutes',
-        message: 'That sounds great! I\'ll have the content rea...',
-        unread: 2,
-        avatarColor: 'bg-red-100 text-red-600',
-        initials: 'SM'
-    },
-    {
-        id: 2,
-        name: 'Marcus Chen',
-        handle: '@marcusexplores',
-        status: 'Negotiating',
-        statusColor: 'bg-gray-100 text-gray-700',
-        time: 'about 1 hour',
-        message: 'Can we discuss the deliverables for the col...',
-        unread: 0,
-        avatarColor: 'bg-green-100 text-green-600',
-        initials: 'MC'
-    }
-]
-
-// Mock Messages for Chat Interface
-const MOCK_MESSAGES: Record<number, { id: number, sender: 'me' | 'them', content: string, time: string, date?: string }[]> = {
-    1: [
-        { id: 1, sender: 'them', content: "Hi! I'm excited about the collaboration opportunity at your property.", time: '03:21', date: 'December 29, 2025' },
-        { id: 2, sender: 'me', content: "Welcome Sarah! We'd love to have you. Let's discuss the details of your stay and content expectations.", time: '03:27' },
-        { id: 3, sender: 'them', content: "Perfect! I was thinking 3 Instagram Reels and 10 high-quality photos showcasing the amenities and views.", time: '03:34' },
-        { id: 4, sender: 'me', content: "That sounds great! I'll have the content ready by Friday.", time: '04:21' }
-    ],
-    2: [
-        { id: 1, sender: 'them', content: "Can we discuss the deliverables for the collaboration?", time: '09:00', date: 'Yesterday' },
-        { id: 2, sender: 'me', content: "Of course! What did you have in mind?", time: '09:15' }
-    ]
-}
-
+// Mock details for all
 const COLLABORATION_DETAILS = {
     1: {
         creator: {
@@ -141,6 +101,23 @@ function ChatPageContent() {
     const [conversations, setConversations] = useState<any[]>([])
     const [isLoadingConversations, setIsLoadingConversations] = useState(true)
 
+    // State for messages
+    const [realMessages, setRealMessages] = useState<any[]>([])
+    const [isLoadingMessages, setIsLoadingMessages] = useState(false)
+    const [isLoadingMore, setIsLoadingMore] = useState(false)
+    const [hasMoreMessages, setHasMoreMessages] = useState(true)
+    const messagesEndRef = React.useRef<HTMLDivElement>(null)
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+
+    useEffect(() => {
+        if (!isLoadingMessages && !isLoadingMore) {
+            scrollToBottom()
+        }
+    }, [realMessages, isLoadingMessages, isLoadingMore])
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -177,6 +154,59 @@ function ChatPageContent() {
         fetchData()
     }, [])
 
+    useEffect(() => {
+        if (!selectedChatId) {
+            setRealMessages([])
+            return
+        }
+
+        const fetchMessages = async () => {
+            setIsLoadingMessages(true)
+            setHasMoreMessages(true)
+            try {
+                const data = await collaborationService.getMessages(selectedChatId)
+                // Reverse the array as UI usually wants oldest at the top
+                const reversed = [...data].reverse()
+                setRealMessages(reversed)
+                // If we got fewer than 50 messages, there are no more to load
+                if (data.length < 50) {
+                    setHasMoreMessages(false)
+                }
+            } catch (error) {
+                console.error('Failed to fetch messages:', error)
+            } finally {
+                setIsLoadingMessages(false)
+            }
+        }
+
+        fetchMessages()
+    }, [selectedChatId])
+
+    const handleLoadMore = async () => {
+        if (isLoadingMore || !hasMoreMessages || !selectedChatId || realMessages.length === 0) return
+
+        setIsLoadingMore(true)
+        try {
+            // The oldest message is at index 0 of our reversed array
+            const oldestMessage = realMessages[0]
+            const data = await collaborationService.getMessages(selectedChatId, oldestMessage.created_at)
+
+            if (data.length === 0) {
+                setHasMoreMessages(false)
+            } else {
+                const reversed = [...data].reverse()
+                setRealMessages(prev => [...reversed, ...prev])
+                if (data.length < 50) {
+                    setHasMoreMessages(false)
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load more messages:', error)
+        } finally {
+            setIsLoadingMore(false)
+        }
+    }
+
     const handleViewDetails = async (id: string) => {
         try {
             const detailResponse = await collaborationService.getHotelCollaborationDetails(id)
@@ -210,7 +240,6 @@ function ChatPageContent() {
     }
 
     const activeChat = selectedChatId ? conversations.find(c => c.collaboration_id === selectedChatId) : null
-    const messages = selectedChatId ? MOCK_MESSAGES[1] : [] // Still using mock messages for now, but pointing to a valid key if needed
     const details = selectedChatId ? COLLABORATION_DETAILS[1] : null // Mock details for all
 
     // Format relative time for messages
@@ -252,11 +281,40 @@ function ChatPageContent() {
         )
     }
 
-    const handleSendMessage = (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!messageInput.trim()) return
-        // In a real app, you would add the message to the state here
+        if (!messageInput.trim() || !selectedChatId) return
+
+        const content = messageInput.trim()
         setMessageInput('')
+
+        try {
+            // Optimistically add the message to the UI
+            // Note: Since we don't have the ID yet, we'll use a temporary one
+            const tempMessage = {
+                id: `temp-${Date.now()}`,
+                collaboration_id: selectedChatId,
+                sender_id: 'me', // Will be resolved by the logic in rendering
+                sender_name: 'Me',
+                sender_avatar: null,
+                content: content,
+                content_type: 'text',
+                metadata: null,
+                created_at: new Date().toISOString()
+            }
+
+            setRealMessages(prev => [...prev, tempMessage])
+
+            await collaborationService.sendMessage(selectedChatId, content)
+
+            // Optionally, we could re-fetch or replace the temp message with the real one, 
+            // but for now, this provides a snappy UI.
+        } catch (error) {
+            console.error('Failed to send message:', error)
+            // Rollback on error?
+            setRealMessages(prev => prev.filter(m => !m.id.toString().startsWith('temp-')))
+            setMessageInput(content) // Restore input
+        }
     }
 
     return (
@@ -445,31 +503,94 @@ function ChatPageContent() {
                             </div>
 
                             {/* Messages */}
-                            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/30">
-                                {messages.map((msg, idx) => (
-                                    <React.Fragment key={msg.id}>
-                                        {msg.date && <div className="flex justify-center my-6"><span className="bg-gray-100/80 text-gray-500 text-[10px] px-3 py-1 rounded-full font-medium">{msg.date}</span></div>}
-                                        <div className={`flex w-full ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                                            <div className="max-w-[70%]">
-                                                <div className="flex items-end gap-2">
-                                                    {msg.sender === 'them' && (
-                                                        activeChat.partner_avatar ? (
-                                                            <img src={activeChat.partner_avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                                                        ) : (
-                                                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex-shrink-0 flex items-center justify-center text-xs font-bold">
-                                                                {getInitials(activeChat.partner_name)}
-                                                            </div>
-                                                        )
-                                                    )}
-                                                    <div>
-                                                        <div className={`p-4 rounded-2xl text-sm leading-relaxed ${msg.sender === 'me' ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-gray-100 text-gray-700 rounded-bl-none shadow-sm'}`}>{msg.content}</div>
-                                                        <div className={`text-[10px] text-gray-400 mt-1 ${msg.sender === 'me' ? 'text-right' : 'text-left'}`}>{msg.time} {msg.sender === 'me' && '✓'}</div>
-                                                    </div>
-                                                </div>
+                            <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30">
+                                {isLoadingMessages ? (
+                                    <div className="flex items-center justify-center h-full">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {hasMoreMessages && (
+                                            <div className="flex justify-center pb-4">
+                                                <button
+                                                    onClick={handleLoadMore}
+                                                    disabled={isLoadingMore}
+                                                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 transition-all disabled:opacity-50"
+                                                >
+                                                    {isLoadingMore ? 'Loading older messages...' : 'Load older messages'}
+                                                </button>
                                             </div>
-                                        </div>
-                                    </React.Fragment>
-                                ))}
+                                        )}
+
+                                        {realMessages.length > 0 ? (
+                                            realMessages.map((msg, idx) => {
+                                                const isSystem = msg.sender_id === null || msg.content_type === 'system'
+                                                const isThem = !isSystem && msg.sender_name === activeChat.partner_name
+                                                const isMe = !isSystem && !isThem
+
+                                                // Simple date grouping
+                                                const showDate = idx === 0 || new Date(realMessages[idx - 1].created_at).toDateString() !== new Date(msg.created_at).toDateString()
+                                                const dateStr = new Date(msg.created_at).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })
+                                                const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+                                                if (isSystem) {
+                                                    return (
+                                                        <div key={msg.id} className="flex justify-center my-6">
+                                                            <span className="bg-gray-100/80 text-gray-500 text-[10px] px-3 py-1 rounded-full font-medium border border-gray-200">
+                                                                {msg.content}
+                                                            </span>
+                                                        </div>
+                                                    )
+                                                }
+
+                                                return (
+                                                    <React.Fragment key={msg.id}>
+                                                        {showDate && (
+                                                            <div className="flex justify-center my-6">
+                                                                <span className="bg-gray-100/80 text-gray-500 text-[10px] px-3 py-1 rounded-full font-medium">
+                                                                    {dateStr}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        <div className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                                            <div className="max-w-[70%]">
+                                                                <div className="flex items-end gap-2">
+                                                                    {isThem && (
+                                                                        msg.sender_avatar ? (
+                                                                            <img src={msg.sender_avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                                                                        ) : (
+                                                                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex-shrink-0 flex items-center justify-center text-xs font-bold">
+                                                                                {getInitials(msg.sender_name || activeChat.partner_name)}
+                                                                            </div>
+                                                                        )
+                                                                    )}
+                                                                    <div>
+                                                                        <div className={`p-4 rounded-2xl text-sm leading-relaxed ${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-gray-100 text-gray-700 rounded-bl-none shadow-sm'}`}>
+                                                                            {msg.content_type === 'image' ? (
+                                                                                <img src={msg.content} alt="Attachment" className="max-w-full rounded-lg" />
+                                                                            ) : (
+                                                                                msg.content
+                                                                            )}
+                                                                        </div>
+                                                                        <div className={`text-[10px] text-gray-400 mt-1 ${isMe ? 'text-right' : 'text-left'}`}>
+                                                                            {timeStr} {isMe && '✓'}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </React.Fragment>
+                                                )
+                                            })
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center h-[400px] text-gray-400">
+                                                <ChatBubbleOvalLeftEllipsisIcon className="w-12 h-12 mb-2 opacity-20" />
+                                                <p className="text-sm">No messages yet. Send a message to start the conversation!</p>
+                                            </div>
+                                        )}
+                                        <div ref={messagesEndRef} />
+                                    </div>
+                                )}
                             </div>
 
                             {/* Fixed Footer: Message Input */}
