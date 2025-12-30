@@ -22,6 +22,9 @@ import {
     UserIcon,
     CheckCircleIcon
 } from '@heroicons/react/24/outline'
+import { transformCollaborationResponse } from '@/services/api/collaborations'
+import { CollaborationRequestDetailModal } from '@/components/marketplace/CollaborationRequestDetailModal'
+import type { Collaboration, Hotel, Creator } from '@/lib/types'
 
 // Helper for formatting numbers (e.g. 125000 -> 125.0K)
 const formatNumber = (num: number | undefined) => {
@@ -131,6 +134,7 @@ function ChatPageContent() {
     const [completedDeliverables, setCompletedDeliverables] = useState<number[]>([1]) // Mock initial state
     const [messageInput, setMessageInput] = useState('')
     const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false)
+    const [detailCollaboration, setDetailCollaboration] = useState<(Collaboration & { hotel?: Hotel; creator?: Creator }) | null>(null)
 
     // State for pending applications
     const [pendingRequests, setPendingRequests] = useState<any[]>([])
@@ -165,6 +169,38 @@ function ChatPageContent() {
 
         fetchPendingRequests()
     }, [])
+
+    const handleViewDetails = async (id: string) => {
+        try {
+            const detailResponse = await collaborationService.getHotelCollaborationDetails(id)
+            const detailedCollaboration = transformCollaborationResponse(detailResponse)
+            setDetailCollaboration(detailedCollaboration)
+        } catch (error) {
+            console.error('Error fetching collaboration details:', error)
+        }
+    }
+
+    const handleAccept = async (id: string) => {
+        try {
+            await collaborationService.updateStatus(id, 'accepted')
+            // Refresh list
+            setPendingRequests(prev => prev.filter(r => r.id !== id))
+            setDetailCollaboration(null)
+        } catch (error) {
+            console.error('Error accepting collaboration:', error)
+        }
+    }
+
+    const handleDecline = async (id: string) => {
+        try {
+            await collaborationService.updateStatus(id, 'declined')
+            // Refresh list
+            setPendingRequests(prev => prev.filter(r => r.id !== id))
+            setDetailCollaboration(null)
+        } catch (error) {
+            console.error('Error declining collaboration:', error)
+        }
+    }
 
     const activeChat = selectedChatId ? ACTIVE_CHATS.find(c => c.id === selectedChatId) : null
     const messages = selectedChatId ? MOCK_MESSAGES[selectedChatId] : []
@@ -218,7 +254,11 @@ function ChatPageContent() {
                             </div>
                             <div className="divide-y divide-gray-200">
                                 {pendingRequests.map((request) => (
-                                    <div key={request.id} className="p-3 hover:bg-gray-50 transition-colors cursor-pointer group">
+                                    <div
+                                        key={request.id}
+                                        className="p-3 hover:bg-gray-50 transition-colors cursor-pointer group"
+                                        onClick={() => handleViewDetails(request.id)}
+                                    >
                                         <div className="flex items-center gap-3">
                                             <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold ${request.avatarColor}`}>{request.initials}</div>
                                             <div className="flex-1 min-w-0">
@@ -235,8 +275,26 @@ function ChatPageContent() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <button className="w-8 h-8 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-sm" title="Accept"><CheckIcon className="w-5 h-5" /></button>
-                                                <button className="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 rounded-xl transition-colors shadow-sm" title="Decline"><XMarkIcon className="w-5 h-5" /></button>
+                                                <button
+                                                    className="w-8 h-8 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-sm"
+                                                    title="Accept"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        handleAccept(request.id)
+                                                    }}
+                                                >
+                                                    <CheckIcon className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    className="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 rounded-xl transition-colors shadow-sm"
+                                                    title="Decline"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        handleDecline(request.id)
+                                                    }}
+                                                >
+                                                    <XMarkIcon className="w-5 h-5" />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -504,6 +562,15 @@ function ChatPageContent() {
                     }}
                 />
             )}
+
+            <CollaborationRequestDetailModal
+                isOpen={!!detailCollaboration}
+                onClose={() => setDetailCollaboration(null)}
+                collaboration={detailCollaboration}
+                currentUserType="hotel"
+                onAccept={handleAccept}
+                onDecline={handleDecline}
+            />
         </main>
     )
 }
