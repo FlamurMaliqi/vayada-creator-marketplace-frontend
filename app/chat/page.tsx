@@ -557,74 +557,82 @@ function ChatPageContent() {
                             </div>
 
                             <div className="divide-y divide-gray-200">
-                                {pendingRequests
-                                    .filter(r => applicationsTab === 'received' ? r.isReceived : !r.isReceived)
-                                    .map((request) => (
-                                        <div
-                                            key={request.id}
-                                            className="p-3 hover:bg-gray-50 transition-colors cursor-pointer group"
-                                            onClick={() => handleViewDetails(request.id)}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                {request.avatarUrl ? (
-                                                    <img
-                                                        src={request.avatarUrl}
-                                                        alt={request.name}
-                                                        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                                                    />
-                                                ) : (
-                                                    <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold ${request.avatarColor}`}>
-                                                        {request.initials}
-                                                    </div>
-                                                )}
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-baseline gap-2 mb-0.5">
-                                                        <h4 className="text-sm font-semibold text-gray-900 leading-none">{request.name}</h4>
-                                                        <span className="text-[10px] text-gray-400">{request.time}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-xs text-gray-500 font-medium leading-none">
-                                                        <span>{request.followers}</span><span>•</span><span>{request.engagement}</span>
-                                                        <div className="flex items-center gap-1">
-                                                            <PlatformIcon platform={request.followersPlatform} className="w-3 h-3 text-gray-400" />
-                                                            <PlatformIcon platform={request.engagementPlatform} className="w-3 h-3 text-gray-400" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    {request.isReceived ? (
-                                                        <>
-                                                            <button
-                                                                className="w-8 h-8 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-sm"
-                                                                title="Accept"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation()
-                                                                    handleAccept(request.id)
-                                                                }}
-                                                            >
-                                                                <CheckIcon className="w-5 h-5" />
-                                                            </button>
-                                                            <button
-                                                                className="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 rounded-xl transition-colors shadow-sm"
-                                                                title="Decline"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation()
-                                                                    handleDecline(request.id)
-                                                                }}
-                                                            >
-                                                                <XMarkIcon className="w-5 h-5" />
-                                                            </button>
-                                                        </>
+                                {pendingRequests.filter(r => applicationsTab === 'received' ? r.isReceived : !r.isReceived).length > 0 ? (
+                                    pendingRequests
+                                        .filter(r => applicationsTab === 'received' ? r.isReceived : !r.isReceived)
+                                        .map((request) => (
+                                            <div
+                                                key={request.id}
+                                                className="p-3 hover:bg-gray-50 transition-colors cursor-pointer group"
+                                                onClick={() => handleViewDetails(request.id)}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    {request.avatarUrl ? (
+                                                        <img
+                                                            src={request.avatarUrl}
+                                                            alt={request.name}
+                                                            className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                                        />
                                                     ) : (
-                                                        <div className="flex flex-col items-end gap-1">
-                                                            <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-lg border border-gray-100 italic whitespace-nowrap">
-                                                                Waiting for {userType === 'hotel' ? 'Creator' : 'Hotel'} response
-                                                            </span>
+                                                        <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold ${request.avatarColor}`}>
+                                                            {request.initials}
                                                         </div>
                                                     )}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-baseline gap-2 mb-0.5">
+                                                            <h4 className="text-sm font-semibold text-gray-900 leading-none">{request.name}</h4>
+                                                            <span className="text-[10px] text-gray-400">{request.time}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium leading-none">
+                                                            <span>{request.followers}</span><span>•</span><span>{request.engagement}</span>
+                                                            <div className="flex items-center gap-1">
+                                                                <PlatformIcon platform={request.followersPlatform} className="w-3 h-3 text-gray-400" />
+                                                                <PlatformIcon platform={request.engagementPlatform} className="w-3 h-3 text-gray-400" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        {request.isReceived ? (
+                                                            <>
+                                                                <button
+                                                                    className="w-8 h-8 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-sm"
+                                                                    title="Accept"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
+                                                                        handleAccept(request.id)
+                                                                    }}
+                                                                >
+                                                                    <CheckIcon className="w-5 h-5" />
+                                                                </button>
+                                                                <button
+                                                                    className="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 rounded-xl transition-colors shadow-sm"
+                                                                    title="Decline"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
+                                                                        handleDecline(request.id)
+                                                                    }}
+                                                                >
+                                                                    <XMarkIcon className="w-5 h-5" />
+                                                                </button>
+                                                            </>
+                                                        ) : (
+                                                            <div className="flex flex-col items-end gap-1">
+                                                                <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-lg border border-gray-100 italic whitespace-nowrap">
+                                                                    Waiting for {userType === 'hotel' ? 'Creator' : 'Hotel'} response
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))
+                                ) : (
+                                    <div className="p-8 text-center bg-white">
+                                        <p className="text-xs font-medium text-gray-400 italic">
+                                            No {applicationsTab} applications found
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
