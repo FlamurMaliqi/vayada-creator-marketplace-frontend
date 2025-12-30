@@ -8,8 +8,11 @@ import type { Hotel, Creator } from '@/lib/types'
 
 // Platform deliverable types
 export interface PlatformDeliverable {
+  id: string
   type: string
   quantity: number
+  completed?: boolean
+  completed_at?: string | null
 }
 
 export interface PlatformDeliverablesItem {
@@ -108,10 +111,33 @@ export interface CollaborationResponse {
   }
   consent: boolean | null
   created_at: string
-  updated_at: string
-  responded_at: string | null
   cancelled_at: string | null
   completed_at: string | null
+}
+
+export type DetailedCollaboration = Collaboration & {
+  hotel?: Hotel
+  creator?: Creator
+  initiatorType?: 'creator' | 'hotel'
+  listingId?: string
+  listingName?: string
+  listingLocation?: string
+  collaborationType?: 'Free Stay' | 'Paid' | 'Discount' | null
+  freeStayMinNights?: number | null
+  freeStayMaxNights?: number | null
+  paidAmount?: number | null
+  discountPercentage?: number | null
+  travelDateFrom?: string | null
+  travelDateTo?: string | null
+  preferredDateFrom?: string | null
+  preferredDateTo?: string | null
+  preferredMonths?: string[] | null
+  whyGreatFit?: string | null
+  platformDeliverables?: PlatformDeliverablesItem[]
+  consent?: boolean | null
+  respondedAt?: string | null
+  cancelledAt?: string | null
+  completedAt?: string | null
 }
 
 export interface ConversationResponse {
@@ -263,14 +289,21 @@ export const collaborationService = {
       message_type: contentType
     })
   },
+
+  /**
+   * Toggle the completion status of a deliverable
+   */
+  toggleDeliverable: async (collaborationId: string, deliverableId: string): Promise<CollaborationResponse> => {
+    return apiClient.post<CollaborationResponse>(`/collaborations/${collaborationId}/deliverables/${deliverableId}/toggle`)
+  },
 }
 
 /**
- * Transform backend collaboration response to frontend Collaboration type
+ * Transforms a backend collaboration response into a Frontend-friendly Collaboration object with simplified structure
  */
 export function transformCollaborationResponse(
-  response: CollaborationResponse
-): Collaboration & { hotel?: Hotel; creator?: Creator } {
+  response: any
+): DetailedCollaboration {
   // Map status: backend uses 'declined', frontend uses 'rejected'
   const statusMap: Record<string, Collaboration['status']> = {
     pending: 'pending',
@@ -280,39 +313,28 @@ export function transformCollaborationResponse(
     cancelled: 'cancelled',
   }
 
-  // Create hotel object from response
-  const hotel: Hotel | undefined = response.hotel_id
+  const hotel: Hotel | undefined = response.hotel_name
     ? {
       id: response.hotel_id,
-      hotelProfileId: response.hotel_id, // Using hotel_id as fallback
-      status: 'verified', // Default status for hotels in collaborations
+      hotelProfileId: '', // Not provided in simplified response
       name: response.hotel_name,
-      location: response.listing_location,
-      description: '',
-      picture: response.hotel_picture || undefined,
-      images: [],
-      accommodationType: undefined,
-      collaborationType: undefined,
-      availability: undefined,
-      platforms: undefined,
-      minFollowers: undefined,
-      targetAudience: undefined,
-      targetAgeMin: undefined,
-      targetAgeMax: undefined,
+      location: response.listing_location || '',
+      description: '', // Not provided
+      images: [response.hotel_picture].filter(Boolean) as string[],
+      status: 'verified',
       createdAt: new Date(response.created_at),
       updatedAt: new Date(response.updated_at),
     }
     : undefined
 
-  // Create creator object from response
-  const creator: Creator | undefined = response.creator_id
+  const creator: Creator | undefined = response.creator_name
     ? {
       id: response.creator_id,
-      email: '',
+      email: '', // Not provided
       name: response.creator_name,
-      location: '',
-      platforms: response.platforms?.map(p => ({
-        name: p.name,
+      location: response.creator_location || '',
+      platforms: response.platforms?.map((p: any) => ({
+        name: p.platform || p.name || 'platform',
         handle: p.handle,
         followers: p.followers,
         engagementRate: p.engagement_rate,
@@ -326,7 +348,7 @@ export function transformCollaborationResponse(
         ? {
           averageRating: response.reputation.average_rating,
           totalReviews: response.reputation.total_reviews,
-          reviews: response.reputation.reviews.map(r => ({
+          reviews: response.reputation.reviews.map((r: any) => ({
             id: r.id,
             hotelId: '', // Not provided in simplified response, likely not needed for display
             hotelName: r.hotel_name,
@@ -379,29 +401,5 @@ export function transformCollaborationResponse(
     respondedAt: response.responded_at,
     cancelledAt: response.cancelled_at,
     completedAt: response.completed_at,
-  } as Collaboration & {
-    hotel?: Hotel
-    creator?: Creator
-    initiatorType?: 'creator' | 'hotel'
-    listingId?: string
-    listingName?: string
-    listingLocation?: string
-    collaborationType?: 'Free Stay' | 'Paid' | 'Discount' | null
-    freeStayMinNights?: number | null
-    freeStayMaxNights?: number | null
-    paidAmount?: number | null
-    discountPercentage?: number | null
-    travelDateFrom?: string | null
-    travelDateTo?: string | null
-    preferredDateFrom?: string | null
-    preferredDateTo?: string | null
-    preferredMonths?: string[] | null
-    whyGreatFit?: string | null
-    platformDeliverables?: PlatformDeliverablesItem[]
-    consent?: boolean | null
-    respondedAt?: string | null
-    cancelledAt?: string | null
-    completedAt?: string | null
-  }
+  } as DetailedCollaboration
 }
-

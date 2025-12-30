@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { collaborationService } from '@/services/api/collaborations'
+import { collaborationService, PlatformDeliverablesItem, PlatformDeliverable, transformCollaborationResponse, DetailedCollaboration } from '@/services/api/collaborations'
 import { AuthenticatedNavigation } from '@/components/layout'
 import { useSidebar } from '@/components/layout/AuthenticatedNavigation'
 import SuggestChangesModal from './SuggestChangesModal'
@@ -22,7 +22,6 @@ import {
     UserIcon,
     CheckCircleIcon
 } from '@heroicons/react/24/outline'
-import { transformCollaborationResponse } from '@/services/api/collaborations'
 import { CollaborationRequestDetailModal } from '@/components/marketplace/CollaborationRequestDetailModal'
 import type { Collaboration, Hotel, Creator } from '@/lib/types'
 
@@ -52,25 +51,14 @@ const TikTokIcon = ({ className = "w-3 h-3" }) => (
     </svg>
 )
 
-// Mock details for all
-const COLLABORATION_DETAILS = {
-    1: {
-        creator: {
-            followers: '125.0K',
-            engagement: '4.8%',
-            platforms: ['instagram', 'youtube']
-        },
-        stay: {
-            checkIn: 'Jan 15, 2025',
-            checkOut: 'Jan 22, 2025'
-        },
-        deliverables: [
-            { id: 1, type: 'Instagram Reels', count: 3 },
-            { id: 2, type: 'High-Quality Photos', count: 10 },
-            { id: 3, type: 'Story Mentions', count: 5 }
-        ]
-    }
+// Helper for initials
+const getInitials = (name: string) => {
+    if (!name) return ''
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
 }
+
+// Types
+
 
 // Components
 const PlatformIcon = ({ platform, className }: { platform?: string, className?: string }) => {
@@ -91,7 +79,6 @@ function ChatPageContent() {
     const { isCollapsed } = useSidebar()
     const [activeTab, setActiveTab] = useState<'Active' | 'Archived'>('Active')
     const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
-    const [completedDeliverables, setCompletedDeliverables] = useState<number[]>([1]) // Mock initial state
     const [messageInput, setMessageInput] = useState('')
     const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false)
     const [detailCollaboration, setDetailCollaboration] = useState<(Collaboration & { hotel?: Hotel; creator?: Creator }) | null>(null)
@@ -101,11 +88,12 @@ function ChatPageContent() {
     const [conversations, setConversations] = useState<any[]>([])
     const [isLoadingConversations, setIsLoadingConversations] = useState(true)
 
-    // State for messages
     const [realMessages, setRealMessages] = useState<any[]>([])
     const [isLoadingMessages, setIsLoadingMessages] = useState(false)
     const [isLoadingMore, setIsLoadingMore] = useState(false)
     const [hasMoreMessages, setHasMoreMessages] = useState(true)
+    const [activeCollaboration, setActiveCollaboration] = useState<DetailedCollaboration | null>(null)
+    const [isLoadingDetails, setIsLoadingDetails] = useState(false)
     const messagesEndRef = React.useRef<HTMLDivElement>(null)
 
     const scrollToBottom = () => {
@@ -164,18 +152,24 @@ function ChatPageContent() {
             setIsLoadingMessages(true)
             setHasMoreMessages(true)
             try {
-                const data = await collaborationService.getMessages(selectedChatId)
-                // Reverse the array as UI usually wants oldest at the top
-                const reversed = [...data].reverse()
+                // Fetch messages
+                const msgData = await collaborationService.getMessages(selectedChatId)
+                const reversed = [...msgData].reverse()
                 setRealMessages(reversed)
-                // If we got fewer than 50 messages, there are no more to load
-                if (data.length < 50) {
+                if (msgData.length < 50) {
                     setHasMoreMessages(false)
                 }
+
+                // Fetch collaboration details for the right panel
+                setIsLoadingDetails(true)
+                const detailResponse = await collaborationService.getHotelCollaborationDetails(selectedChatId)
+                const detailedCollaboration = transformCollaborationResponse(detailResponse)
+                setActiveCollaboration(detailedCollaboration)
             } catch (error) {
-                console.error('Failed to fetch messages:', error)
+                console.error('Failed to fetch chat details:', error)
             } finally {
                 setIsLoadingMessages(false)
+                setIsLoadingDetails(false)
             }
         }
 
@@ -240,7 +234,26 @@ function ChatPageContent() {
     }
 
     const activeChat = selectedChatId ? conversations.find(c => c.collaboration_id === selectedChatId) : null
-    const details = selectedChatId ? COLLABORATION_DETAILS[1] : null // Mock details for all
+
+    const flatDeliverables = activeCollaboration?.platformDeliverables?.flatMap((pd: PlatformDeliverablesItem) =>
+        pd.deliverables.map((d: PlatformDeliverable) => {
+            const platformName = pd.platform.toLowerCase()
+            const typeLower = d.type.toLowerCase()
+            const displayType = typeLower.includes(platformName) ? d.type : `${pd.platform} ${d.type}`
+
+            return {
+                id: d.id,
+                type: displayType,
+                count: d.quantity,
+                completed: d.completed
+            }
+        })
+    ) || []
+
+    const stayDetails = {
+        checkIn: activeCollaboration?.travelDateFrom || activeCollaboration?.preferredDateFrom || 'TBD',
+        checkOut: activeCollaboration?.travelDateTo || activeCollaboration?.preferredDateTo || 'TBD'
+    }
 
     // Format relative time for messages
     const formatTime = (dateStr: string | null) => {
@@ -266,19 +279,21 @@ function ChatPageContent() {
         return 'bg-gray-100 text-gray-600'
     }
 
-    const getInitials = (name: string) => {
-        return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
-    }
-
     // Calculate progress
-    const totalDeliverables = details?.deliverables.length || 0
-    const completedCount = completedDeliverables.length
+    const totalDeliverables = flatDeliverables.length
+    const completedCount = flatDeliverables.filter(d => d.completed).length
     const progressPercentage = totalDeliverables > 0 ? (completedCount / totalDeliverables) * 100 : 0
 
-    const toggleDeliverable = (id: number) => {
-        setCompletedDeliverables(prev =>
-            prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]
-        )
+    const toggleDeliverable = async (deliverableId: string) => {
+        if (!selectedChatId) return
+
+        try {
+            const updatedResponse = await collaborationService.toggleDeliverable(selectedChatId, deliverableId)
+            const detailedCollaboration = transformCollaborationResponse(updatedResponse)
+            setActiveCollaboration(detailedCollaboration)
+        } catch (error) {
+            console.error('Failed to toggle deliverable:', error)
+        }
     }
 
     const handleSendMessage = async (e: React.FormEvent) => {
@@ -473,7 +488,7 @@ function ChatPageContent() {
                 </div>
 
                 {/* MIDDLE & RIGHT COLUMNS */}
-                {selectedChatId && activeChat && details ? (
+                {selectedChatId && activeChat && activeCollaboration ? (
                     <>
                         {/* COLUMN 2: CHAT AREA (Flexible Width) */}
                         <div className="flex-1 flex flex-col h-full bg-white relative border-r border-gray-200">
@@ -642,15 +657,17 @@ function ChatPageContent() {
                                         <div className="grid grid-cols-2 gap-4 mb-3">
                                             <div>
                                                 <div className="text-[10px] text-gray-500 uppercase">Followers</div>
-                                                <div className="text-sm font-bold text-gray-900">{details.creator.followers}</div>
+                                                <div className="text-sm font-bold text-gray-900">{formatNumber(activeCollaboration.creator?.audienceSize)}</div>
                                             </div>
                                             <div>
                                                 <div className="text-[10px] text-gray-500 uppercase">Engagement</div>
-                                                <div className="text-sm font-bold text-gray-900">{details.creator.engagement}</div>
+                                                <div className="text-sm font-bold text-gray-900">{(activeCollaboration.creator?.avgEngagementRate || 0).toFixed(1)}%</div>
                                             </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            {details.creator.platforms.map(p => <PlatformBadge key={p} platform={p} />)}
+                                        <div className="flex flex-wrap gap-2">
+                                            {activeCollaboration.creator?.platforms?.map(p => (
+                                                <PlatformBadge key={p.name} platform={(p.name || 'platform').toLowerCase()} />
+                                            ))}
                                         </div>
                                     </div>
 
@@ -663,11 +680,11 @@ function ChatPageContent() {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <div className="text-[10px] text-gray-500 uppercase">Check-in</div>
-                                                <div className="text-sm font-bold text-gray-900">{details.stay.checkIn}</div>
+                                                <div className="text-sm font-bold text-gray-900">{stayDetails.checkIn}</div>
                                             </div>
                                             <div>
                                                 <div className="text-[10px] text-gray-500 uppercase">Check-out</div>
-                                                <div className="text-sm font-bold text-gray-900">{details.stay.checkOut}</div>
+                                                <div className="text-sm font-bold text-gray-900">{stayDetails.checkOut}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -679,20 +696,20 @@ function ChatPageContent() {
                                                 <DocumentTextIcon className="w-4 h-4 text-gray-400" />
                                                 <h4 className="text-xs font-bold text-gray-900 uppercase">Deliverables</h4>
                                             </div>
-                                            <span className="text-[10px] text-gray-400">{completedCount}/{totalDeliverables}</span>
+                                            <span className="text-[10px] text-gray-400">{completedCount}/{flatDeliverables.length}</span>
                                         </div>
 
                                         {/* Progress Bar */}
                                         <div className="w-full bg-gray-100 rounded-full h-1.5 mb-4">
                                             <div
                                                 className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
-                                                style={{ width: `${progressPercentage}%` }}
+                                                style={{ width: `${flatDeliverables.length > 0 ? (completedCount / flatDeliverables.length) * 100 : 0}%` }}
                                             />
                                         </div>
 
                                         <div className="space-y-2">
-                                            {details.deliverables.map(d => {
-                                                const isCompleted = completedDeliverables.includes(d.id)
+                                            {flatDeliverables.map(d => {
+                                                const isCompleted = d.completed
                                                 return (
                                                     <div
                                                         key={d.id}
@@ -762,13 +779,13 @@ function ChatPageContent() {
             </div>
 
             {/* Suggest Changes Modal */}
-            {activeChat && details && (
+            {activeChat && activeCollaboration && (
                 <SuggestChangesModal
                     isOpen={isSuggestModalOpen}
                     onClose={() => setIsSuggestModalOpen(false)}
-                    initialCheckIn={details.stay.checkIn}
-                    initialCheckOut={details.stay.checkOut}
-                    initialDeliverables={details.deliverables}
+                    initialCheckIn={stayDetails.checkIn}
+                    initialCheckOut={stayDetails.checkOut}
+                    initialDeliverables={flatDeliverables as any}
                     onSubmit={(data: any) => {
                         console.log('Counter-offer:', data)
                         // Here you would typically send the data to the backend

@@ -219,8 +219,11 @@ export interface Platform {
 }
 
 export interface PlatformDeliverable {
+  id: string
   type: string
   quantity: number
+  completed?: boolean
+  completed_at?: string | null
 }
 
 export interface PlatformDeliverablesItem {
