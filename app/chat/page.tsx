@@ -130,44 +130,51 @@ const PlatformBadge = ({ platform }: { platform: string }) => (
 function ChatPageContent() {
     const { isCollapsed } = useSidebar()
     const [activeTab, setActiveTab] = useState<'Active' | 'Archived'>('Active')
-    const [selectedChatId, setSelectedChatId] = useState<number | null>(null)
+    const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
     const [completedDeliverables, setCompletedDeliverables] = useState<number[]>([1]) // Mock initial state
     const [messageInput, setMessageInput] = useState('')
     const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false)
     const [detailCollaboration, setDetailCollaboration] = useState<(Collaboration & { hotel?: Hotel; creator?: Creator }) | null>(null)
 
-    // State for pending applications
+    // State for pending applications and conversations
     const [pendingRequests, setPendingRequests] = useState<any[]>([])
+    const [conversations, setConversations] = useState<any[]>([])
+    const [isLoadingConversations, setIsLoadingConversations] = useState(true)
 
     useEffect(() => {
-        const fetchPendingRequests = async () => {
+        const fetchData = async () => {
             try {
                 // Fetch pending collaborations initiated by creators
-                const data = await collaborationService.getHotelCollaborations({
+                const requestsData = await collaborationService.getHotelCollaborations({
                     status: 'pending'
                 })
 
                 // Map API response to UI format
-                const formattedRequests = data.map(collab => ({
+                const formattedRequests = requestsData.map(collab => ({
                     id: collab.id,
                     name: collab.creator_name,
-                    // Calculate relative time (simple approximation)
                     time: new Date(collab.created_at).toLocaleDateString(),
                     followers: formatNumber(collab.total_followers),
                     followersPlatform: (collab.active_platform || 'instagram').toLowerCase(),
                     engagement: (collab.avg_engagement_rate || 0).toFixed(1) + '%',
-                    engagementPlatform: (collab.active_platform || 'instagram').toLowerCase(), // Fallback to active platform
-                    avatarColor: 'bg-blue-100 text-blue-600', // Default color
+                    engagementPlatform: (collab.active_platform || 'instagram').toLowerCase(),
+                    avatarColor: 'bg-blue-100 text-blue-600',
+                    avatarUrl: collab.creator_profile_picture,
                     initials: collab.creator_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
                 }))
-
                 setPendingRequests(formattedRequests)
+
+                // Fetch conversations
+                const convData = await collaborationService.getConversations()
+                setConversations(convData)
             } catch (error) {
-                console.error('Failed to fetch pending requests:', error)
+                console.error('Failed to fetch chat data:', error)
+            } finally {
+                setIsLoadingConversations(false)
             }
         }
 
-        fetchPendingRequests()
+        fetchData()
     }, [])
 
     const handleViewDetails = async (id: string) => {
@@ -202,9 +209,37 @@ function ChatPageContent() {
         }
     }
 
-    const activeChat = selectedChatId ? ACTIVE_CHATS.find(c => c.id === selectedChatId) : null
-    const messages = selectedChatId ? MOCK_MESSAGES[selectedChatId] : []
+    const activeChat = selectedChatId ? conversations.find(c => c.collaboration_id === selectedChatId) : null
+    const messages = selectedChatId ? MOCK_MESSAGES[1] : [] // Still using mock messages for now, but pointing to a valid key if needed
     const details = selectedChatId ? COLLABORATION_DETAILS[1] : null // Mock details for all
+
+    // Format relative time for messages
+    const formatTime = (dateStr: string | null) => {
+        if (!dateStr) return ''
+        const date = new Date(dateStr)
+        const now = new Date()
+        const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+
+        if (diffInHours < 24) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+        if (diffInHours < 168) {
+            return date.toLocaleDateString([], { weekday: 'short' })
+        }
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
+    }
+
+    const getStatusColor = (status: string) => {
+        const s = status.toLowerCase()
+        if (s === 'negotiating') return 'bg-gray-100 text-gray-700'
+        if (s === 'staying' || s === 'accepted') return 'bg-blue-100 text-blue-700'
+        if (s === 'completed') return 'bg-emerald-100 text-emerald-700'
+        return 'bg-gray-100 text-gray-600'
+    }
+
+    const getInitials = (name: string) => {
+        return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+    }
 
     // Calculate progress
     const totalDeliverables = details?.deliverables.length || 0
@@ -260,7 +295,17 @@ function ChatPageContent() {
                                         onClick={() => handleViewDetails(request.id)}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold ${request.avatarColor}`}>{request.initials}</div>
+                                            {request.avatarUrl ? (
+                                                <img
+                                                    src={request.avatarUrl}
+                                                    alt={request.name}
+                                                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                                />
+                                            ) : (
+                                                <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold ${request.avatarColor}`}>
+                                                    {request.initials}
+                                                </div>
+                                            )}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-baseline gap-2 mb-0.5">
                                                     <h4 className="text-sm font-semibold text-gray-900 leading-none">{request.name}</h4>
@@ -310,27 +355,55 @@ function ChatPageContent() {
 
                         {/* Chats List */}
                         <div className="divide-y divide-gray-50">
-                            {activeTab === 'Active' && ACTIVE_CHATS.map((chat) => (
-                                <div key={chat.id} onClick={() => setSelectedChatId(chat.id)} className={`p-4 hover:bg-blue-50/50 cursor-pointer transition-colors relative ${selectedChatId === chat.id ? 'bg-blue-50/80 border-r-2 border-blue-600' : ''}`}>
-                                    <div className="flex gap-3">
-                                        <div className="relative">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${chat.avatarColor}`}>{chat.initials}</div>
-                                            {chat.unread > 0 && <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">{chat.unread}</div>}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center justify-between mb-0.5">
-                                                <h4 className="text-sm font-semibold text-gray-900 truncate">{chat.name}</h4>
-                                                <span className="text-[10px] text-gray-400 flex-shrink-0">{chat.time}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-xs text-gray-500 truncate">{chat.handle}</span>
-                                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${chat.statusColor}`}>{chat.status}</span>
-                                            </div>
-                                            <p className={`text-sm truncate ${chat.unread > 0 ? 'font-medium text-gray-900' : 'text-gray-500'}`}>{chat.message}</p>
-                                        </div>
+                            {activeTab === 'Active' && (
+                                isLoadingConversations ? (
+                                    <div className="p-8 text-center">
+                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto"></div>
                                     </div>
-                                </div>
-                            ))}
+                                ) : conversations.length > 0 ? (
+                                    conversations.map((chat) => (
+                                        <div
+                                            key={chat.collaboration_id}
+                                            onClick={() => setSelectedChatId(chat.collaboration_id)}
+                                            className={`p-4 hover:bg-blue-50/50 cursor-pointer transition-colors relative ${selectedChatId === chat.collaboration_id ? 'bg-blue-50/80 border-r-2 border-blue-600' : ''}`}
+                                        >
+                                            <div className="flex gap-3">
+                                                <div className="relative">
+                                                    {chat.partner_avatar ? (
+                                                        <img src={chat.partner_avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
+                                                            {getInitials(chat.partner_name)}
+                                                        </div>
+                                                    )}
+                                                    {chat.unread_count > 0 && <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">{chat.unread_count}</div>}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between mb-0.5">
+                                                        <h4 className="text-sm font-semibold text-gray-900 truncate">{chat.partner_name}</h4>
+                                                        <span className="text-[10px] text-gray-400 flex-shrink-0">{formatTime(chat.last_message_at)}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium capitalize ${getStatusColor(chat.collaboration_status)}`}>
+                                                            {chat.collaboration_status}
+                                                        </span>
+                                                        {chat.my_role && (
+                                                            <span className="text-[10px] text-gray-400 capitalize">{chat.my_role}</span>
+                                                        )}
+                                                    </div>
+                                                    <p className={`text-sm truncate ${chat.unread_count > 0 ? 'font-medium text-gray-900' : 'text-gray-500'}`}>
+                                                        {chat.last_message_content || 'No messages yet'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="p-8 text-center text-sm text-gray-500">
+                                        No active conversations.
+                                    </div>
+                                )
+                            )}
 
                             {activeTab === 'Archived' && (
                                 <div className="p-8 text-center text-sm text-gray-500">
@@ -349,15 +422,20 @@ function ChatPageContent() {
                             {/* Chat Header */}
                             <div className="h-[72px] border-b border-gray-100 flex items-center justify-between px-6 bg-white flex-shrink-0">
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${activeChat.avatarColor}`}>{activeChat.initials}</div>
+                                    {activeChat.partner_avatar ? (
+                                        <img src={activeChat.partner_avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+                                    ) : (
+                                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
+                                            {getInitials(activeChat.partner_name)}
+                                        </div>
+                                    )}
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h3 className="font-bold text-gray-900">{activeChat.name}</h3>
-                                            <span className="text-xs text-gray-500 font-medium">{activeChat.handle}</span>
+                                            <h3 className="font-bold text-gray-900">{activeChat.partner_name}</h3>
                                         </div>
                                         <div className="flex items-center gap-2 text-xs">
                                             <span className="text-gray-400">Status:</span>
-                                            <span className="text-gray-600">{activeChat.status}</span>
+                                            <span className="text-gray-600 capitalize">{activeChat.collaboration_status}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -374,7 +452,15 @@ function ChatPageContent() {
                                         <div className={`flex w-full ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
                                             <div className="max-w-[70%]">
                                                 <div className="flex items-end gap-2">
-                                                    {msg.sender === 'them' && <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${activeChat.avatarColor}`}>{activeChat.initials}</div>}
+                                                    {msg.sender === 'them' && (
+                                                        activeChat.partner_avatar ? (
+                                                            <img src={activeChat.partner_avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                                                        ) : (
+                                                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex-shrink-0 flex items-center justify-center text-xs font-bold">
+                                                                {getInitials(activeChat.partner_name)}
+                                                            </div>
+                                                        )
+                                                    )}
                                                     <div>
                                                         <div className={`p-4 rounded-2xl text-sm leading-relaxed ${msg.sender === 'me' ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-gray-100 text-gray-700 rounded-bl-none shadow-sm'}`}>{msg.content}</div>
                                                         <div className={`text-[10px] text-gray-400 mt-1 ${msg.sender === 'me' ? 'text-right' : 'text-left'}`}>{msg.time} {msg.sender === 'me' && '✓'}</div>
@@ -410,12 +496,19 @@ function ChatPageContent() {
                                     <div>
                                         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Collaboration Details</h3>
                                         <div className="flex items-center gap-3 mb-2">
-                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${activeChat.avatarColor}`}>{activeChat.initials}</div>
+                                            {activeChat.partner_avatar ? (
+                                                <img src={activeChat.partner_avatar} alt="" className="w-12 h-12 rounded-full object-cover" />
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg font-bold">
+                                                    {getInitials(activeChat.partner_name)}
+                                                </div>
+                                            )}
                                             <div>
-                                                <h2 className="font-bold text-gray-900">{activeChat.name}</h2>
-                                                <a href="#" className="text-xs text-blue-600 hover:underline">{activeChat.handle}</a>
+                                                <h2 className="font-bold text-gray-900">{activeChat.partner_name}</h2>
                                             </div>
-                                            <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full font-medium ${activeChat.statusColor}`}>{activeChat.status}</span>
+                                            <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full font-medium capitalize ${getStatusColor(activeChat.collaboration_status)}`}>
+                                                {activeChat.collaboration_status}
+                                            </span>
                                         </div>
                                     </div>
 

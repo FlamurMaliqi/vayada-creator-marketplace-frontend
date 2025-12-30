@@ -114,6 +114,17 @@ export interface CollaborationResponse {
   completed_at: string | null
 }
 
+export interface ConversationResponse {
+  collaboration_id: string
+  partner_name: string
+  partner_avatar: string | null
+  last_message_content: string | null
+  last_message_at: string | null
+  unread_count: number
+  collaboration_status: string
+  my_role: 'creator' | 'hotel'
+}
+
 export const collaborationService = {
   /**
    * Get creator collaborations
@@ -212,6 +223,13 @@ export const collaborationService = {
    */
   delete: async (id: string): Promise<void> => {
     return apiClient.delete<void>(`/collaborations/${id}`)
+  },
+
+  /**
+   * Get all conversations for the current user
+   */
+  getConversations: async (): Promise<ConversationResponse[]> => {
+    return apiClient.get<ConversationResponse[]>('/collaborations/conversations')
   },
 }
 
