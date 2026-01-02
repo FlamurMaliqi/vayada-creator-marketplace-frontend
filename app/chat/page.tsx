@@ -336,7 +336,9 @@ function ChatPageContent() {
 
     const handleViewDetails = async (id: string) => {
         try {
-            const detailResponse = await collaborationService.getHotelCollaborationDetails(id)
+            const detailResponse = userType === 'creator'
+                ? await collaborationService.getCreatorCollaborationDetails(id)
+                : await collaborationService.getHotelCollaborationDetails(id)
             const detailedCollaboration = transformCollaborationResponse(detailResponse)
             setDetailCollaboration(detailedCollaboration)
         } catch (error) {
@@ -1071,7 +1073,7 @@ function ChatPageContent() {
                 isOpen={!!detailCollaboration}
                 onClose={() => setDetailCollaboration(null)}
                 collaboration={detailCollaboration}
-                currentUserType="hotel"
+                currentUserType={userType as 'hotel' | 'creator'}
                 onAccept={handleAccept}
                 onDecline={handleDecline}
                 onApprove={handleApproveTerms}
