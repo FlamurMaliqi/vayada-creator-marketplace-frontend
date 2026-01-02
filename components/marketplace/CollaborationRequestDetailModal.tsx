@@ -140,6 +140,9 @@ export function CollaborationRequestDetailModal({
     ? collaboration.creator?.portfolioLink
     : undefined
 
+  const listingImages = collaboration.listingImages || []
+  const hasListingImages = listingImages.length > 0
+
   const handleAccept = () => {
     if (onAccept) {
       onAccept(collaboration.id)
@@ -183,360 +186,437 @@ export function CollaborationRequestDetailModal({
         </button>
 
         {/* Modal Content */}
-        <div className="p-6 space-y-6">
-          {/* Profile Section */}
-          <div className="flex items-start gap-4 pb-6 border-b border-gray-200">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex-shrink-0 overflow-hidden">
-              {(currentUserType === 'hotel' ? collaboration.creator?.profilePicture : collaboration.hotel?.picture) ? (
-                <img
-                  src={(currentUserType === 'hotel' ? collaboration.creator?.profilePicture : collaboration.hotel?.picture) || undefined}
-                  alt={otherPartyName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-white font-bold text-2xl">
-                  {otherPartyName.charAt(0)}
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h4 className="text-xl font-bold text-gray-900">{otherPartyName}</h4>
-                {(currentUserType === 'hotel' && collaboration.creator?.status === 'verified') ||
-                  (currentUserType === 'creator' && collaboration.hotel?.status === 'verified') ? (
-                  <CheckBadgeIcon className="w-5 h-5 text-primary-600 flex-shrink-0" />
-                ) : null}
-              </div>
-              {otherPartyHandle && (
-                <p className="text-gray-600 mb-2">{otherPartyHandle}</p>
-              )}
-              {currentUserType === 'hotel' && collaboration.creator && (
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                  <span>{formatNumber(getTotalFollowers())} followers</span>
-                  <span>•</span>
-                  <span>{getAvgEngagement()}% engagement</span>
-                  <span>•</span>
-                  <span>Applied {getTimeAgo(collaboration.createdAt)}</span>
-                </div>
-              )}
-              {otherPartyLocation && (
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                  <MapPinIcon className="w-4 h-4" />
-                  <span>{otherPartyLocation}</span>
-                </div>
-              )}
-              {/* Platform Badges */}
-              {currentUserType === 'hotel' && collaboration.creator?.platforms && (
-                <div className="flex flex-wrap gap-2">
-                  {collaboration.creator.platforms.slice(0, 2).map((platform, index) => (
-                    <div
-                      key={index}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
-                    >
-                      {getPlatformIcon(platform.name)}
-                      <span>{platform.name === 'YT' ? 'YouTube' : platform.name}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Brand Overview (For Creators) */}
-          {currentUserType === 'creator' && (collaboration.hotelAbout || collaboration.hotelWebsite) && (
-            <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-              <h5 className="font-bold text-gray-900 mb-3">Brand Overview</h5>
-              {collaboration.hotelAbout && (
-                <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                  {collaboration.hotelAbout}
-                </p>
-              )}
-              {collaboration.hotelWebsite && (
-                <a
-                  href={collaboration.hotelWebsite.startsWith('http') ? collaboration.hotelWebsite : `https://${collaboration.hotelWebsite}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 text-sm font-semibold"
-                >
-                  Visit Website
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              )}
-            </div>
-          )}
-
-          {/* Message / Application Summary */}
-          <div>
-            <h5 className="font-bold text-gray-900 mb-2">
-              {currentUserType === 'hotel' ? 'Application Summary' : 'Message'}
-            </h5>
-            <p className="text-gray-700 leading-relaxed">{getMessage()}</p>
-          </div>
-
-          {/* Travel Dates / Period */}
-          <div>
-            <h5 className="font-bold text-gray-900 mb-2">
-              {currentUserType === 'hotel' ? 'Travel Dates' : 'Collaboration Period'}
-            </h5>
-            {collaboration.travelDateFrom || collaboration.preferredDateFrom ? (
-              <p className="text-gray-700">{travelDateFrom} – {travelDateTo}</p>
-            ) : collaboration.preferredMonths && collaboration.preferredMonths.length > 0 ? (
-              <p className="text-gray-700">Preferred Months: {collaboration.preferredMonths.join(', ')}</p>
-            ) : (
-              <p className="text-gray-700">TBD</p>
-            )}
-          </div>
-
-          {/* Offer Details (Creator Only) */}
-          {currentUserType === 'creator' && collaboration.collaborationType && (
-            <div>
-              <h5 className="font-bold text-gray-900 mb-2">Offer Details</h5>
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <p className="text-gray-700 font-medium">
-                  {collaboration.collaborationType}
-                  {collaboration.collaborationType === 'Free Stay' && collaboration.freeStayMaxNights && ` • ${collaboration.freeStayMaxNights} Nights`}
-                  {collaboration.collaborationType === 'Paid' && collaboration.paidAmount && ` • $${collaboration.paidAmount}`}
-                  {collaboration.collaborationType === 'Discount' && collaboration.discountPercentage && ` • ${collaboration.discountPercentage}% Off`}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Deliverables / Platforms I'll Post On */}
-          {collaboration.platformDeliverables && collaboration.platformDeliverables.length > 0 && (
-            <div>
-              <h5 className="font-bold text-gray-900 mb-3">
-                {currentUserType === 'hotel' ? "Platforms I'll Post On" : 'Deliverables'}
-              </h5>
-              <div className="space-y-4">
-                {collaboration.platformDeliverables.map((item, index) => (
-                  <div key={index} className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <div className="text-blue-600">
-                        {getPlatformIcon(item.platform)}
-                      </div>
-                      <span className="font-semibold text-gray-900">{item.platform}</span>
-                    </div>
-                    {currentUserType === 'creator' ? (
-                      <div className="ml-7 flex flex-wrap gap-2">
-                        {item.deliverables.map((deliverable, dIndex) => (
-                          <div key={dIndex} className="text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                            {deliverable.quantity}x {deliverable.type}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="ml-7 space-y-1">
-                        {item.deliverables.map((deliverable, dIndex) => (
-                          <div key={dIndex} className="text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg inline-block w-fit">
-                            {deliverable.quantity}x {deliverable.type}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+        <div className="p-0 overflow-y-auto">
+          {/* Listing Images (For Creators) */}
+          {currentUserType === 'creator' && hasListingImages && (
+            <div className="w-full relative aspect-[16/9] bg-gray-100 border-b border-gray-100">
+              <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full">
+                {listingImages.map((img, idx) => (
+                  <div key={idx} className="flex-none w-full snap-center">
+                    <img
+                      src={img}
+                      alt={`Listing ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 ))}
               </div>
+              {listingImages.length > 1 && (
+                <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-medium">
+                  {listingImages.length} Images
+                </div>
+              )}
             </div>
           )}
 
-          {/* Contact Details (For Accepted/Completed) */}
-          {currentUserType === 'creator' && (collaboration.status === 'accepted' || collaboration.status === 'completed') && collaboration.hotelPhone && (
-            <div className="border-t border-gray-100 pt-6">
-              <h5 className="font-bold text-gray-900 mb-2">Hotel Contact Details</h5>
-              <p className="text-sm text-gray-600 mb-1">Phone</p>
-              <a href={`tel:${collaboration.hotelPhone}`} className="text-primary-600 hover:underline font-medium">
-                {collaboration.hotelPhone}
-              </a>
-            </div>
-          )}
-
-          {/* Portfolio */}
-          {portfolioLink && (
-            <div>
-              <h5 className="font-bold text-gray-900 mb-2">Portfolio</h5>
-              <a
-                href={portfolioLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
-              >
-                <span>{portfolioLink}</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            </div>
-          )}
-
-          {/* Social Media Platform Metrics */}
-          {currentUserType === 'hotel' && collaboration.creator?.platforms && collaboration.creator.platforms.length > 0 && (
-            <div>
-              <h5 className="font-bold text-gray-900 mb-4">Platform Metrics</h5>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {collaboration.creator.platforms.map((platform, index) => (
-                  <div
-                    key={index}
-                    className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm"
-                  >
-                    {/* Header */}
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 flex items-center justify-center text-gray-900 bg-gray-100 rounded-lg">
-                        {getPlatformIcon(platform.name)}
-                      </div>
-                      <h3 className="text-lg font-bold text-gray-900">
-                        {platform.name === 'YT' ? 'YouTube' : platform.name}
-                      </h3>
-                    </div>
-
-                    {/* Main Stats */}
-                    <div className="grid grid-cols-2 gap-8 mb-6">
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1">Followers</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {formatNumber(platform.followers)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1">Engagement</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {(typeof platform.engagementRate === 'number' ? platform.engagementRate : 0).toFixed(1)}%
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Top Countries */}
-                    {platform.topCountries && platform.topCountries.length > 0 && (
-                      <div className="mb-6">
-                        <p className="text-sm text-gray-500 mb-3">Top Countries</p>
-                        <div className="space-y-2">
-                          {platform.topCountries.slice(0, 3).map((country, idx) => (
-                            <div key={idx} className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                {/* Simple flag mapping could go here, for now just text or emoji if possible */}
-                                <span className="text-sm font-medium text-gray-900">{country.country}</span>
-                              </div>
-                              <span className="text-sm font-bold text-gray-900">
-                                {country.percentage}%
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Top Age Groups */}
-                    {platform.topAgeGroups && platform.topAgeGroups.length > 0 && (
-                      <div className="mb-6">
-                        <p className="text-sm text-gray-500 mb-3">Top Age Groups</p>
-                        <div className="space-y-2">
-                          {platform.topAgeGroups.slice(0, 3).map((ageGroup, idx) => (
-                            <div key={idx} className="flex items-center justify-between">
-                              <span className="text-sm font-medium text-gray-900">{ageGroup.ageRange}</span>
-                              <span className="text-sm font-bold text-gray-900">
-                                {ageGroup.percentage}%
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Gender Split */}
-                    {platform.genderSplit && (
-                      <div>
-                        <p className="text-sm text-gray-500 mb-3">Gender Split</p>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-900">Male</span>
-                            <span className="text-sm font-bold text-gray-900">{platform.genderSplit.male}%</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-900">Female</span>
-                            <span className="text-sm font-bold text-gray-900">{platform.genderSplit.female}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Reviews Section */}
-          {currentUserType === 'hotel' && collaboration.creator?.rating && (
-            <div>
-              <h5 className="font-bold text-gray-900 mb-4">Reviews & Ratings</h5>
-              <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
-                {collaboration.creator.rating.totalReviews > 0 ? (
-                  <>
-                    {/* Header with Overall Rating */}
-                    <div className="bg-gray-50 px-5 py-4 flex items-center justify-between border-b border-gray-200">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl font-bold text-gray-900">
-                            {collaboration.creator.rating.averageRating.toFixed(1)}
-                          </span>
-                          <div className="flex flex-col">
-                            <StarRating
-                              rating={collaboration.creator.rating.averageRating}
-                              size="sm"
-                              showNumber={false}
-                              showReviews={false}
-                            />
-                            <span className="text-xs text-gray-500">
-                              {collaboration.creator.rating.totalReviews} reviews
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Scrollable Reviews List */}
-                    {collaboration.creator.rating.reviews && collaboration.creator.rating.reviews.length > 0 && (
-                      <div className="max-h-60 overflow-y-auto divide-y divide-gray-100">
-                        {collaboration.creator.rating.reviews.map((review) => (
-                          <div key={review.id} className="p-4 hover:bg-gray-50 transition-colors">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <h6 className="font-semibold text-gray-900 text-sm">{review.hotelName}</h6>
-                                <p className="text-xs text-gray-500">
-                                  {new Date(review.createdAt).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric',
-                                  })}
-                                </p>
-                              </div>
-                              <StarRating
-                                rating={review.rating}
-                                size="sm"
-                                showNumber={false}
-                                showReviews={false}
-                              />
-                            </div>
-                            {review.comment && (
-                              <p className="text-sm text-gray-600 line-clamp-2">{review.comment}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
+          <div className="p-6 space-y-6">
+            {/* Profile Section */}
+            <div className="flex items-start gap-4 pb-6 border-b border-gray-200">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex-shrink-0 overflow-hidden">
+                {(currentUserType === 'hotel' ? collaboration.creator?.profilePicture : collaboration.hotel?.picture) ? (
+                  <img
+                    src={(currentUserType === 'hotel' ? collaboration.creator?.profilePicture : collaboration.hotel?.picture) || undefined}
+                    alt={otherPartyName}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <div className="text-center py-8">
-                    <StarIcon className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">No reviews yet</p>
+                  <div className="w-full h-full flex items-center justify-center text-white font-bold text-2xl">
+                    {otherPartyName.charAt(0)}
+                  </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="text-xl font-bold text-gray-900">{otherPartyName}</h4>
+                  {(currentUserType === 'hotel' && collaboration.creator?.status === 'verified') ||
+                    (currentUserType === 'creator' && collaboration.hotel?.status === 'verified') ? (
+                    <CheckBadgeIcon className="w-5 h-5 text-primary-600 flex-shrink-0" />
+                  ) : null}
+                </div>
+                {otherPartyHandle && (
+                  <p className="text-gray-600 mb-2">{otherPartyHandle}</p>
+                )}
+                {currentUserType === 'hotel' && collaboration.creator && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                    <span>{formatNumber(getTotalFollowers())} followers</span>
+                    <span>•</span>
+                    <span>{getAvgEngagement()}% engagement</span>
+                    <span>•</span>
+                    <span>Applied {getTimeAgo(collaboration.createdAt)}</span>
+                  </div>
+                )}
+                {otherPartyLocation && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                    <MapPinIcon className="w-4 h-4" />
+                    <span>{otherPartyLocation}</span>
+                  </div>
+                )}
+                {/* Platform Badges */}
+                {currentUserType === 'hotel' && collaboration.creator?.platforms && (
+                  <div className="flex flex-wrap gap-2">
+                    {collaboration.creator.platforms.slice(0, 2).map((platform, index) => (
+                      <div
+                        key={index}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
+                      >
+                        {getPlatformIcon(platform.name)}
+                        <span>{platform.name === 'YT' ? 'YouTube' : platform.name}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
             </div>
-          )}
+
+            {/* Brand Overview (For Creators) */}
+            {currentUserType === 'creator' && (collaboration.hotelAbout || collaboration.hotelWebsite) && (
+              <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                <h5 className="font-bold text-gray-900 mb-3">Brand Overview</h5>
+                {collaboration.hotelAbout && (
+                  <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                    {collaboration.hotelAbout}
+                  </p>
+                )}
+                {collaboration.hotelWebsite && (
+                  <a
+                    href={collaboration.hotelWebsite.startsWith('http') ? collaboration.hotelWebsite : `https://${collaboration.hotelWebsite}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 text-sm font-semibold"
+                  >
+                    Visit Website
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                )}
+              </div>
+            )}
+
+            {/* Message / Application Summary */}
+            <div>
+              <h5 className="font-bold text-gray-900 mb-2">
+                {currentUserType === 'hotel' ? 'Application Summary' : 'Message'}
+              </h5>
+              <p className="text-gray-700 leading-relaxed">{getMessage()}</p>
+            </div>
+
+            {/* Travel Dates / Period */}
+            <div>
+              <h5 className="font-bold text-gray-900 mb-2">
+                {currentUserType === 'hotel' ? 'Travel Dates' : 'Collaboration Period'}
+              </h5>
+              {collaboration.travelDateFrom || collaboration.preferredDateFrom ? (
+                <p className="text-gray-700">{travelDateFrom} – {travelDateTo}</p>
+              ) : collaboration.preferredMonths && collaboration.preferredMonths.length > 0 ? (
+                <p className="text-gray-700">Preferred Months: {collaboration.preferredMonths.join(', ')}</p>
+              ) : (
+                <p className="text-gray-700">TBD</p>
+              )}
+            </div>
+
+            {/* Offer Details (Creator Only) */}
+            {currentUserType === 'creator' && collaboration.collaborationType && (
+              <div>
+                <h5 className="font-bold text-gray-900 mb-2">Offer Details</h5>
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                  <p className="text-gray-700 font-medium">
+                    {collaboration.collaborationType}
+                    {collaboration.collaborationType === 'Free Stay' && collaboration.freeStayMaxNights && ` • ${collaboration.freeStayMaxNights} Nights`}
+                    {collaboration.collaborationType === 'Paid' && collaboration.paidAmount && ` • $${collaboration.paidAmount}`}
+                    {collaboration.collaborationType === 'Discount' && collaboration.discountPercentage && ` • ${collaboration.discountPercentage}% Off`}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Looking For Section (For Creators) */}
+            {currentUserType === 'creator' && collaboration.creatorRequirements && (
+              <div className="bg-[#F8FAFC] rounded-2xl p-5 border border-[#E2E8F0]">
+                <h5 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-600"><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></svg>
+                  Looking For
+                </h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                  {collaboration.creatorRequirements.platforms && collaboration.creatorRequirements.platforms.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Platforms</p>
+                      <div className="flex flex-wrap gap-1">
+                        {collaboration.creatorRequirements.platforms.map((p, i) => (
+                          <span key={p} className="text-sm font-semibold text-gray-900 capitalize">
+                            {p}{i < (collaboration.creatorRequirements?.platforms.length || 0) - 1 ? ', ' : ''}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {collaboration.creatorRequirements.minFollowers > 0 && (
+                    <div>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Min. Followers</p>
+                      <p className="text-sm font-semibold text-gray-900">{formatNumber(collaboration.creatorRequirements.minFollowers)}+</p>
+                    </div>
+                  )}
+
+                  {collaboration.creatorRequirements.targetCountries && collaboration.creatorRequirements.targetCountries.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Target Countries</p>
+                      <p className="text-sm font-semibold text-gray-900">{collaboration.creatorRequirements.targetCountries.join(', ')}</p>
+                    </div>
+                  )}
+
+                  {(collaboration.creatorRequirements.targetAgeMin || collaboration.creatorRequirements.targetAgeMax) && (
+                    <div>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Audience Age</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {collaboration.creatorRequirements.targetAgeMin && collaboration.creatorRequirements.targetAgeMax
+                          ? `${collaboration.creatorRequirements.targetAgeMin}-${collaboration.creatorRequirements.targetAgeMax}`
+                          : collaboration.creatorRequirements.targetAgeMin
+                            ? `${collaboration.creatorRequirements.targetAgeMin}+`
+                            : collaboration.creatorRequirements.targetAgeMax
+                              ? `Up to ${collaboration.creatorRequirements.targetAgeMax}`
+                              : 'Any'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Deliverables / Platforms I'll Post On */}
+            {collaboration.platformDeliverables && collaboration.platformDeliverables.length > 0 && (
+              <div>
+                <h5 className="font-bold text-gray-900 mb-3">
+                  {currentUserType === 'hotel' ? "Platforms I'll Post On" : 'Deliverables'}
+                </h5>
+                <div className="space-y-4">
+                  {collaboration.platformDeliverables.map((item, index) => (
+                    <div key={index} className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="text-blue-600">
+                          {getPlatformIcon(item.platform)}
+                        </div>
+                        <span className="font-semibold text-gray-900">{item.platform}</span>
+                      </div>
+                      {currentUserType === 'creator' ? (
+                        <div className="ml-7 flex flex-wrap gap-2">
+                          {item.deliverables.map((deliverable, dIndex) => (
+                            <div key={dIndex} className="text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                              {deliverable.quantity}x {deliverable.type}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="ml-7 space-y-1">
+                          {item.deliverables.map((deliverable, dIndex) => (
+                            <div key={dIndex} className="text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg inline-block w-fit">
+                              {deliverable.quantity}x {deliverable.type}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Contact Details (For Accepted/Completed) */}
+            {currentUserType === 'creator' && (collaboration.status === 'accepted' || collaboration.status === 'completed') && collaboration.hotelPhone && (
+              <div className="border-t border-gray-100 pt-6">
+                <h5 className="font-bold text-gray-900 mb-2">Hotel Contact Details</h5>
+                <p className="text-sm text-gray-600 mb-1">Phone</p>
+                <a href={`tel:${collaboration.hotelPhone}`} className="text-primary-600 hover:underline font-medium">
+                  {collaboration.hotelPhone}
+                </a>
+              </div>
+            )}
+
+            {/* Portfolio */}
+            {portfolioLink && (
+              <div>
+                <h5 className="font-bold text-gray-900 mb-2">Portfolio</h5>
+                <a
+                  href={portfolioLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  <span>{portfolioLink}</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            )}
+
+            {/* Social Media Platform Metrics */}
+            {currentUserType === 'hotel' && collaboration.creator?.platforms && collaboration.creator.platforms.length > 0 && (
+              <div>
+                <h5 className="font-bold text-gray-900 mb-4">Platform Metrics</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {collaboration.creator.platforms.map((platform, index) => (
+                    <div
+                      key={index}
+                      className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm"
+                    >
+                      {/* Header */}
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 flex items-center justify-center text-gray-900 bg-gray-100 rounded-lg">
+                          {getPlatformIcon(platform.name)}
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          {platform.name === 'YT' ? 'YouTube' : platform.name}
+                        </h3>
+                      </div>
+
+                      {/* Main Stats */}
+                      <div className="grid grid-cols-2 gap-8 mb-6">
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Followers</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {formatNumber(platform.followers)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Engagement</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {(typeof platform.engagementRate === 'number' ? platform.engagementRate : 0).toFixed(1)}%
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Top Countries */}
+                      {platform.topCountries && platform.topCountries.length > 0 && (
+                        <div className="mb-6">
+                          <p className="text-sm text-gray-500 mb-3">Top Countries</p>
+                          <div className="space-y-2">
+                            {platform.topCountries.slice(0, 3).map((country, idx) => (
+                              <div key={idx} className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  {/* Simple flag mapping could go here, for now just text or emoji if possible */}
+                                  <span className="text-sm font-medium text-gray-900">{country.country}</span>
+                                </div>
+                                <span className="text-sm font-bold text-gray-900">
+                                  {country.percentage}%
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Top Age Groups */}
+                      {platform.topAgeGroups && platform.topAgeGroups.length > 0 && (
+                        <div className="mb-6">
+                          <p className="text-sm text-gray-500 mb-3">Top Age Groups</p>
+                          <div className="space-y-2">
+                            {platform.topAgeGroups.slice(0, 3).map((ageGroup, idx) => (
+                              <div key={idx} className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-900">{ageGroup.ageRange}</span>
+                                <span className="text-sm font-bold text-gray-900">
+                                  {ageGroup.percentage}%
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Gender Split */}
+                      {platform.genderSplit && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-3">Gender Split</p>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-900">Male</span>
+                              <span className="text-sm font-bold text-gray-900">{platform.genderSplit.male}%</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-900">Female</span>
+                              <span className="text-sm font-bold text-gray-900">{platform.genderSplit.female}%</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Reviews Section */}
+            {currentUserType === 'hotel' && collaboration.creator?.rating && (
+              <div>
+                <h5 className="font-bold text-gray-900 mb-4">Reviews & Ratings</h5>
+                <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
+                  {collaboration.creator.rating.totalReviews > 0 ? (
+                    <>
+                      {/* Header with Overall Rating */}
+                      <div className="bg-gray-50 px-5 py-4 flex items-center justify-between border-b border-gray-200">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl font-bold text-gray-900">
+                              {collaboration.creator.rating.averageRating.toFixed(1)}
+                            </span>
+                            <div className="flex flex-col">
+                              <StarRating
+                                rating={collaboration.creator.rating.averageRating}
+                                size="sm"
+                                showNumber={false}
+                                showReviews={false}
+                              />
+                              <span className="text-xs text-gray-500">
+                                {collaboration.creator.rating.totalReviews} reviews
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Scrollable Reviews List */}
+                      {collaboration.creator.rating.reviews && collaboration.creator.rating.reviews.length > 0 && (
+                        <div className="max-h-60 overflow-y-auto divide-y divide-gray-100">
+                          {collaboration.creator.rating.reviews.map((review) => (
+                            <div key={review.id} className="p-4 hover:bg-gray-50 transition-colors">
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <h6 className="font-semibold text-gray-900 text-sm">{review.hotelName}</h6>
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(review.createdAt).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                    })}
+                                  </p>
+                                </div>
+                                <StarRating
+                                  rating={review.rating}
+                                  size="sm"
+                                  showNumber={false}
+                                  showReviews={false}
+                                />
+                              </div>
+                              {review.comment && (
+                                <p className="text-sm text-gray-600 line-clamp-2">{review.comment}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <StarIcon className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">No reviews yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
 
+          </div>
         </div>
 
         {/* Modal Footer */}

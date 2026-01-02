@@ -138,6 +138,14 @@ export interface CollaborationResponse {
   created_at: string
   cancelled_at: string | null
   completed_at: string | null
+  listing_images?: string[]
+  creatorRequirements?: {
+    platforms: string[]
+    minFollowers: number
+    targetCountries: string[]
+    targetAgeMin: number
+    targetAgeMax: number
+  }
 }
 
 export type DetailedCollaboration = Collaboration & {
@@ -168,6 +176,14 @@ export type DetailedCollaboration = Collaboration & {
   respondedAt?: string | null
   cancelledAt?: string | null
   completedAt?: string | null
+  listingImages?: string[]
+  creatorRequirements?: {
+    platforms: string[]
+    minFollowers: number
+    targetCountries: string[]
+    targetAgeMin: number
+    targetAgeMax: number
+  }
 }
 
 export interface ConversationResponse {
@@ -472,5 +488,13 @@ export function transformCollaborationResponse(
     respondedAt: response.responded_at,
     cancelledAt: response.cancelled_at,
     completedAt: response.completed_at,
+    listingImages: response.listing_images,
+    creatorRequirements: response.creatorRequirements || (response.creator_requirements ? {
+      platforms: response.creator_requirements.platforms,
+      minFollowers: response.creator_requirements.min_followers,
+      targetCountries: response.creator_requirements.target_countries,
+      targetAgeMin: response.creator_requirements.target_age_min,
+      targetAgeMax: response.creator_requirements.target_age_max,
+    } : undefined),
   } as DetailedCollaboration
 }

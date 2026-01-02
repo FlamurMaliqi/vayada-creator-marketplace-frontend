@@ -68,6 +68,39 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                         <div className="p-6">
                             {userType === 'creator' ? (
                                 <>
+                                    {/* Listing Images */}
+                                    {(collaboration.listing_images || (collaboration as any).listingImages) &&
+                                        ((collaboration.listing_images || (collaboration as any).listingImages).length > 0) && (
+                                            <div className="relative -mx-6 -mt-6 mb-6">
+                                                <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-1">
+                                                    {(collaboration.listing_images || (collaboration as any).listingImages).map((img: string, idx: number) => (
+                                                        <div key={idx} className="flex-none w-full snap-center aspect-[4/3] bg-gray-100">
+                                                            <img
+                                                                src={img}
+                                                                alt={`Listing ${idx + 1}`}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                {/* Image counter badge */}
+                                                {(collaboration.listing_images || (collaboration as any).listingImages).length > 1 && (
+                                                    <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium">
+                                                        {(collaboration.listing_images || (collaboration as any).listingImages).length} Photos
+                                                    </div>
+                                                )}
+                                                {/* Scroll hint */}
+                                                {(collaboration.listing_images || (collaboration as any).listingImages).length > 1 && (
+                                                    <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <polyline points="9 18 15 12 9 6"></polyline>
+                                                        </svg>
+                                                        Swipe
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
                                     {/* Mockup Header Style */}
                                     <div className="mb-6">
                                         <div className="flex items-center gap-3 mb-3">
@@ -157,6 +190,60 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                                                                 {d.quantity} {d.type}
                                                             </span>
                                                         ))
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Looking For Section */}
+                                        {((collaboration as any).creatorRequirements || (collaboration as any).creator_requirements) && (
+                                            <div className="mt-8 pt-6 border-t border-gray-100 space-y-4">
+                                                <p className="text-lg font-bold text-gray-900">Looking For</p>
+
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    {(((collaboration as any).creatorRequirements || (collaboration as any).creator_requirements)?.platforms) &&
+                                                        (((collaboration as any).creatorRequirements || (collaboration as any).creator_requirements)?.platforms).length > 0 && (
+                                                            <div>
+                                                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Platforms</p>
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    {(((collaboration as any).creatorRequirements || (collaboration as any).creator_requirements)?.platforms).map((p: string, i: number, arr: string[]) => (
+                                                                        <span key={p} className="text-sm font-medium text-gray-900 capitalize">
+                                                                            {p}{i < arr.length - 1 ? ', ' : ''}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                    {(((collaboration as any).creatorRequirements?.minFollowers || (collaboration as any).creator_requirements?.min_followers) > 0) && (
+                                                        <div>
+                                                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Min. Followers</p>
+                                                            <p className="text-sm font-medium text-gray-900">{formatNumber((collaboration as any).creatorRequirements?.minFollowers || (collaboration as any).creator_requirements?.min_followers)}</p>
+                                                        </div>
+                                                    )}
+
+                                                    {(((collaboration as any).creatorRequirements?.targetCountries || (collaboration as any).creator_requirements?.target_countries)) &&
+                                                        (((collaboration as any).creatorRequirements?.targetCountries || (collaboration as any).creator_requirements?.target_countries)).length > 0 && (
+                                                            <div>
+                                                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Target Countries</p>
+                                                                <p className="text-sm font-medium text-gray-900">{((collaboration as any).creatorRequirements?.targetCountries || (collaboration as any).creator_requirements?.target_countries).join(', ')}</p>
+                                                            </div>
+                                                        )}
+
+                                                    {((collaboration as any).creatorRequirements || (collaboration as any).creator_requirements) && (
+                                                        <div>
+                                                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Target Age</p>
+                                                            <p className="text-sm font-medium text-gray-900">
+                                                                {((collaboration as any).creatorRequirements?.targetAgeMin || (collaboration as any).creator_requirements?.target_age_min) &&
+                                                                    ((collaboration as any).creatorRequirements?.targetAgeMax || (collaboration as any).creator_requirements?.target_age_max)
+                                                                    ? `${((collaboration as any).creatorRequirements?.targetAgeMin || (collaboration as any).creator_requirements?.target_age_min)}-${((collaboration as any).creatorRequirements?.targetAgeMax || (collaboration as any).creator_requirements?.target_age_max)}`
+                                                                    : ((collaboration as any).creatorRequirements?.targetAgeMin || (collaboration as any).creator_requirements?.target_age_min)
+                                                                        ? `${((collaboration as any).creatorRequirements?.targetAgeMin || (collaboration as any).creator_requirements?.target_age_min)}+`
+                                                                        : ((collaboration as any).creatorRequirements?.targetAgeMax || (collaboration as any).creator_requirements?.target_age_max)
+                                                                            ? `Up to ${((collaboration as any).creatorRequirements?.targetAgeMax || (collaboration as any).creator_requirements?.target_age_max)}`
+                                                                            : 'Any'}
+                                                            </p>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
