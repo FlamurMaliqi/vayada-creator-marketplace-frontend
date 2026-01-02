@@ -22,12 +22,13 @@ function CalendarPageContent() {
         }
 
         const fetchCollaborations = async () => {
-            if (storedUserType === 'creator') {
-                setIsLoading(false)
-                return
-            }
             try {
-                const data = await collaborationService.getHotelCollaborations()
+                let data: CollaborationResponse[] = []
+                if (storedUserType === 'creator') {
+                    data = await collaborationService.getCreatorCollaborations()
+                } else {
+                    data = await collaborationService.getHotelCollaborations()
+                }
                 setCollaborations(data)
             } catch (error) {
                 console.error('Failed to fetch collaborations:', error)
