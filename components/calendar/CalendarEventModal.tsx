@@ -8,9 +8,10 @@ interface CalendarEventModalProps {
     onClose: () => void
     collaboration: CollaborationResponse | null
     onViewDetails: (id: string) => void
+    userType?: 'hotel' | 'creator'
 }
 
-export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetails }: CalendarEventModalProps) {
+export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetails, userType = 'hotel' }: CalendarEventModalProps) {
     if (!isOpen || !collaboration) return null
 
     // Format dates
@@ -60,30 +61,58 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                                 Collaboration Details
                             </DialogTitle>
 
-                            {/* Header: Creator Info */}
+                            {/* Header: Partner Info */}
                             <div className="flex items-start justify-between mb-8">
                                 <div className="flex items-center gap-4">
-                                    {collaboration.creator_profile_picture ? (
-                                        <img
-                                            src={collaboration.creator_profile_picture}
-                                            alt={collaboration.creator_name}
-                                            className="w-16 h-16 rounded-full object-cover border border-gray-100"
-                                        />
+                                    {userType === 'creator' ? (
+                                        <>
+                                            {collaboration.hotel_picture ? (
+                                                <img
+                                                    src={collaboration.hotel_picture}
+                                                    alt={collaboration.hotel_name}
+                                                    className="w-16 h-16 rounded-full object-cover border border-gray-100"
+                                                />
+                                            ) : (
+                                                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-xl font-bold text-gray-400">
+                                                    {collaboration.hotel_name.charAt(0)}
+                                                </div>
+                                            )}
+                                            <div>
+                                                <h4 className="text-lg font-bold text-gray-900">{collaboration.hotel_name}</h4>
+                                                <p className="text-sm text-gray-500">{collaboration.listing_name}</p>
+                                                <div className="flex items-center gap-1 mt-1 text-sm text-gray-500">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                                        <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                                                    </svg>
+                                                    {collaboration.listing_location || 'Unknown Location'}
+                                                </div>
+                                            </div>
+                                        </>
                                     ) : (
-                                        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-xl font-bold text-gray-400">
-                                            {collaboration.creator_name.charAt(0)}
-                                        </div>
+                                        <>
+                                            {collaboration.creator_profile_picture ? (
+                                                <img
+                                                    src={collaboration.creator_profile_picture}
+                                                    alt={collaboration.creator_name}
+                                                    className="w-16 h-16 rounded-full object-cover border border-gray-100"
+                                                />
+                                            ) : (
+                                                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-xl font-bold text-gray-400">
+                                                    {collaboration.creator_name.charAt(0)}
+                                                </div>
+                                            )}
+                                            <div>
+                                                <h4 className="text-lg font-bold text-gray-900">{collaboration.creator_name}</h4>
+                                                <p className="text-sm text-gray-500">@{collaboration.handle || collaboration.creator_name.toLowerCase().replace(/\s+/g, '')}</p>
+                                                <div className="flex items-center gap-1 mt-1 text-sm text-gray-500">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-400">
+                                                        <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                                                    </svg>
+                                                    {collaboration.creator_location || 'Unknown Location'}
+                                                </div>
+                                            </div>
+                                        </>
                                     )}
-                                    <div>
-                                        <h4 className="text-lg font-bold text-gray-900">{collaboration.creator_name}</h4>
-                                        <p className="text-sm text-gray-500">@{collaboration.handle || collaboration.creator_name.toLowerCase().replace(/\s+/g, '')}</p>
-                                        <div className="flex items-center gap-1 mt-1 text-sm text-gray-500">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-gray-400">
-                                                <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                                            </svg>
-                                            {collaboration.creator_location || 'Unknown Location'}
-                                        </div>
-                                    </div>
                                 </div>
                                 <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 capitalize border border-gray-200">
                                     {collaboration.status}
@@ -98,35 +127,54 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
 
                             {/* Metrics Grid */}
                             <div className="grid grid-cols-2 gap-4 mb-6">
-                                <div className="bg-gray-50 rounded-xl p-4">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Reach</p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-purple-500">
-                                            <path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z" />
-                                        </svg>
-                                        <span className="text-lg font-bold text-gray-900">{formatNumber(collaboration.total_followers)}</span>
-                                    </div>
-                                </div>
-                                <div className="bg-gray-50 rounded-xl p-4">
-                                    <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">Platforms</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {collaboration.platforms && collaboration.platforms.length > 0 ? (
-                                            collaboration.platforms.map(p => (
-                                                <span key={p.name} className="inline-flex items-center rounded-md bg-white px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-200">
-                                                    {p.name}
-                                                </span>
-                                            ))
-                                        ) : collaboration.active_platform ? (
-                                            <span className="inline-flex items-center rounded-md bg-white px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-200">
-                                                {collaboration.active_platform}
-                                            </span>
-                                        ) : (
-                                            <span className="text-sm text-gray-400">None</span>
-                                        )}
-                                    </div>
-                                </div>
+                                {userType === 'hotel' ? (
+                                    <>
+                                        <div className="bg-gray-50 rounded-xl p-4">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Reach</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-purple-500">
+                                                    <path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z" />
+                                                </svg>
+                                                <span className="text-lg font-bold text-gray-900">{formatNumber(collaboration.total_followers)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="bg-gray-50 rounded-xl p-4">
+                                            <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">Platforms</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {collaboration.platforms && collaboration.platforms.length > 0 ? (
+                                                    collaboration.platforms.map(p => (
+                                                        <span key={p.name} className="inline-flex items-center rounded-md bg-white px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-200">
+                                                            {p.name}
+                                                        </span>
+                                                    ))
+                                                ) : collaboration.active_platform ? (
+                                                    <span className="inline-flex items-center rounded-md bg-white px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-200">
+                                                        {collaboration.active_platform}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-sm text-gray-400">None</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="bg-gray-50 rounded-xl p-4">
+                                            <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wide">Type</p>
+                                            <p className="text-gray-900 font-semibold">{collaboration.collaboration_type || 'N/A'}</p>
+                                        </div>
+                                        <div className="bg-gray-50 rounded-xl p-4">
+                                            <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wide">Offer</p>
+                                            <p className="text-gray-900 font-semibold">
+                                                {collaboration.collaboration_type === 'Paid' ? `$${collaboration.paid_amount}` :
+                                                    collaboration.collaboration_type === 'Discount' ? `${collaboration.discount_percentage}%` :
+                                                        collaboration.collaboration_type === 'Free Stay' ? `${collaboration.free_stay_max_nights} Nights` : 'Barter'}
+                                            </p>
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             {/* Deliverables Section */}
@@ -154,7 +202,7 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                                     className="flex-1 rounded-lg bg-primary-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
                                     onClick={onClose}
                                 >
-                                    Contact Creator
+                                    {userType === 'creator' ? 'Contact Hotel' : 'Contact Creator'}
                                 </button>
                                 <button
                                     type="button"
@@ -164,7 +212,7 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                                         onClose()
                                     }}
                                 >
-                                    View Profile
+                                    {userType === 'creator' ? 'View Listing' : 'View Profile'}
                                     <ArrowTopRightOnSquareIcon className="w-4 h-4 text-gray-400" />
                                 </button>
                             </div>

@@ -283,22 +283,16 @@ export function YearlyCalendar({ collaborations = [], onViewDetails, userType = 
                                                                     ${!isStart && !isEnd ? 'rounded-none min-w-[calc(100%+1px)] -ml-[1px]' : ''} 
                                                                     ${isStart ? 'overflow-visible' : 'overflow-hidden'}
                                                                 `}
-                                                                title={`${activeCollab.creator_name} - ${activeCollab.status}`}
+                                                                title={`${userType === 'creator' ? activeCollab.hotel_name : activeCollab.creator_name} - ${activeCollab.status}`}
                                                             >
                                                                 {isStart && (
                                                                     <div className="flex items-center gap-2 min-w-max relative z-20">
-                                                                        {activeCollab.creator_profile_picture ? (
-                                                                            <img
-                                                                                src={activeCollab.creator_profile_picture}
-                                                                                alt=""
-                                                                                className="w-5 h-5 rounded-full border border-white/30 object-cover"
-                                                                            />
-                                                                        ) : (
-                                                                            <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[8px] font-bold">
-                                                                                {activeCollab.creator_name.charAt(0)}
-                                                                            </div>
-                                                                        )}
-                                                                        <span className="text-xs font-medium whitespace-nowrap drop-shadow-sm">{activeCollab.creator_name}</span>
+                                                                        <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-building2 h-3.5 w-3.5"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
+                                                                        </div>
+                                                                        <span className="text-xs font-medium whitespace-nowrap drop-shadow-sm">
+                                                                            {userType === 'creator' ? activeCollab.hotel_name : activeCollab.creator_name}
+                                                                        </span>
                                                                     </div>
                                                                 )}
                                                             </div>
@@ -345,6 +339,7 @@ export function YearlyCalendar({ collaborations = [], onViewDetails, userType = 
                 onClose={() => setSelectedCollaboration(null)}
                 collaboration={selectedCollaboration}
                 onViewDetails={onViewDetails}
+                userType={userType}
             />
 
             <AddCollaborationModal
