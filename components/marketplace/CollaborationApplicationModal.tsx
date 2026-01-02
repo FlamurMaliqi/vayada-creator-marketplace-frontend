@@ -224,7 +224,7 @@ export function CollaborationApplicationModal({
                     type="date"
                     value={travelDateFrom}
                     onChange={(e) => setTravelDateFrom(e.target.value)}
-                    className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                   <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                 </div>
@@ -237,7 +237,7 @@ export function CollaborationApplicationModal({
                     value={travelDateTo}
                     onChange={(e) => setTravelDateTo(e.target.value)}
                     min={travelDateFrom}
-                    className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                   <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                 </div>
@@ -251,11 +251,10 @@ export function CollaborationApplicationModal({
                     key={month}
                     type="button"
                     onClick={() => handleMonthToggle(month)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      preferredMonths.includes(month)
-                        ? 'bg-primary-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${preferredMonths.includes(month)
+                      ? 'bg-primary-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
                     {month}
                   </button>
@@ -278,11 +277,10 @@ export function CollaborationApplicationModal({
                 return (
                   <div
                     key={platform}
-                    className={`border-2 rounded-lg transition-all ${
-                      platformSelected
-                        ? 'border-primary-500 bg-primary-50/30'
-                        : 'border-gray-200 bg-white'
-                    }`}
+                    className={`border-2 rounded-lg transition-all ${platformSelected
+                      ? 'border-primary-500 bg-primary-50/30'
+                      : 'border-gray-200 bg-white'
+                      }`}
                   >
                     {/* Platform Header */}
                     <div className="p-4 border-b border-gray-200">
@@ -312,11 +310,10 @@ export function CollaborationApplicationModal({
                           return (
                             <div
                               key={deliverable}
-                              className={`p-3 rounded-lg border transition-all ${
-                                isSelected
-                                  ? 'border-primary-400 bg-primary-50'
-                                  : 'border-gray-200 bg-white hover:border-gray-300'
-                              }`}
+                              className={`p-3 rounded-lg border transition-all ${isSelected
+                                ? 'border-primary-400 bg-primary-50'
+                                : 'border-gray-200 bg-white hover:border-gray-300'
+                                }`}
                             >
                               <div className="flex items-center justify-between">
                                 <label className="flex items-center cursor-pointer flex-1">
