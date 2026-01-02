@@ -149,16 +149,6 @@ export default function AuthenticatedNavigation() {
       icon: MessageCustomIcon,
     },
     {
-      href: ROUTES.CALENDAR,
-      label: 'Calendar',
-      icon: CalendarCustomIcon,
-    },
-    {
-      href: ROUTES.CHAT,
-      label: 'Messages',
-      icon: MessageCustomIcon,
-    },
-    {
       href: ROUTES.PROFILE,
       label: 'My Profile',
       icon: ProfileCustomIcon,
