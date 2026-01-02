@@ -907,28 +907,53 @@ function ChatPageContent() {
                                         </div>
                                     </div>
 
-                                    {/* Creator Stats */}
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <UserIcon className="w-4 h-4 text-gray-400" />
-                                            <h4 className="text-xs font-bold text-gray-900 uppercase">Creator Stats</h4>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4 mb-3">
-                                            <div>
-                                                <div className="text-[10px] text-gray-500 uppercase">Followers</div>
-                                                <div className="text-sm font-bold text-gray-900">{formatNumber(activeCollaboration.creator?.audienceSize)}</div>
+                                    {/* Partner Stats - Show Hotel stats for creators, Creator stats for hotels */}
+                                    {userType === 'creator' ? (
+                                        // Show Hotel Stats when creator is signed in
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <MapPinIcon className="w-4 h-4 text-gray-400" />
+                                                <h4 className="text-xs font-bold text-gray-900 uppercase">Hotel Details</h4>
                                             </div>
-                                            <div>
-                                                <div className="text-[10px] text-gray-500 uppercase">Engagement</div>
-                                                <div className="text-sm font-bold text-gray-900">{(activeCollaboration.creator?.avgEngagementRate || 0).toFixed(1)}%</div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                {activeCollaboration.hotel?.name && (
+                                                    <div>
+                                                        <div className="text-[10px] text-gray-500 uppercase">Property</div>
+                                                        <div className="text-sm font-bold text-gray-900">{activeCollaboration.hotel.name}</div>
+                                                    </div>
+                                                )}
+                                                {activeCollaboration.listingLocation && (
+                                                    <div>
+                                                        <div className="text-[10px] text-gray-500 uppercase">Location</div>
+                                                        <div className="text-sm font-medium text-gray-900">{activeCollaboration.listingLocation}</div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            {activeCollaboration.creator?.platforms?.map(p => (
-                                                <PlatformBadge key={p.name} platform={(p.name || 'platform').toLowerCase()} />
-                                            ))}
+                                    ) : (
+                                        // Show Creator Stats when hotel is signed in
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <UserIcon className="w-4 h-4 text-gray-400" />
+                                                <h4 className="text-xs font-bold text-gray-900 uppercase">Creator Stats</h4>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4 mb-3">
+                                                <div>
+                                                    <div className="text-[10px] text-gray-500 uppercase">Followers</div>
+                                                    <div className="text-sm font-bold text-gray-900">{formatNumber(activeCollaboration.creator?.audienceSize)}</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-[10px] text-gray-500 uppercase">Engagement</div>
+                                                    <div className="text-sm font-bold text-gray-900">{(activeCollaboration.creator?.avgEngagementRate || 0).toFixed(1)}%</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {activeCollaboration.creator?.platforms?.map(p => (
+                                                    <PlatformBadge key={p.name} platform={(p.name || 'platform').toLowerCase()} />
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
 
                                     {/* Stay Details */}
                                     <div>
