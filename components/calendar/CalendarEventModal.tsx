@@ -95,7 +95,7 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                                     </div>
 
                                     {/* Property Card */}
-                                    <div className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between mb-8 shadow-sm">
+                                    <div className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between mb-6 shadow-sm">
                                         <div className="flex items-center gap-4">
                                             {collaboration.hotel_picture ? (
                                                 <img
@@ -132,7 +132,7 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                                     </div>
 
                                     {/* Style-match Sections */}
-                                    <div className="space-y-6">
+                                    <div className="space-y-4">
                                         <div className="flex flex-col gap-1">
                                             <p className="text-base font-bold text-gray-900">Offer Details</p>
                                             <p className="text-gray-600">
@@ -148,7 +148,7 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                                         </div>
 
                                         {collaboration.platform_deliverables && collaboration.platform_deliverables.length > 0 && (
-                                            <div className="flex flex-col gap-3">
+                                            <div className="flex flex-col gap-2">
                                                 <p className="text-base font-bold text-gray-900">Deliverables</p>
                                                 <div className="flex flex-wrap gap-2">
                                                     {collaboration.platform_deliverables.flatMap(pd =>
@@ -243,7 +243,7 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                             )}
 
                             {/* Footer Actions */}
-                            <div className="flex items-center gap-3 mt-8 pt-8 border-t border-gray-100">
+                            <div className="flex items-center gap-3 mt-6 pt-5 border-t border-gray-100">
                                 <button
                                     type="button"
                                     className="flex-1 rounded-xl bg-primary-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-primary-500/20 hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-all active:scale-95"
