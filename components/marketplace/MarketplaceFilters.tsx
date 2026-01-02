@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react'
 import { Input } from '@/components/ui'
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, ChevronDownIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 interface MarketplaceFiltersProps {
   searchQuery: string
@@ -97,25 +97,28 @@ const CREATOR_PLATFORMS = [
   'Facebook',
 ]
 
-const COMMON_COUNTRIES = [
-  'USA',
-  'UK',
-  'Germany',
-  'France',
-  'Spain',
-  'Italy',
-  'Netherlands',
-  'Switzerland',
-  'Austria',
-  'Belgium',
-  'Canada',
-  'Australia',
-  'Japan',
-  'South Korea',
-  'Brazil',
-  'Mexico',
-  'India',
-  'China',
+const ALL_COUNTRIES = [
+  'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria',
+  'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan',
+  'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia',
+  'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica',
+  'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt',
+  'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon',
+  'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana',
+  'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel',
+  'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan', 'Laos',
+  'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi',
+  'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova',
+  'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands',
+  'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau',
+  'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania',
+  'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal',
+  'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'South Korea',
+  'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan',
+  'Tanzania', 'Thailand', 'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu',
+  'Uganda', 'Ukraine', 'United Arab Emirates', 'UK', 'USA', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela',
+  'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
+
 ]
 
 export function MarketplaceFilters({
@@ -138,6 +141,7 @@ export function MarketplaceFilters({
   const [isMinEngagementRateOpen, setIsMinEngagementRateOpen] = useState(false)
   const [minFollowersValue, setMinFollowersValue] = useState<number>(filters.minFollowers || 0)
   const [minEngagementRateValue, setMinEngagementRateValue] = useState<number>(filters.minEngagementRate || 0)
+  const [countrySearch, setCountrySearch] = useState('')
   const hotelTypeButtonRef = useRef<HTMLButtonElement>(null)
   const hotelTypeDropdownRef = useRef<HTMLDivElement>(null)
   const offeringButtonRef = useRef<HTMLButtonElement>(null)
@@ -156,24 +160,38 @@ export function MarketplaceFilters({
   const minEngagementRateDropdownRef = useRef<HTMLDivElement>(null)
 
   // Get selected hotel types as array
-  const selectedHotelTypes = Array.isArray(filters.hotelType) 
-    ? filters.hotelType 
-    : filters.hotelType 
-      ? [filters.hotelType] 
+  const selectedHotelTypes = Array.isArray(filters.hotelType)
+    ? filters.hotelType
+    : filters.hotelType
+      ? [filters.hotelType]
       : []
 
   // Get selected offerings as array
-  const selectedOfferings = Array.isArray(filters.offering) 
-    ? filters.offering 
-    : filters.offering 
-      ? [filters.offering] 
+  const selectedOfferings = Array.isArray(filters.offering)
+    ? filters.offering
+    : filters.offering
+      ? [filters.offering]
       : []
 
   // Get selected availability months as array
-  const selectedAvailability = Array.isArray(filters.availability) 
-    ? filters.availability 
-    : filters.availability 
-      ? [filters.availability] 
+  const selectedAvailability = Array.isArray(filters.availability)
+    ? filters.availability
+    : filters.availability
+      ? [filters.availability]
+      : []
+
+  // Get selected creator platforms as array
+  const selectedCreatorPlatforms = Array.isArray(filters.creatorPlatforms)
+    ? filters.creatorPlatforms
+    : filters.creatorPlatforms
+      ? [filters.creatorPlatforms]
+      : []
+
+  // Get selected top countries as array
+  const selectedTopCountries = Array.isArray(filters.topCountries)
+    ? filters.topCountries
+    : filters.topCountries
+      ? [filters.topCountries]
       : []
 
   // Get selected creator platforms as array
@@ -240,6 +258,8 @@ export function MarketplaceFilters({
         !topCountriesButtonRef.current.contains(event.target as Node)
       ) {
         setIsTopCountriesOpen(false)
+        setCountrySearch('')
+
       }
       if (
         minFollowersDropdownRef.current &&
@@ -273,7 +293,7 @@ export function MarketplaceFilters({
       const select = ref.current
       const selectedOption = select.options[select.selectedIndex]
       const text = selectedOption?.text || select.options[0]?.text || ''
-      
+
       // Create a temporary span to measure text width
       const tempSpan = document.createElement('span')
       tempSpan.style.visibility = 'hidden'
@@ -283,10 +303,10 @@ export function MarketplaceFilters({
       tempSpan.style.fontWeight = window.getComputedStyle(select).fontWeight
       tempSpan.textContent = text
       document.body.appendChild(tempSpan)
-      
+
       const textWidth = tempSpan.offsetWidth
       document.body.removeChild(tempSpan)
-      
+
       // Set width: text width + padding (px-3 = 12px each side = 24px)
       select.style.width = `${Math.max(textWidth + 24, 80)}px`
     }
@@ -315,7 +335,7 @@ export function MarketplaceFilters({
     const newTypes = currentTypes.includes(hotelType)
       ? currentTypes.filter(t => t !== hotelType)
       : [...currentTypes, hotelType]
-    
+
     const newFilters = { ...filters }
     if (newTypes.length === 0) {
       delete newFilters.hotelType
@@ -330,7 +350,7 @@ export function MarketplaceFilters({
     const newOfferings = currentOfferings.includes(offering)
       ? currentOfferings.filter(o => o !== offering)
       : [...currentOfferings, offering]
-    
+
     const newFilters = { ...filters }
     if (newOfferings.length === 0) {
       delete newFilters.offering
@@ -345,7 +365,7 @@ export function MarketplaceFilters({
     const newMonths = currentMonths.includes(month)
       ? currentMonths.filter(m => m !== month)
       : [...currentMonths, month]
-    
+
     const newFilters = { ...filters }
     if (newMonths.length === 0) {
       delete newFilters.availability
@@ -384,7 +404,7 @@ export function MarketplaceFilters({
     const newPlatforms = currentPlatforms.includes(platform)
       ? currentPlatforms.filter(p => p !== platform)
       : [...currentPlatforms, platform]
-    
+
     const newFilters = { ...filters }
     if (newPlatforms.length === 0) {
       delete newFilters.creatorPlatforms
@@ -399,7 +419,7 @@ export function MarketplaceFilters({
     const newCountries = currentCountries.includes(country)
       ? currentCountries.filter(c => c !== country)
       : [...currentCountries, country]
-    
+
     const newFilters = { ...filters }
     if (newCountries.length === 0) {
       delete newFilters.topCountries
@@ -454,11 +474,11 @@ export function MarketplaceFilters({
           <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <Input
             type="text"
-            placeholder={viewType === 'hotels' 
+            placeholder={viewType === 'hotels'
               ? 'Search hotels by name or location...'
               : viewType === 'creators'
-              ? 'Search creators by name or location...'
-              : 'Hotels, Creator suchen...'}
+                ? 'Search creators by name or location...'
+                : 'Hotels, Creator suchen...'}
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-12 pr-4 py-3 w-full"
@@ -484,278 +504,629 @@ export function MarketplaceFilters({
       {/* Filter Options - Beneath Search Bar */}
       {(viewType === 'all' || viewType === 'hotels') && (
         <>
-        <div className="flex flex-wrap gap-2">
-          {/* Hotel Type Filter - Multiselect */}
-          <div className="relative">
-            <button
-              ref={hotelTypeButtonRef}
-              onClick={() => setIsHotelTypeOpen(!isHotelTypeOpen)}
-              className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
-            >
-              Hotel Type
-            </button>
-            {isHotelTypeOpen && (
-              <div
-                ref={hotelTypeDropdownRef}
-                className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[220px] overflow-hidden"
+          <div className="flex flex-wrap gap-2">
+            {/* Hotel Type Filter - Multiselect */}
+            <div className="relative">
+              <button
+                ref={hotelTypeButtonRef}
+                onClick={() => setIsHotelTypeOpen(!isHotelTypeOpen)}
+                className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
               >
-                <div className="px-5 py-2.5 text-gray-900 text-sm">
-                  Select Hotel Types
-                </div>
-                <div className="max-h-64 overflow-y-auto">
-                  {HOTEL_TYPES.map((type) => {
-                    const isSelected = selectedHotelTypes.includes(type)
-                    return (
-                      <label
-                        key={type}
-                        className="flex items-center px-5 py-0.5 hover:bg-gray-50 cursor-pointer transition-colors"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          handleHotelTypeToggle(type)
-                        }}
-                      >
-                        <div className="relative flex items-center justify-center">
-                          {isSelected ? (
-                            <div className="w-4 h-4 bg-primary-600 rounded flex items-center justify-center">
-                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            </div>
-                          ) : (
-                            <div className="w-4 h-4 border-2 border-primary-400 rounded-full bg-white"></div>
-                          )}
-                        </div>
-                        <span className="ml-3 text-sm text-gray-900">{type}</span>
-                      </label>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Offering Filter - Multiselect */}
-          <div className="relative">
-            <button
-              ref={offeringButtonRef}
-              onClick={() => setIsOfferingOpen(!isOfferingOpen)}
-              className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
-            >
-              Offering
-            </button>
-            {isOfferingOpen && (
-              <div
-                ref={offeringDropdownRef}
-                className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[220px] overflow-hidden"
-              >
-                <div className="px-5 py-2.5 text-gray-900 text-sm">
-                  Select Offerings
-                </div>
-                <div className="max-h-64 overflow-y-auto">
-                  {OFFERINGS.map((offering) => {
-                    const isSelected = selectedOfferings.includes(offering)
-                    return (
-                      <label
-                        key={offering}
-                        className="flex items-center px-5 py-0.5 hover:bg-gray-50 cursor-pointer transition-colors"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          handleOfferingToggle(offering)
-                        }}
-                      >
-                        <div className="relative flex items-center justify-center">
-                          {isSelected ? (
-                            <div className="w-4 h-4 bg-primary-600 rounded flex items-center justify-center">
-                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            </div>
-                          ) : (
-                            <div className="w-4 h-4 border-2 border-primary-400 rounded-full bg-white"></div>
-                          )}
-                        </div>
-                        <span className="ml-3 text-sm text-gray-900">{offering}</span>
-                      </label>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Availability Filter - Grid */}
-          <div className="relative">
-            <button
-              ref={availabilityButtonRef}
-              onClick={() => setIsAvailabilityOpen(!isAvailabilityOpen)}
-              className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
-            >
-              Availability
-            </button>
-            {isAvailabilityOpen && (
-              <div
-                ref={availabilityDropdownRef}
-                className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[280px] overflow-hidden"
-              >
-                <div className="px-5 py-2.5 text-gray-900 text-sm font-bold">
-                  Select Months
-                </div>
-                <div className="px-5 pb-4">
-                  <div className="grid grid-cols-3 gap-2">
-                    {AVAILABILITY_OPTIONS.map((month) => {
-                      const isSelected = selectedAvailability.includes(month)
+                Hotel Type
+              </button>
+              {isHotelTypeOpen && (
+                <div
+                  ref={hotelTypeDropdownRef}
+                  className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[220px] overflow-hidden"
+                >
+                  <div className="px-5 py-2.5 text-gray-900 text-sm">
+                    Select Hotel Types
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {HOTEL_TYPES.map((type) => {
+                      const isSelected = selectedHotelTypes.includes(type)
                       return (
-                        <button
-                          key={month}
-                          onClick={() => handleAvailabilityToggle(month)}
-                          className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                            isSelected
-                              ? 'bg-primary-600 text-white'
-                              : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                          }`}
+                        <label
+                          key={type}
+                          className="flex items-center px-5 py-0.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            handleHotelTypeToggle(type)
+                          }}
                         >
-                          {MONTH_ABBREVIATIONS[month]}
-                        </button>
+                          <div className="relative flex items-center justify-center">
+                            {isSelected ? (
+                              <div className="w-4 h-4 bg-primary-600 rounded flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            ) : (
+                              <div className="w-4 h-4 border-2 border-primary-400 rounded-full bg-white"></div>
+                            )}
+                          </div>
+                          <span className="ml-3 text-sm text-gray-900">{type}</span>
+                        </label>
                       )
                     })}
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Budget Filter - Slider */}
-          <div className="relative">
-            <button
-              ref={budgetButtonRef}
-              onClick={() => setIsBudgetOpen(!isBudgetOpen)}
-              className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
-            >
-              Budget
-            </button>
-            {isBudgetOpen && (
-              <div
-                ref={budgetDropdownRef}
-                className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[320px] overflow-hidden"
+            {/* Offering Filter - Multiselect */}
+            <div className="relative">
+              <button
+                ref={offeringButtonRef}
+                onClick={() => setIsOfferingOpen(!isOfferingOpen)}
+                className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
               >
-                <div className="px-5 py-3 text-gray-900 text-sm font-bold text-center">
-                  Budget Range (Paid/Hybrid)
-                </div>
-                <div className="px-5 pb-5">
-                  <div className="relative">
-                    <input
-                      type="range"
-                      min="500"
-                      max="10000"
-                      step="100"
-                      value={budgetValue}
-                      onChange={(e) => handleBudgetChange(Number(e.target.value))}
-                      className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer budget-slider"
-                      style={{
-                        background: `linear-gradient(to right, rgb(14, 165, 233) 0%, rgb(14, 165, 233) ${((budgetValue - 500) / (10000 - 500)) * 100}%, rgb(229, 231, 235) ${((budgetValue - 500) / (10000 - 500)) * 100}%, rgb(229, 231, 235) 100%)`
-                      }}
-                    />
+                Offering
+              </button>
+              {isOfferingOpen && (
+                <div
+                  ref={offeringDropdownRef}
+                  className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[220px] overflow-hidden"
+                >
+                  <div className="px-5 py-2.5 text-gray-900 text-sm">
+                    Select Offerings
                   </div>
-                  <div className="flex justify-between mt-3 text-sm text-gray-700">
-                    <span>€500</span>
-                    <span>€10,000</span>
+                  <div className="max-h-64 overflow-y-auto">
+                    {OFFERINGS.map((offering) => {
+                      const isSelected = selectedOfferings.includes(offering)
+                      return (
+                        <label
+                          key={offering}
+                          className="flex items-center px-5 py-0.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            handleOfferingToggle(offering)
+                          }}
+                        >
+                          <div className="relative flex items-center justify-center">
+                            {isSelected ? (
+                              <div className="w-4 h-4 bg-primary-600 rounded flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            ) : (
+                              <div className="w-4 h-4 border-2 border-primary-400 rounded-full bg-white"></div>
+                            )}
+                          </div>
+                          <span className="ml-3 text-sm text-gray-900">{offering}</span>
+                        </label>
+                      )
+                    })}
                   </div>
                 </div>
-              </div>
+              )}
+            </div>
+
+            {/* Availability Filter - Grid */}
+            <div className="relative">
+              <button
+                ref={availabilityButtonRef}
+                onClick={() => setIsAvailabilityOpen(!isAvailabilityOpen)}
+                className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
+              >
+                Availability
+              </button>
+              {isAvailabilityOpen && (
+                <div
+                  ref={availabilityDropdownRef}
+                  className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[280px] overflow-hidden"
+                >
+                  <div className="px-5 py-2.5 text-gray-900 text-sm font-bold">
+                    Select Months
+                  </div>
+                  <div className="px-5 pb-4">
+                    <div className="grid grid-cols-3 gap-2">
+                      {AVAILABILITY_OPTIONS.map((month) => {
+                        const isSelected = selectedAvailability.includes(month)
+                        return (
+                          <button
+                            key={month}
+                            onClick={() => handleAvailabilityToggle(month)}
+                            className={`px-3 py-2 text-sm rounded-lg transition-colors ${isSelected
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                              }`}
+                          >
+                            {MONTH_ABBREVIATIONS[month]}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Budget Filter - Slider */}
+            <div className="relative">
+              <button
+                ref={budgetButtonRef}
+                onClick={() => setIsBudgetOpen(!isBudgetOpen)}
+                className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
+              >
+                Budget
+              </button>
+              {isBudgetOpen && (
+                <div
+                  ref={budgetDropdownRef}
+                  className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[320px] overflow-hidden"
+                >
+                  <div className="px-5 py-3 text-gray-900 text-sm font-bold text-center">
+                    Budget Range (Paid/Hybrid)
+                  </div>
+                  <div className="px-5 pb-5">
+                    <div className="relative">
+                      <input
+                        type="range"
+                        min="500"
+                        max="10000"
+                        step="100"
+                        value={budgetValue}
+                        onChange={(e) => handleBudgetChange(Number(e.target.value))}
+                        className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer budget-slider"
+                        style={{
+                          background: `linear-gradient(to right, rgb(14, 165, 233) 0%, rgb(14, 165, 233) ${((budgetValue - 500) / (10000 - 500)) * 100}%, rgb(229, 231, 235) ${((budgetValue - 500) / (10000 - 500)) * 100}%, rgb(229, 231, 235) 100%)`
+                        }}
+                      />
+                    </div>
+                    <div className="flex justify-between mt-3 text-sm text-gray-700">
+                      <span>€500</span>
+                      <span>€10,000</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Clear All Button */}
+            {hasAnyFilters && (
+              <button
+                onClick={handleClearAll}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Clear all
+              </button>
             )}
           </div>
 
-          {/* Clear All Button */}
+          {/* Selected Filter Chips */}
           {hasAnyFilters && (
-            <button
-              onClick={handleClearAll}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Clear all
-            </button>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {/* Hotel Type Chips */}
+              {selectedHotelTypes.map((type) => (
+                <div
+                  key={type}
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg"
+                >
+                  <span>{type}</span>
+                  <button
+                    onClick={() => handleHotelTypeToggle(type)}
+                    className="hover:text-gray-900 transition-colors"
+                    aria-label={`Remove ${type}`}
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+
+              {/* Offering Chips */}
+              {selectedOfferings.map((offering) => (
+                <div
+                  key={offering}
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg"
+                >
+                  <span>{offering}</span>
+                  <button
+                    onClick={() => handleOfferingToggle(offering)}
+                    className="hover:text-gray-900 transition-colors"
+                    aria-label={`Remove ${offering}`}
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+
+              {/* Availability Chips */}
+              {selectedAvailability.map((month) => (
+                <div
+                  key={month}
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg"
+                >
+                  <span>{MONTH_ABBREVIATIONS[month]}</span>
+                  <button
+                    onClick={() => handleAvailabilityToggle(month)}
+                    className="hover:text-gray-900 transition-colors"
+                    aria-label={`Remove ${month}`}
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+
+              {/* Budget Chip */}
+              {filters.budget !== undefined && filters.budget > 500 && (
+                <div className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg">
+                  <span>{formatBudget(filters.budget)}</span>
+                  <button
+                    onClick={() => handleBudgetChange(500)}
+                    className="hover:text-gray-900 transition-colors"
+                    aria-label="Remove budget"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
           )}
-        </div>
+        </>
+      )}
 
-        {/* Selected Filter Chips */}
-        {hasAnyFilters && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {/* Hotel Type Chips */}
-            {selectedHotelTypes.map((type) => (
-              <div
-                key={type}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg"
+      {/* Creator Filters - Only show when viewing creators */}
+      {(viewType === 'all' || viewType === 'creators') && (
+        <>
+          <div className="flex flex-wrap gap-2">
+            {/* Minimum Followers Filter - Slider */}
+            <div className="relative">
+              <button
+                ref={minFollowersButtonRef}
+                onClick={() => setIsMinFollowersOpen(!isMinFollowersOpen)}
+                className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
               >
-                <span>{type}</span>
-                <button
-                  onClick={() => handleHotelTypeToggle(type)}
-                  className="hover:text-gray-900 transition-colors"
-                  aria-label={`Remove ${type}`}
+                {filters.minFollowers && filters.minFollowers > 0
+                  ? `Follower: ${formatFollowers(filters.minFollowers)}+`
+                  : 'Follower'}
+              </button>
+              {isMinFollowersOpen && (
+                <div
+                  ref={minFollowersDropdownRef}
+                  className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[320px] overflow-hidden"
                 >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            ))}
+                  <div className="px-5 py-3 text-gray-900 text-sm font-bold text-center">
+                    Minimum Followers
+                  </div>
+                  <div className="px-5 pb-5">
+                    <div className="relative">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1000000"
+                        step="1000"
+                        value={minFollowersValue}
+                        onChange={(e) => handleMinFollowersChange(Number(e.target.value))}
+                        className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, rgb(14, 165, 233) 0%, rgb(14, 165, 233) ${(minFollowersValue / 1000000) * 100}%, rgb(229, 231, 235) ${(minFollowersValue / 1000000) * 100}%, rgb(229, 231, 235) 100%)`
+                        }}
+                      />
+                    </div>
+                    <div className="flex justify-between mt-3 text-sm text-gray-700">
+                      <span>0</span>
+                      <span className="font-medium">{formatFollowers(minFollowersValue)}</span>
+                      <span>1M</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
-            {/* Offering Chips */}
-            {selectedOfferings.map((offering) => (
-              <div
-                key={offering}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg"
+            {/* Minimum Engagement Rate Filter - Slider */}
+            <div className="relative">
+              <button
+                ref={minEngagementRateButtonRef}
+                onClick={() => setIsMinEngagementRateOpen(!isMinEngagementRateOpen)}
+                className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
               >
-                <span>{offering}</span>
-                <button
-                  onClick={() => handleOfferingToggle(offering)}
-                  className="hover:text-gray-900 transition-colors"
-                  aria-label={`Remove ${offering}`}
+                {filters.minEngagementRate && filters.minEngagementRate > 0
+                  ? `Engagement: ${filters.minEngagementRate.toFixed(1)}%+`
+                  : 'Engagement Rate'}
+              </button>
+              {isMinEngagementRateOpen && (
+                <div
+                  ref={minEngagementRateDropdownRef}
+                  className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[320px] overflow-hidden"
                 >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            ))}
+                  <div className="px-5 py-3 text-gray-900 text-sm font-bold text-center">
+                    Minimum Engagement Rate
+                  </div>
+                  <div className="px-5 pb-5">
+                    <div className="relative">
+                      <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        step="0.1"
+                        value={minEngagementRateValue}
+                        onChange={(e) => handleMinEngagementRateChange(Number(e.target.value))}
+                        className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, rgb(14, 165, 233) 0%, rgb(14, 165, 233) ${(minEngagementRateValue / 10) * 100}%, rgb(229, 231, 235) ${(minEngagementRateValue / 10) * 100}%, rgb(229, 231, 235) 100%)`
+                        }}
+                      />
+                    </div>
+                    <div className="flex justify-between mt-3 text-sm text-gray-700">
+                      <span>0%</span>
+                      <span className="font-medium">{minEngagementRateValue.toFixed(1)}%</span>
+                      <span>10%</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
-            {/* Availability Chips */}
-            {selectedAvailability.map((month) => (
-              <div
-                key={month}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg"
+            {/* Platforms Filter - Multiselect */}
+            <div className="relative">
+              <button
+                ref={creatorPlatformsButtonRef}
+                onClick={() => setIsCreatorPlatformsOpen(!isCreatorPlatformsOpen)}
+                className="inline-block px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer hover:border-gray-400 transition-colors"
               >
-                <span>{MONTH_ABBREVIATIONS[month]}</span>
-                <button
-                  onClick={() => handleAvailabilityToggle(month)}
-                  className="hover:text-gray-900 transition-colors"
-                  aria-label={`Remove ${month}`}
+                Platforms
+              </button>
+              {isCreatorPlatformsOpen && (
+                <div
+                  ref={creatorPlatformsDropdownRef}
+                  className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[220px] overflow-hidden"
                 >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            ))}
+                  <div className="px-5 py-2.5 text-gray-900 text-sm">
+                    Select Platforms
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {CREATOR_PLATFORMS.map((platform) => {
+                      const isSelected = selectedCreatorPlatforms.includes(platform)
+                      return (
+                        <label
+                          key={platform}
+                          className="flex items-center px-5 py-0.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            handleCreatorPlatformToggle(platform)
+                          }}
+                        >
+                          <div className="relative flex items-center justify-center">
+                            {isSelected ? (
+                              <div className="w-4 h-4 bg-primary-600 rounded flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            ) : (
+                              <div className="w-4 h-4 border-2 border-primary-400 rounded-full bg-white"></div>
+                            )}
+                          </div>
+                          <span className="ml-3 text-sm text-gray-900">{platform}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
 
-            {/* Budget Chip */}
-            {filters.budget !== undefined && filters.budget > 500 && (
-              <div className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg">
-                <span>{formatBudget(filters.budget)}</span>
-                <button
-                  onClick={() => handleBudgetChange(500)}
-                  className="hover:text-gray-900 transition-colors"
-                  aria-label="Remove budget"
+            {/* Top Countries Filter - Premium Searchable Multiselect */}
+            <div className="relative">
+              <button
+                ref={topCountriesButtonRef}
+                onClick={() => setIsTopCountriesOpen(!isTopCountriesOpen)}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-xl transition-all duration-200 ${isTopCountriesOpen || selectedTopCountries.length > 0
+                  ? 'border-primary-500 bg-primary-50/30 text-primary-700 shadow-sm'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+              >
+                <span>Top Countries</span>
+                {selectedTopCountries.length > 0 && (
+                  <span className="flex items-center justify-center w-5 h-5 text-[10px] font-bold bg-primary-600 text-white rounded-full">
+                    {selectedTopCountries.length}
+                  </span>
+                )}
+                <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isTopCountriesOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isTopCountriesOpen && (
+                <div
+                  ref={topCountriesDropdownRef}
+                  className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-2xl z-50 min-w-[320px] border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
                 >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            )}
+                  <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+                    <div className="relative">
+                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search for a country..."
+                        value={countrySearch}
+                        onChange={(e) => setCountrySearch(e.target.value)}
+                        className="w-full pl-9 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                        autoFocus
+                      />
+                      {countrySearch && (
+                        <button
+                          onClick={() => setCountrySearch('')}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-all"
+                        >
+                          <XMarkIcon className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto py-2 custom-scrollbar">
+                    {/* Selected Countries Section (pinned to top when search is empty) */}
+                    {!countrySearch && selectedTopCountries.length > 0 && (
+                      <div className="px-4 pb-2 mb-2 border-b border-gray-100">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Selected</p>
+                        <div className="space-y-1">
+                          {selectedTopCountries.map((country) => (
+                            <div
+                              key={`selected-${country}`}
+                              onClick={() => handleTopCountryToggle(country)}
+                              className="flex items-center justify-between px-3 py-2 bg-primary-50 text-primary-700 rounded-lg cursor-pointer hover:bg-primary-100 transition-colors group"
+                            >
+                              <span className="text-sm font-semibold">{country}</span>
+                              <CheckIcon className="w-4 h-4" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* All/Filtered Countries */}
+                    <div className="px-2 space-y-0.5">
+                      {ALL_COUNTRIES.filter(c =>
+                        c.toLowerCase().includes(countrySearch.toLowerCase()) &&
+                        (countrySearch ? true : !selectedTopCountries.includes(c))
+                      ).map((country) => {
+                        const isSelected = selectedTopCountries.includes(country)
+                        return (
+                          <div
+                            key={country}
+                            onClick={() => handleTopCountryToggle(country)}
+                            className={`flex items-center px-3 py-2.5 rounded-xl cursor-pointer transition-all group ${isSelected
+                              ? 'bg-primary-50 text-primary-700'
+                              : 'hover:bg-gray-50 text-gray-700'
+                              }`}
+                          >
+                            <div className="relative flex items-center justify-center">
+                              <div className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${isSelected
+                                ? 'bg-primary-600 border-primary-600'
+                                : 'bg-white border-gray-200 group-hover:border-primary-300'
+                                }`}>
+                                {isSelected && <CheckIcon className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                              </div>
+                            </div>
+                            <span className={`ml-3 text-sm transition-colors ${isSelected ? 'font-semibold' : 'group-hover:text-gray-900 font-medium'}`}>
+                              {country}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {ALL_COUNTRIES.filter(c =>
+                      c.toLowerCase().includes(countrySearch.toLowerCase())
+                    ).length === 0 && (
+                        <div className="px-4 py-12 text-center">
+                          <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <MagnifyingGlassIcon className="w-6 h-6 text-gray-300" />
+                          </div>
+                          <p className="text-sm font-medium text-gray-900">No results found</p>
+                          <p className="text-xs text-gray-500 mt-1">Try searching for another country</p>
+                        </div>
+                      )}
+                  </div>
+
+                  {selectedTopCountries.length > 0 && (
+                    <div className="p-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        {selectedTopCountries.length} selected
+                      </p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const nextFilters = { ...filters }
+                          delete nextFilters.topCountries
+                          onFiltersChange(nextFilters)
+                        }}
+                        className="text-[10px] font-bold text-primary-600 hover:text-primary-700 uppercase tracking-wider"
+                      >
+                        Clear all
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        )}
+
+          {/* Selected Creator Filter Chips */}
+          {(selectedCreatorPlatforms.length > 0 || selectedTopCountries.length > 0 || (filters.minFollowers !== undefined && filters.minFollowers > 0) || (filters.minEngagementRate !== undefined && filters.minEngagementRate > 0)) && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {/* Min Followers Chip */}
+              {filters.minFollowers !== undefined && filters.minFollowers > 0 && (
+                <div className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg">
+                  <span>Follower: {formatFollowers(filters.minFollowers)}+</span>
+                  <button
+                    onClick={() => handleMinFollowersChange(0)}
+                    className="hover:text-gray-900 transition-colors"
+                    aria-label="Remove minimum followers"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Min Engagement Rate Chip */}
+              {filters.minEngagementRate !== undefined && filters.minEngagementRate > 0 && (
+                <div className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg">
+                  <span>Engagement: {filters.minEngagementRate.toFixed(1)}%+</span>
+                  <button
+                    onClick={() => handleMinEngagementRateChange(0)}
+                    className="hover:text-gray-900 transition-colors"
+                    aria-label="Remove minimum engagement rate"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Creator Platforms Chips */}
+              {selectedCreatorPlatforms.map((platform) => (
+                <div
+                  key={platform}
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg"
+                >
+                  <span>{platform}</span>
+                  <button
+                    onClick={() => handleCreatorPlatformToggle(platform)}
+                    className="hover:text-gray-900 transition-colors"
+                    aria-label={`Remove ${platform}`}
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+
+              {/* Top Countries Chips */}
+              {selectedTopCountries.map((country) => (
+                <div
+                  key={country}
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg"
+                >
+                  <span>{country}</span>
+                  <button
+                    onClick={() => handleTopCountryToggle(country)}
+                    className="hover:text-gray-900 transition-colors"
+                    aria-label={`Remove ${country}`}
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
 
