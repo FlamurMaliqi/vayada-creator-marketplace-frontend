@@ -242,20 +242,55 @@ export function CollaborationRequestDetailModal({
             </div>
           </div>
 
-          {/* Application Summary */}
+          {/* Brand Overview (For Creators) */}
+          {currentUserType === 'creator' && (collaboration.hotelAbout || collaboration.hotelWebsite) && (
+            <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+              <h5 className="font-bold text-gray-900 mb-3">Brand Overview</h5>
+              {collaboration.hotelAbout && (
+                <p className="text-gray-700 text-sm leading-relaxed mb-4">
+                  {collaboration.hotelAbout}
+                </p>
+              )}
+              {collaboration.hotelWebsite && (
+                <a
+                  href={collaboration.hotelWebsite.startsWith('http') ? collaboration.hotelWebsite : `https://${collaboration.hotelWebsite}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 text-sm font-semibold"
+                >
+                  Visit Website
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Message / Application Summary */}
           <div>
-            <h5 className="font-bold text-gray-900 mb-2">Application Summary</h5>
+            <h5 className="font-bold text-gray-900 mb-2">
+              {currentUserType === 'hotel' ? 'Application Summary' : 'Message'}
+            </h5>
             <p className="text-gray-700 leading-relaxed">{getMessage()}</p>
           </div>
 
-          {/* Travel Dates */}
+          {/* Travel Dates / Period */}
           <div>
-            <h5 className="font-bold text-gray-900 mb-2">Collaboration Period</h5>
-            <p className="text-gray-700">{travelDateFrom} – {travelDateTo}</p>
+            <h5 className="font-bold text-gray-900 mb-2">
+              {currentUserType === 'hotel' ? 'Travel Dates' : 'Collaboration Period'}
+            </h5>
+            {collaboration.travelDateFrom || collaboration.preferredDateFrom ? (
+              <p className="text-gray-700">{travelDateFrom} – {travelDateTo}</p>
+            ) : collaboration.preferredMonths && collaboration.preferredMonths.length > 0 ? (
+              <p className="text-gray-700">Preferred Months: {collaboration.preferredMonths.join(', ')}</p>
+            ) : (
+              <p className="text-gray-700">TBD</p>
+            )}
           </div>
 
-          {/* Offer Details */}
-          {collaboration.collaborationType && (
+          {/* Offer Details (Creator Only) */}
+          {currentUserType === 'creator' && collaboration.collaborationType && (
             <div>
               <h5 className="font-bold text-gray-900 mb-2">Offer Details</h5>
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
@@ -269,10 +304,12 @@ export function CollaborationRequestDetailModal({
             </div>
           )}
 
-          {/* Deliverables */}
+          {/* Deliverables / Platforms I'll Post On */}
           {collaboration.platformDeliverables && collaboration.platformDeliverables.length > 0 && (
             <div>
-              <h5 className="font-bold text-gray-900 mb-3">Deliverables</h5>
+              <h5 className="font-bold text-gray-900 mb-3">
+                {currentUserType === 'hotel' ? "Platforms I'll Post On" : 'Deliverables'}
+              </h5>
               <div className="space-y-4">
                 {collaboration.platformDeliverables.map((item, index) => (
                   <div key={index} className="flex flex-col gap-2">
@@ -282,16 +319,37 @@ export function CollaborationRequestDetailModal({
                       </div>
                       <span className="font-semibold text-gray-900">{item.platform}</span>
                     </div>
-                    <div className="ml-7 flex flex-wrap gap-2">
-                      {item.deliverables.map((deliverable, dIndex) => (
-                        <div key={dIndex} className="text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                          {deliverable.quantity}x {deliverable.type}
-                        </div>
-                      ))}
-                    </div>
+                    {currentUserType === 'creator' ? (
+                      <div className="ml-7 flex flex-wrap gap-2">
+                        {item.deliverables.map((deliverable, dIndex) => (
+                          <div key={dIndex} className="text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                            {deliverable.quantity}x {deliverable.type}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="ml-7 space-y-1">
+                        {item.deliverables.map((deliverable, dIndex) => (
+                          <div key={dIndex} className="text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg inline-block w-fit">
+                            {deliverable.quantity}x {deliverable.type}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Contact Details (For Accepted/Completed) */}
+          {currentUserType === 'creator' && (collaboration.status === 'accepted' || collaboration.status === 'completed') && collaboration.hotelPhone && (
+            <div className="border-t border-gray-100 pt-6">
+              <h5 className="font-bold text-gray-900 mb-2">Hotel Contact Details</h5>
+              <p className="text-sm text-gray-600 mb-1">Phone</p>
+              <a href={`tel:${collaboration.hotelPhone}`} className="text-primary-600 hover:underline font-medium">
+                {collaboration.hotelPhone}
+              </a>
             </div>
           )}
 

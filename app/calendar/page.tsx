@@ -52,6 +52,34 @@ function CalendarPageContent() {
         }
     }
 
+    const handleAccept = async (id: string) => {
+        try {
+            await collaborationService.respondToCollaboration(id, { status: 'accepted' })
+            handleViewDetails(id)
+            // Optionally refresh the full list
+        } catch (error) {
+            console.error('Failed to accept collaboration:', error)
+        }
+    }
+
+    const handleDecline = async (id: string) => {
+        try {
+            await collaborationService.respondToCollaboration(id, { status: 'declined' })
+            handleViewDetails(id)
+        } catch (error) {
+            console.error('Failed to decline collaboration:', error)
+        }
+    }
+
+    const handleApprove = async (id: string) => {
+        try {
+            await collaborationService.approveCollaboration(id)
+            handleViewDetails(id)
+        } catch (error) {
+            console.error('Failed to approve collaboration:', error)
+        }
+    }
+
     return (
         <main className="min-h-screen" style={{ backgroundColor: '#f9f8f6' }}>
             <AuthenticatedNavigation />
@@ -76,6 +104,9 @@ function CalendarPageContent() {
                 onClose={() => setDetailCollaboration(null)}
                 collaboration={detailCollaboration}
                 currentUserType={userType}
+                onAccept={handleAccept}
+                onDecline={handleDecline}
+                onApprove={handleApprove}
             />
         </main>
     )

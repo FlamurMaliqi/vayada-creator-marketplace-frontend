@@ -97,6 +97,10 @@ export interface CollaborationResponse {
   hotel_id: string
   hotel_name: string
   hotel_picture?: string | null
+  hotel_location?: string | null
+  hotel_website?: string | null
+  hotel_about?: string | null
+  hotel_phone?: string | null
   total_followers?: number
   avg_engagement_rate?: number
   active_platform?: string
@@ -143,6 +147,10 @@ export type DetailedCollaboration = Collaboration & {
   listingName?: string
   listingLocation?: string
   collaborationType?: 'Free Stay' | 'Paid' | 'Discount' | null
+  hotelLocation?: string | null
+  hotelWebsite?: string | null
+  hotelAbout?: string | null
+  hotelPhone?: string | null
   freeStayMinNights?: number | null
   freeStayMaxNights?: number | null
   paidAmount?: number | null
@@ -454,6 +462,10 @@ export function transformCollaborationResponse(
     preferredMonths: response.preferred_months,
     whyGreatFit: response.why_great_fit,
     platformDeliverables: response.platform_deliverables,
+    hotelLocation: response.hotel_location,
+    hotelWebsite: response.hotel_website,
+    hotelAbout: response.hotel_about,
+    hotelPhone: response.hotel_phone,
     hotelAgreedAt: response.hotel_agreed_at ? new Date(response.hotel_agreed_at) : null,
     creatorAgreedAt: response.creator_agreed_at ? new Date(response.creator_agreed_at) : null,
     consent: response.consent,
