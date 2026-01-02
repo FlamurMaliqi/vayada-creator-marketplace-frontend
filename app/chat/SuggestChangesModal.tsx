@@ -154,6 +154,7 @@ export default function SuggestChangesModal({
                                     value={checkOut}
                                     onChange={(e) => setCheckOut(e.target.value)}
                                     className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
+
                                 />
                             </div>
                         </div>

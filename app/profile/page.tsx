@@ -113,6 +113,7 @@ const HotelBadgeIcon = ({ active }: { active?: boolean }) => (
     className={`w-8 h-8 rounded-lg flex items-center justify-center ${active
       ? 'bg-[#2F54EB] text-white'
       : 'bg-[#EEF2FF] text-[#2F54EB]'
+
       }`}
   >
     <svg
