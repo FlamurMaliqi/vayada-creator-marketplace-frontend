@@ -261,9 +261,14 @@ function ChatPageContent() {
         fetchData()
     }, [userType])
 
-    const fetchMessages = async () => {
+    const fetchMessages = async (silent = false) => {
         if (!selectedChatId) return
-        setIsLoadingMessages(true)
+
+        if (!silent) {
+            setIsLoadingMessages(true)
+            setIsLoadingDetails(true)
+        }
+
         setHasMoreMessages(true)
 
         // Reset unread count locally for snappy UI
@@ -288,7 +293,6 @@ function ChatPageContent() {
             )
 
             // Fetch collaboration details for the right panel
-            setIsLoadingDetails(true)
             const detailResponse = userType === 'hotel'
                 ? await collaborationService.getHotelCollaborationDetails(selectedChatId)
                 : await collaborationService.getCreatorCollaborationDetails(selectedChatId)
@@ -298,8 +302,10 @@ function ChatPageContent() {
         } catch (error) {
             console.error('Failed to fetch chat details:', error)
         } finally {
-            setIsLoadingMessages(false)
-            setIsLoadingDetails(false)
+            if (!silent) {
+                setIsLoadingMessages(false)
+                setIsLoadingDetails(false)
+            }
         }
     }
 
@@ -437,8 +443,8 @@ function ChatPageContent() {
             const updatedResponse = await collaborationService.toggleDeliverable(selectedChatId, deliverableId)
             const detailedCollaboration = transformCollaborationResponse(updatedResponse)
             setActiveCollaboration(detailedCollaboration)
-            // Refresh messages to show the system notification
-            fetchMessages()
+            // Refresh messages silently to show the system notification without flickering
+            fetchMessages(true)
         } catch (error) {
             console.error('Failed to toggle deliverable:', error)
         }
@@ -452,8 +458,8 @@ function ChatPageContent() {
             const detailedCollaboration = transformCollaborationResponse(updatedResponse)
             setActiveCollaboration(detailedCollaboration)
             setIsSuggestModalOpen(false)
-            // Refresh messages to show the system notification
-            fetchMessages()
+            // Refresh messages silently to show the system notification without flickering
+            fetchMessages(true)
         } catch (error) {
             console.error('Failed to suggest changes:', error)
         }
@@ -467,8 +473,8 @@ function ChatPageContent() {
             const updatedResponse = await collaborationService.approveCollaboration(collabId)
             const detailedCollaboration = transformCollaborationResponse(updatedResponse)
             setActiveCollaboration(detailedCollaboration)
-            // Refresh messages to show the system notification
-            fetchMessages()
+            // Refresh messages silently to show the system notification without flickering
+            fetchMessages(true)
         } catch (error) {
             console.error('Failed to approve terms:', error)
         }
