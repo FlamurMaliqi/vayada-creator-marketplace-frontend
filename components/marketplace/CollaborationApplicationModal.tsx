@@ -447,8 +447,8 @@ export function CollaborationApplicationModal({
                   <div
                     key={platform}
                     className={`rounded-2xl transition-all duration-200 border ${platformSelected
-                      ? 'border-primary-500 bg-primary-50/40 shadow-sm'
-                      : 'border-gray-200 bg-gray-50/30 hover:bg-gray-50/50'
+                        ? 'border-primary-500 bg-primary-50/40 shadow-sm'
+                        : 'border-gray-300 bg-gray-50/30 hover:bg-gray-50/50'
                       }`}
                   >
                     {/* Platform Header */}
@@ -458,8 +458,8 @@ export function CollaborationApplicationModal({
                     >
                       <div className="flex items-center gap-4">
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${platformSelected
-                          ? 'bg-primary-600 border-primary-600'
-                          : 'border-gray-300'
+                            ? 'bg-primary-600 border-primary-600'
+                            : 'border-primary-400 bg-white'
                           }`}>
                           {platformSelected && <CheckIcon className="w-4 h-4 text-white stroke-[3px]" />}
                         </div>
@@ -484,7 +484,7 @@ export function CollaborationApplicationModal({
                           return (
                             <div
                               key={deliverable}
-                              className="bg-white px-4 py-3 rounded-xl border border-gray-100 flex items-center justify-between group hover:border-primary-200 transition-colors shadow-sm"
+                              className="bg-white px-4 py-3 rounded-xl border border-gray-200 flex items-center justify-between group hover:border-primary-200 transition-colors shadow-sm"
                             >
                               <span className="text-gray-700 font-medium">{deliverable}</span>
                               <div className="flex items-center gap-4">
@@ -528,7 +528,7 @@ export function CollaborationApplicationModal({
             </div>
 
             {/* Custom Deliverables Section */}
-            <div className="mt-6 p-6 border border-gray-100 bg-gray-50/30 rounded-2xl">
+            <div className="mt-6 p-6 border border-gray-300 bg-gray-50/30 rounded-2xl">
               <div className="mb-4">
                 <h4 className="text-lg font-bold text-gray-900">Custom Deliverables</h4>
                 <p className="text-sm text-gray-500">Add any other content you'd like to offer</p>
@@ -557,7 +557,7 @@ export function CollaborationApplicationModal({
                 {getPlatformDeliverables('Custom').map((item) => (
                   <div
                     key={item.type}
-                    className="bg-white px-4 py-3 rounded-xl border border-gray-100 flex items-center justify-between shadow-sm animate-in slide-in-from-top-1 duration-200"
+                    className="bg-white px-4 py-3 rounded-xl border border-gray-300 flex items-center justify-between shadow-sm animate-in slide-in-from-top-1 duration-200"
                   >
                     <div className="flex items-center gap-3">
                       <button
@@ -613,7 +613,7 @@ export function CollaborationApplicationModal({
           )}
           {/* Consent Checkbox */}
           <div
-            className="p-5 flex items-start gap-4 rounded-2xl border border-gray-100 bg-gray-50/30 cursor-pointer transition-all hover:bg-gray-50/50"
+            className="p-5 flex items-start gap-4 rounded-2xl border border-gray-200 bg-gray-50/30 cursor-pointer transition-all hover:bg-gray-50/50"
             onClick={() => setConsent(!consent)}
           >
             <div className={`mt-0.5 w-6 h-6 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${consent
