@@ -468,6 +468,7 @@ export function HotelDetailModal({ hotel, isOpen, onClose }: HotelDetailModalPro
         onClose={() => setShowApplicationModal(false)}
         onSubmit={handleApplicationSubmit}
         hotelName={hotel.name}
+        availableMonths={hotel.availability}
       />
 
       {/* Success Modal */}

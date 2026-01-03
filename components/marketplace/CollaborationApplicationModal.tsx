@@ -9,6 +9,7 @@ interface CollaborationApplicationModalProps {
   onClose: () => void
   onSubmit: (data: CollaborationApplicationData) => void
   hotelName?: string
+  availableMonths?: string[]
 }
 
 export interface DeliverableItem {
@@ -40,11 +41,49 @@ const PLATFORM_DELIVERABLES: Record<string, string[]> = {
   'YouTube': ['YouTube Video', 'Photo Pack (20+ images)'],
 }
 
+// Helper for month abbreviations
+const getMonthAbbr = (month: string): string => {
+  const monthMap: { [key: string]: string } = {
+    'Januar': 'Jan',
+    'Februar': 'Feb',
+    'März': 'Mar',
+    'April': 'Apr',
+    'Mai': 'May',
+    'Juni': 'Jun',
+    'Juli': 'Jul',
+    'August': 'Aug',
+    'September': 'Sep',
+    'Oktober': 'Oct',
+    'November': 'Nov',
+    'Dezember': 'Dec',
+  }
+  return monthMap[month] || month.substring(0, 3)
+}
+
+const getMonthsInRange = (fromStr: string, toStr: string): string[] => {
+  const from = new Date(fromStr)
+  const to = new Date(toStr)
+  if (isNaN(from.getTime()) || isNaN(to.getTime())) return []
+
+  const months = []
+  const current = new Date(from.getFullYear(), from.getMonth(), 1)
+
+  // Use a limit to prevent infinite loops if dates are somehow broken
+  let safetyCounter = 0
+  while (current <= to && safetyCounter < 24) {
+    months.push(MONTHS[current.getMonth()])
+    current.setMonth(current.getMonth() + 1)
+    safetyCounter++
+  }
+  return Array.from(new Set(months))
+}
+
 export function CollaborationApplicationModal({
   isOpen,
   onClose,
   onSubmit,
   hotelName,
+  availableMonths = [],
 }: CollaborationApplicationModalProps) {
   const [whyGreatFit, setWhyGreatFit] = useState('')
   const [travelDateFrom, setTravelDateFrom] = useState('')
@@ -53,10 +92,12 @@ export function CollaborationApplicationModal({
   const [platformDeliverables, setPlatformDeliverables] = useState<PlatformDeliverable[]>([])
   const [consent, setConsent] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   if (!isOpen) return null
 
   const handleMonthToggle = (month: string) => {
+    setErrorMessage(null)
     setPreferredMonths((prev) =>
       prev.includes(month) ? prev.filter((m) => m !== month) : [...prev, month]
     )
@@ -121,6 +162,8 @@ export function CollaborationApplicationModal({
   }
 
   const handleSubmit = () => {
+    setErrorMessage(null)
+
     // Filter out platforms with no deliverables
     const validPlatformDeliverables = platformDeliverables.filter(
       (pd) => pd.deliverables.length > 0
@@ -128,6 +171,28 @@ export function CollaborationApplicationModal({
 
     if (!whyGreatFit.trim() || validPlatformDeliverables.length === 0 || !consent) {
       return
+    }
+
+    // Availability Validation
+    if (availableMonths.length > 0 && availableMonths.length < 12) {
+      const normalizedAvailable = availableMonths.map(m => getMonthAbbr(m))
+      let requestedMonths: string[] = []
+
+      if (travelDateFrom && travelDateTo) {
+        requestedMonths = getMonthsInRange(travelDateFrom, travelDateTo)
+      } else if (preferredMonths.length > 0) {
+        requestedMonths = preferredMonths
+      }
+
+      if (requestedMonths.length > 0) {
+        const invalidMonths = requestedMonths.filter(m => !normalizedAvailable.includes(m))
+        if (invalidMonths.length > 0) {
+          setErrorMessage(
+            `The hotel is not available in: ${invalidMonths.join(', ')}. Please select dates within their availability.`
+          )
+          return
+        }
+      }
     }
 
     setIsSubmitting(true)
@@ -223,7 +288,10 @@ export function CollaborationApplicationModal({
                   <input
                     type="date"
                     value={travelDateFrom}
-                    onChange={(e) => setTravelDateFrom(e.target.value)}
+                    onChange={(e) => {
+                      setErrorMessage(null)
+                      setTravelDateFrom(e.target.value)
+                    }}
                     className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                   <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
@@ -235,7 +303,10 @@ export function CollaborationApplicationModal({
                   <input
                     type="date"
                     value={travelDateTo}
-                    onChange={(e) => setTravelDateTo(e.target.value)}
+                    onChange={(e) => {
+                      setErrorMessage(null)
+                      setTravelDateTo(e.target.value)
+                    }}
                     min={travelDateFrom}
                     className="w-full px-4 py-3 pl-10 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
@@ -389,6 +460,13 @@ export function CollaborationApplicationModal({
               </span>
             </label>
           </div>
+
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
+              <p className="text-sm font-semibold text-red-700">{errorMessage}</p>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">

@@ -321,6 +321,7 @@ export function HotelCard({ hotel }: HotelCardProps) {
         onClose={() => setShowApplicationModal(false)}
         onSubmit={handleApplicationSubmit}
         hotelName={hotel.name}
+        availableMonths={hotel.availability}
       />
 
       {/* Success Modal */}
