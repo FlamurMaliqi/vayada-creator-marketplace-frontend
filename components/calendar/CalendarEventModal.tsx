@@ -97,15 +97,15 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                                     {/* Property Card */}
                                     <div className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between mb-6 shadow-sm">
                                         <div className="flex items-center gap-4">
-                                            {collaboration.hotel_picture ? (
+                                            {(collaboration.listing_images?.[0] || collaboration.listingImages?.[0] || collaboration.hotel_picture) ? (
                                                 <img
-                                                    src={collaboration.hotel_picture}
-                                                    alt={collaboration.hotel_name}
-                                                    className="w-16 h-16 rounded-full object-cover border border-gray-50"
+                                                    src={collaboration.listing_images?.[0] || collaboration.listingImages?.[0] || collaboration.hotel_picture || ''}
+                                                    alt={collaboration.listing_name || collaboration.hotel_name}
+                                                    className="w-16 h-16 rounded-xl object-cover border border-gray-50 shadow-sm"
                                                 />
                                             ) : (
-                                                <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center text-xl font-bold text-gray-300">
-                                                    {collaboration.hotel_name.charAt(0)}
+                                                <div className="w-16 h-16 rounded-xl bg-gray-50 flex items-center justify-center text-xl font-bold text-gray-300">
+                                                    {(collaboration.listing_name || collaboration.hotel_name).charAt(0)}
                                                 </div>
                                             )}
                                             <div>
@@ -140,11 +140,6 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                                                     collaboration.collaboration_type === 'Discount' ? `${collaboration.discount_percentage}% Off` :
                                                         collaboration.collaboration_type === 'Free Stay' ? `${collaboration.free_stay_max_nights} Nights` : 'Barter'}
                                             </p>
-                                        </div>
-
-                                        <div className="flex flex-col gap-1">
-                                            <p className="text-base font-bold text-gray-900">Period</p>
-                                            <p className="text-gray-600">{dateRange}</p>
                                         </div>
 
                                         {collaboration.platform_deliverables && collaboration.platform_deliverables.length > 0 && (
