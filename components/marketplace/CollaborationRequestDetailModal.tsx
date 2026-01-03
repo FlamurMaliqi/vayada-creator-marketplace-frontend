@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 import { Collaboration, Hotel, Creator, UserType } from '@/lib/types'
 import { DetailedCollaboration } from '@/services/api/collaborations'
 import { Button, StarRating } from '@/components/ui'
@@ -140,6 +142,8 @@ export function CollaborationRequestDetailModal({
     ? collaboration.creator?.portfolioLink
     : undefined
 
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
   const listingImages = collaboration.listingImages || []
   const hasListingImages = listingImages.length > 0
 
@@ -190,7 +194,14 @@ export function CollaborationRequestDetailModal({
           {/* Listing Images (For Creators) */}
           {currentUserType === 'creator' && hasListingImages && (
             <div className="w-full relative aspect-[16/9] bg-gray-100 border-b border-gray-100">
-              <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full">
+              <div
+                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full"
+                onScroll={(e) => {
+                  const container = e.currentTarget
+                  const index = Math.round(container.scrollLeft / container.clientWidth)
+                  setCurrentImageIndex(index)
+                }}
+              >
                 {listingImages.map((img, idx) => (
                   <div key={idx} className="flex-none w-full snap-center">
                     <img
@@ -201,9 +212,19 @@ export function CollaborationRequestDetailModal({
                   </div>
                 ))}
               </div>
+
+              {/* Image Indicators */}
               {listingImages.length > 1 && (
-                <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-medium">
-                  {listingImages.length} Images
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
+                  {listingImages.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentImageIndex
+                        ? 'w-4 bg-white shadow-sm'
+                        : 'w-1.5 bg-white/50'
+                        }`}
+                    />
+                  ))}
                 </div>
               )}
             </div>
