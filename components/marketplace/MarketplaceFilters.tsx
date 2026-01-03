@@ -46,7 +46,7 @@ const HOTEL_TYPES = [
 const OFFERINGS = [
   'Free stay',
   'Paid stay',
-  'Hybrid',
+  'Discount',
 ]
 
 const AVAILABILITY_OPTIONS = [
