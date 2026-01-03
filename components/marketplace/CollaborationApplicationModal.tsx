@@ -46,6 +46,8 @@ interface CollaborationApplicationModalProps {
   onSubmit: (data: CollaborationApplicationData) => void
   hotelName?: string
   availableMonths?: string[]
+  requiredPlatforms?: string[]
+  creatorPlatforms?: string[]
 }
 
 export interface DeliverableItem {
@@ -122,6 +124,8 @@ export function CollaborationApplicationModal({
   onSubmit,
   hotelName,
   availableMonths = [],
+  requiredPlatforms = [],
+  creatorPlatforms = [],
 }: CollaborationApplicationModalProps) {
   const [whyGreatFit, setWhyGreatFit] = useState('')
   const [travelDateFrom, setTravelDateFrom] = useState('')
@@ -438,7 +442,21 @@ export function CollaborationApplicationModal({
               Platforms & Expected Deliverables <span className="text-red-500">*</span>
             </label>
             <div className="space-y-3">
-              {PLATFORM_OPTIONS.map((platform) => {
+              {PLATFORM_OPTIONS.filter(p => {
+                // Content Package and Custom are always shown
+                if (p === 'Content Package') return true
+
+                // Compare platform with normalized lists
+                const platformMatch = (list: string[], key: string) =>
+                  list.includes(key) ||
+                  list.some(item => item.toLowerCase() === key.toLowerCase()) ||
+                  (key === 'YouTube' && list.includes('YT'));
+
+                const isHotelDesired = platformMatch(requiredPlatforms, p);
+                const isCreatorActive = creatorPlatforms.length === 0 || platformMatch(creatorPlatforms, p);
+
+                return isHotelDesired && isCreatorActive;
+              }).map((platform) => {
                 const platformSelected = isPlatformSelected(platform)
                 const platformDeliverablesList = getPlatformDeliverables(platform)
                 const availableDeliverables = PLATFORM_DELIVERABLES[platform] || []
@@ -447,8 +465,8 @@ export function CollaborationApplicationModal({
                   <div
                     key={platform}
                     className={`rounded-2xl transition-all duration-200 border ${platformSelected
-                        ? 'border-primary-500 bg-primary-50/40 shadow-sm'
-                        : 'border-gray-300 bg-gray-50/30 hover:bg-gray-50/50'
+                      ? 'border-primary-500 bg-primary-50/40 shadow-sm'
+                      : 'border-gray-300 bg-gray-50/30 hover:bg-gray-50/50'
                       }`}
                   >
                     {/* Platform Header */}
@@ -458,8 +476,8 @@ export function CollaborationApplicationModal({
                     >
                       <div className="flex items-center gap-4">
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${platformSelected
-                            ? 'bg-primary-600 border-primary-600'
-                            : 'border-primary-400 bg-white'
+                          ? 'bg-primary-600 border-primary-600'
+                          : 'border-primary-400 bg-white'
                           }`}>
                           {platformSelected && <CheckIcon className="w-4 h-4 text-white stroke-[3px]" />}
                         </div>

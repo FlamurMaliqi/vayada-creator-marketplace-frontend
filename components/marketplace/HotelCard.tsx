@@ -9,6 +9,7 @@ import { getCurrentUserInfo } from '@/lib/utils/accessControl'
 
 interface HotelCardProps {
   hotel: Hotel
+  creatorPlatforms?: string[]
 }
 
 // Platform icons mapping
@@ -64,7 +65,7 @@ const getMonthAbbr = (month: string): string => {
   return monthMap[month] || month.substring(0, 3)
 }
 
-export function HotelCard({ hotel }: HotelCardProps) {
+export function HotelCard({ hotel, creatorPlatforms = [] }: HotelCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showApplicationModal, setShowApplicationModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
@@ -322,6 +323,8 @@ export function HotelCard({ hotel }: HotelCardProps) {
         onSubmit={handleApplicationSubmit}
         hotelName={hotel.name}
         availableMonths={hotel.availability}
+        requiredPlatforms={hotel.platforms}
+        creatorPlatforms={creatorPlatforms}
       />
 
       {/* Success Modal */}

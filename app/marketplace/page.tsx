@@ -19,6 +19,7 @@ export default function MarketplacePage() {
   const [userType, setUserType] = useState<UserType | null>(null)
   const [hotels, setHotels] = useState<Hotel[]>([])
   const [creators, setCreators] = useState<Creator[]>([])
+  const [currentCreator, setCurrentCreator] = useState<Creator | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortOption, setSortOption] = useState<string>('relevance')
@@ -53,10 +54,15 @@ export default function MarketplacePage() {
     try {
       // Load hotels if user is creator
       if (userType === 'creator') {
-        const hotelsResponse = await hotelService.getAll()
+        const [hotelsResponse, creatorProfile] = await Promise.all([
+          hotelService.getAll(),
+          creatorService.getMyProfile()
+        ])
         setHotels(hotelsResponse.data)
+        setCurrentCreator(creatorProfile)
       } else {
         setHotels([])
+        setCurrentCreator(null)
       }
 
       // Load creators if user is hotel
@@ -278,7 +284,11 @@ export default function MarketplacePage() {
                   {sortedHotels.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {sortedHotels.map((hotel) => (
-                        <HotelCard key={hotel.id} hotel={hotel} />
+                        <HotelCard
+                          key={hotel.id}
+                          hotel={hotel}
+                          creatorPlatforms={currentCreator?.platforms.map(p => p.name)}
+                        />
                       ))}
                     </div>
                   ) : (
