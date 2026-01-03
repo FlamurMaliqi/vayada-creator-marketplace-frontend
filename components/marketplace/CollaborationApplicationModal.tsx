@@ -96,6 +96,8 @@ export function CollaborationApplicationModal({
 
   if (!isOpen) return null
 
+  const normalizedAvailable = availableMonths.map(m => getMonthAbbr(m))
+
   const handleMonthToggle = (month: string) => {
     setErrorMessage(null)
     setPreferredMonths((prev) =>
@@ -175,7 +177,6 @@ export function CollaborationApplicationModal({
 
     // Availability Validation
     if (availableMonths.length > 0 && availableMonths.length < 12) {
-      const normalizedAvailable = availableMonths.map(m => getMonthAbbr(m))
       let requestedMonths: string[] = []
 
       if (travelDateFrom && travelDateTo) {
@@ -317,19 +318,28 @@ export function CollaborationApplicationModal({
             <div>
               <p className="text-sm text-gray-600 mb-3">Or select preferred months</p>
               <div className="grid grid-cols-4 gap-2">
-                {MONTHS.map((month) => (
-                  <button
-                    key={month}
-                    type="button"
-                    onClick={() => handleMonthToggle(month)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${preferredMonths.includes(month)
-                      ? 'bg-primary-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                  >
-                    {month}
-                  </button>
-                ))}
+                {MONTHS.map((month) => {
+                  const isAvailable =
+                    availableMonths.length === 0 ||
+                    normalizedAvailable.includes(month);
+
+                  return (
+                    <button
+                      key={month}
+                      type="button"
+                      disabled={!isAvailable}
+                      onClick={() => handleMonthToggle(month)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${preferredMonths.includes(month)
+                          ? 'bg-primary-600 text-white shadow-md'
+                          : isAvailable
+                            ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            : 'bg-gray-50 text-gray-400 cursor-not-allowed opacity-30 grayscale'
+                        }`}
+                    >
+                      {month}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
