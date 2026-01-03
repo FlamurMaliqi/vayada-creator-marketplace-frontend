@@ -237,32 +237,17 @@ export function CollaborationRequestDetailModal({
                   <p className="text-gray-600 mb-2">{otherPartyHandle}</p>
                 )}
                 {currentUserType === 'hotel' && collaboration.creator && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                    <span>{formatNumber(getTotalFollowers())} followers</span>
-                    <span>•</span>
-                    <span>{getAvgEngagement()}% engagement</span>
-                    <span>•</span>
-                    <span>Applied {getTimeAgo(collaboration.createdAt)}</span>
-                  </div>
-                )}
-                {otherPartyLocation && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                    <MapPinIcon className="w-4 h-4" />
-                    <span>{otherPartyLocation}</span>
-                  </div>
-                )}
-                {/* Platform Badges */}
-                {currentUserType === 'hotel' && collaboration.creator?.platforms && (
-                  <div className="flex flex-wrap gap-2">
-                    {collaboration.creator.platforms.slice(0, 2).map((platform, index) => (
-                      <div
-                        key={index}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
-                      >
-                        {getPlatformIcon(platform.name)}
-                        <span>{platform.name === 'YT' ? 'YouTube' : platform.name}</span>
-                      </div>
-                    ))}
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span>{formatNumber(getTotalFollowers())} followers</span>
+                      <span>•</span>
+                      <span>{getAvgEngagement()}% engagement</span>
+                      <span>•</span>
+                      <span>Applied {getTimeAgo(collaboration.createdAt)}</span>
+                    </div>
+                    {collaboration.listingName && (
+                      <p className="text-[11px] text-gray-400 font-medium">Applied to: <span className="text-primary-600">{collaboration.listingName}</span></p>
+                    )}
                   </div>
                 )}
               </div>

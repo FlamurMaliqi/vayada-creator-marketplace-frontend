@@ -791,14 +791,23 @@ function ChatPageContent() {
                                             {getInitials(activeChat.partner_name)}
                                         </div>
                                     )}
-                                    <div>
+                                    <div className="flex flex-col gap-1">
                                         <div className="flex items-center gap-2">
-                                            <h3 className="font-bold text-gray-900">{activeChat.partner_name}</h3>
+                                            <h3 className="text-lg font-bold text-gray-900 leading-none">{activeChat.partner_name}</h3>
+                                            <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-extrabold">
+                                                <span className={getStatusColor(activeChat.collaboration_status).split(' ')[1] + " " + getStatusColor(activeChat.collaboration_status).split(' ')[0] + " px-1.5 py-0.5 rounded-full border border-current opacity-80"}>
+                                                    {activeChat.collaboration_status}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2 text-xs">
-                                            <span className="text-gray-400">Status:</span>
-                                            <span className="text-gray-600 capitalize">{activeChat.collaboration_status}</span>
-                                        </div>
+                                        {userType === 'hotel' && activeCollaboration.listingName && (
+                                            <div className="flex items-center gap-1.5 py-0.5 px-2 bg-blue-50/50 border border-blue-100/50 rounded-lg w-fit">
+                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-tight">Applied to:</span>
+                                                <span className="text-xs font-black text-blue-600 tracking-wide">
+                                                    {activeCollaboration.listingName}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <button
@@ -965,6 +974,9 @@ function ChatPageContent() {
                                         )}
                                         <div>
                                             <h2 className="font-bold text-gray-900">{activeChat.partner_name}</h2>
+                                            {userType === 'hotel' && activeCollaboration.listingName && (
+                                                <p className="text-[10px] text-gray-400 font-medium">Applied to: <span className="text-blue-600">{activeCollaboration.listingName}</span></p>
+                                            )}
                                         </div>
                                         <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full font-medium capitalize ${getStatusColor(activeChat.collaboration_status)}`}>
                                             {activeChat.collaboration_status}
@@ -996,25 +1008,27 @@ function ChatPageContent() {
                                         </div>
                                     ) : (
                                         // Show Creator Stats when hotel is signed in
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <UserIcon className="w-4 h-4 text-gray-400" />
-                                                <h4 className="text-xs font-bold text-gray-900 uppercase">Creator Stats</h4>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4 mb-3">
-                                                <div>
-                                                    <div className="text-[10px] text-gray-500 uppercase">Followers</div>
-                                                    <div className="text-sm font-bold text-gray-900">{formatNumber(activeCollaboration.creator?.audienceSize)}</div>
+                                        <div className="space-y-6">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <UserIcon className="w-4 h-4 text-gray-400" />
+                                                    <h4 className="text-xs font-bold text-gray-900 uppercase">Creator Stats</h4>
                                                 </div>
-                                                <div>
-                                                    <div className="text-[10px] text-gray-500 uppercase">Engagement</div>
-                                                    <div className="text-sm font-bold text-gray-900">{(activeCollaboration.creator?.avgEngagementRate || 0).toFixed(1)}%</div>
+                                                <div className="grid grid-cols-2 gap-4 mb-3">
+                                                    <div>
+                                                        <div className="text-[10px] text-gray-500 uppercase">Followers</div>
+                                                        <div className="text-sm font-bold text-gray-900">{formatNumber(activeCollaboration.creator?.audienceSize)}</div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-[10px] text-gray-500 uppercase">Engagement</div>
+                                                        <div className="text-sm font-bold text-gray-900">{(activeCollaboration.creator?.avgEngagementRate || 0).toFixed(1)}%</div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="flex flex-wrap gap-2">
-                                                {activeCollaboration.creator?.platforms?.map(p => (
-                                                    <PlatformBadge key={p.name} platform={(p.name || 'platform').toLowerCase()} />
-                                                ))}
+                                                <div className="flex flex-wrap gap-2">
+                                                    {activeCollaboration.creator?.platforms?.map(p => (
+                                                        <PlatformBadge key={p.name} platform={(p.name || 'platform').toLowerCase()} />
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
