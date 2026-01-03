@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Creator } from '@/lib/types'
-import { Button, StarRating, SuccessModal } from '@/components/ui'
+import { Button, StarRating, SuccessModal, ErrorModal } from '@/components/ui'
 import { formatNumber } from '@/lib/utils'
 import {
   MapPinIcon,
@@ -126,6 +126,10 @@ const getTimeAgo = (date: Date): string => {
 export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailModalProps) {
   const [showInvitationModal, setShowInvitationModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [errorState, setErrorState] = useState<{ isOpen: boolean, message: string, title?: string }>({
+    isOpen: false,
+    message: ''
+  })
   const [hotelListings, setHotelListings] = useState<{ id: string; name: string; location: string }[]>([])
 
   // Fetch hotel listings when modal is open
@@ -164,12 +168,20 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
     try {
       const userInfo = getCurrentUserInfo()
       if (!userInfo.userId) {
-        alert('Please log in to invite creators')
+        setErrorState({
+          isOpen: true,
+          message: 'Please log in to invite creators',
+          title: 'Authentication Required'
+        })
         return
       }
 
       if (!creator) {
-        alert('Creator information is missing')
+        setErrorState({
+          isOpen: true,
+          message: 'Creator information is missing',
+          title: 'Missing Information'
+        })
         return
       }
 
@@ -201,7 +213,21 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
       setShowSuccessModal(true)
     } catch (error) {
       console.error('Failed to send invitation:', error)
-      alert(error instanceof Error ? error.message : 'Failed to send invitation. Please try again.')
+      const rawMessage = error instanceof Error ? error.message : 'Failed to send invitation. Please try again.'
+
+      let displayMessage = rawMessage
+      let displayTitle = 'Invitation Error'
+
+      if (rawMessage.includes('unique constraint') && rawMessage.includes('idx_collaborations_unique_active')) {
+        displayMessage = 'You already have an active collaboration or pending invitation with this creator. You can only have one active conversation per property.'
+        displayTitle = 'Duplicate Invitation'
+      }
+
+      setErrorState({
+        isOpen: true,
+        message: displayMessage,
+        title: displayTitle
+      })
     }
   }
 
@@ -513,6 +539,13 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
         onClose={() => setShowSuccessModal(false)}
         title="Invitation Sent!"
         message={`We've sent your collaboration invitation to ${creator.name}. They will be notified immediately.`}
+      />
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={errorState.isOpen}
+        onClose={() => setErrorState(prev => ({ ...prev, isOpen: false }))}
+        title={errorState.title}
+        message={errorState.message}
       />
     </div>
   )

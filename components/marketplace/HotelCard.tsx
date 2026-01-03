@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Hotel } from '@/lib/types'
-import { Button } from '@/components/ui'
+import { Button, SuccessModal, ErrorModal } from '@/components/ui'
 import { MapPinIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { HotelDetailModal } from './HotelDetailModal'
 import { CollaborationApplicationModal, type CollaborationApplicationData } from './CollaborationApplicationModal'
@@ -67,13 +67,22 @@ const getMonthAbbr = (month: string): string => {
 export function HotelCard({ hotel }: HotelCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showApplicationModal, setShowApplicationModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [errorState, setErrorState] = useState<{ isOpen: boolean, message: string, title?: string }>({
+    isOpen: false,
+    message: ''
+  })
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   const handleApplicationSubmit = async (data: CollaborationApplicationData) => {
     try {
       const userInfo = getCurrentUserInfo()
       if (!userInfo.userId) {
-        alert('Please log in to apply for collaborations')
+        setErrorState({
+          isOpen: true,
+          message: 'Please log in to apply for collaborations',
+          title: 'Authentication Required'
+        })
         return
       }
 
@@ -98,11 +107,24 @@ export function HotelCard({ hotel }: HotelCardProps) {
 
       await collaborationService.create(request)
       setShowApplicationModal(false)
-      // Optionally show success message
-      alert('Application submitted successfully!')
+      setShowSuccessModal(true)
     } catch (error) {
       console.error('Failed to submit application:', error)
-      alert(error instanceof Error ? error.message : 'Failed to submit application. Please try again.')
+      const rawMessage = error instanceof Error ? error.message : 'Failed to submit application. Please try again.'
+
+      let displayMessage = rawMessage
+      let displayTitle = 'Application Error'
+
+      if (rawMessage.includes('unique constraint') && rawMessage.includes('idx_collaborations_unique_active')) {
+        displayMessage = 'You already have an active collaboration or pending request with this hotel. You can only have one active conversation per property.'
+        displayTitle = 'Duplicate Application'
+      }
+
+      setErrorState({
+        isOpen: true,
+        message: displayMessage,
+        title: displayTitle
+      })
     }
   }
 
@@ -279,6 +301,22 @@ export function HotelCard({ hotel }: HotelCardProps) {
         onClose={() => setShowApplicationModal(false)}
         onSubmit={handleApplicationSubmit}
         hotelName={hotel.name}
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Application Sent!"
+        message={`Your application has been sent to ${hotel.name}. They will be notified immediately.`}
+      />
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={errorState.isOpen}
+        onClose={() => setErrorState(prev => ({ ...prev, isOpen: false }))}
+        title={errorState.title}
+        message={errorState.message}
       />
     </>
   )
