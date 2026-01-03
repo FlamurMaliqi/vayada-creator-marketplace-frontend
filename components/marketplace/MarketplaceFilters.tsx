@@ -645,7 +645,7 @@ export function MarketplaceFilters({
                   className="absolute top-full left-0 mt-1 bg-white rounded-b-xl shadow-xl z-50 min-w-[320px] overflow-hidden"
                 >
                   <div className="px-5 py-3 text-gray-900 text-sm font-bold text-center">
-                    Budget Range (Paid/Hybrid)
+                    Budget Range
                   </div>
                   <div className="px-5 pb-5">
                     <div className="relative">
