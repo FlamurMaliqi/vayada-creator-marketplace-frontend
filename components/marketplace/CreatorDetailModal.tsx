@@ -224,7 +224,7 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
         preferred_date_to: data.preferredDateTo || undefined,
         preferred_months: data.preferredMonths.length > 0 ? data.preferredMonths : undefined,
         platform_deliverables: (data.platformDeliverables || []).map(pd => ({
-          platform: pd.platform as 'Instagram' | 'TikTok' | 'YouTube' | 'Facebook',
+          platform: pd.platform as 'Instagram' | 'TikTok' | 'YouTube' | 'Facebook' | 'Content Package' | 'Custom',
           deliverables: pd.deliverables.map(d => ({
             type: d.type,
             quantity: d.quantity,
@@ -232,6 +232,8 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
         })),
         message: data.message || undefined,
       }
+
+      console.log('Submitting Collaboration Request:', JSON.stringify(request, null, 2))
 
       await collaborationService.create(request)
       setShowInvitationModal(false)
