@@ -699,7 +699,7 @@ export default function ProfilePage() {
           console.log('Hotel Profile API Data (Direct):', JSON.stringify({
             name: apiProfile.name,
             listingsCount: apiProfile.listings?.length,
-            firstListingReqs: apiProfile.listings?.[0]?.creator_requirements || apiProfile.listings?.[0]?.creatorRequirements
+            firstListingReqs: apiProfile.listings?.[0]?.creator_requirements || (apiProfile.listings?.[0] as any)?.creatorRequirements
           }, null, 2))
 
           const profile = transformHotelProfile(apiProfile as any)
