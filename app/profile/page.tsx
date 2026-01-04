@@ -7,7 +7,7 @@ import { useSidebar } from '@/components/layout/AuthenticatedNavigation'
 import { ROUTES } from '@/lib/constants/routes'
 import { Button, Input, Textarea, StarRating, ErrorModal } from '@/components/ui'
 import { MapPinIcon, CheckBadgeIcon, StarIcon, PencilIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/solid'
-import { TrashIcon, ChevronDownIcon, ChevronUpIcon, InformationCircleIcon, EnvelopeIcon, PhoneIcon, LinkIcon, UserIcon, BuildingOfficeIcon, BuildingOffice2Icon, GlobeAltIcon, GiftIcon, CurrencyDollarIcon, TagIcon, CalendarDaysIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { TrashIcon, ChevronDownIcon, ChevronUpIcon, ChevronLeftIcon, ChevronRightIcon, InformationCircleIcon, EnvelopeIcon, PhoneIcon, LinkIcon, UserIcon, BuildingOfficeIcon, BuildingOffice2Icon, GlobeAltIcon, GiftIcon, CurrencyDollarIcon, TagIcon, CalendarDaysIcon, CheckCircleIcon, PhotoIcon } from '@heroicons/react/24/outline'
 import { StarIcon as StarIconOutline } from '@heroicons/react/24/outline'
 import { formatNumber } from '@/lib/utils'
 import type { CreatorRating, CollaborationReview, HotelProfile as ApiHotelProfile, HotelListing as ApiHotelListing, Creator as ApiCreator } from '@/lib/types'
@@ -181,6 +181,9 @@ export default function ProfilePage() {
   const hotelFileInputRef = useRef<HTMLInputElement | null>(null)
   const listingImageInputRef = useRef<HTMLInputElement | null>(null)
   const creatorImageInputRef = useRef<HTMLInputElement | null>(null)
+
+  // Manage Photos Modal State
+  const [isManagePhotosOpen, setIsManagePhotosOpen] = useState(false)
 
   // Error modal state
   const [errorModal, setErrorModal] = useState<{
@@ -1664,6 +1667,23 @@ export default function ProfilePage() {
     }
   }
 
+  // Move listing image in the array
+  const moveListingImage = (index: number, direction: 'left' | 'right') => {
+    const newImages = [...listingFormData.images]
+    if (direction === 'left') {
+      if (index === 0) return
+      const temp = newImages[index]
+      newImages[index] = newImages[index - 1]
+      newImages[index - 1] = temp
+    } else {
+      if (index === newImages.length - 1) return
+      const temp = newImages[index]
+      newImages[index] = newImages[index + 1]
+      newImages[index + 1] = temp
+    }
+    setListingFormData({ ...listingFormData, images: newImages })
+  }
+
   const removeListingImage = (index: number) => {
     setListingFormData({
       ...listingFormData,
@@ -3089,40 +3109,38 @@ export default function ProfilePage() {
                                                           e.currentTarget.style.display = 'none'
                                                         }}
                                                       />
-                                                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <div className="absolute bottom-3 right-3">
-                                                          <button
-                                                            type="button"
-                                                            onClick={() => removeListingImage(0)}
-                                                            className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-lg transition-all flex items-center gap-1.5"
-                                                          >
-                                                            <XMarkIcon className="w-4 h-4" />
-                                                            Remove
-                                                          </button>
-                                                        </div>
+                                                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                                        <button
+                                                          type="button"
+                                                          onClick={() => setIsManagePhotosOpen(true)}
+                                                          className="opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 transition-all px-4 py-2 bg-white text-gray-900 rounded-lg shadow-lg font-semibold flex items-center gap-2"
+                                                        >
+                                                          <PhotoIcon className="w-5 h-5" />
+                                                          Manage Photos
+                                                        </button>
                                                       </div>
                                                     </div>
+
+                                                    {/* Thumbnail Grid */}
                                                     {listingFormData.images.length > 1 && (
                                                       <div className="grid grid-cols-4 gap-2">
-                                                        {listingFormData.images.slice(1, 5).map((image, imageIndex) => (
-                                                          <div key={imageIndex + 1} className="relative group aspect-square">
-                                                            <img
-                                                              src={image}
-                                                              alt={`Photo ${imageIndex + 2}`}
-                                                              className="w-full h-full object-cover rounded-lg border-2 border-gray-200"
-                                                              onError={(e) => {
-                                                                e.currentTarget.style.display = 'none'
-                                                              }}
-                                                            />
-                                                            <button
-                                                              type="button"
-                                                              onClick={() => removeListingImage(imageIndex + 1)}
-                                                              className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                                                            >
-                                                              <XMarkIcon className="w-4 h-4 text-white" />
-                                                            </button>
-                                                          </div>
-                                                        ))}
+                                                        {listingFormData.images.slice(1).map((image, i) => {
+                                                          const imageIndex = i + 1;
+                                                          return (
+                                                            <div key={imageIndex} className="relative group aspect-square cursor-pointer" onClick={() => setIsManagePhotosOpen(true)}>
+                                                              <img
+                                                                src={image}
+                                                                alt={`Photo ${imageIndex + 1}`}
+                                                                className="w-full h-full object-cover rounded-lg border-2 border-gray-200 group-hover:border-primary-500 transition-colors"
+                                                                onError={(e) => {
+                                                                  e.currentTarget.style.display = 'none'
+                                                                }}
+                                                              />
+                                                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
+                                                            </div>
+                                                          )
+                                                        })}
+
                                                         {listingFormData.images.length < 10 && (
                                                           <button
                                                             type="button"
@@ -4147,40 +4165,38 @@ export default function ProfilePage() {
                                               e.currentTarget.style.display = 'none'
                                             }}
                                           />
-                                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <div className="absolute bottom-3 right-3">
-                                              <button
-                                                type="button"
-                                                onClick={() => removeListingImage(0)}
-                                                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-lg transition-all flex items-center gap-1.5"
-                                              >
-                                                <XMarkIcon className="w-4 h-4" />
-                                                Remove
-                                              </button>
-                                            </div>
+                                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                            <button
+                                              type="button"
+                                              onClick={() => setIsManagePhotosOpen(true)}
+                                              className="opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 transition-all px-4 py-2 bg-white text-gray-900 rounded-lg shadow-lg font-semibold flex items-center gap-2"
+                                            >
+                                              <PhotoIcon className="w-5 h-5" />
+                                              Manage Photos
+                                            </button>
                                           </div>
                                         </div>
+
+                                        {/* Thumbnail Grid */}
                                         {listingFormData.images.length > 1 && (
                                           <div className="grid grid-cols-4 gap-2">
-                                            {listingFormData.images.slice(1, 5).map((image, imageIndex) => (
-                                              <div key={imageIndex + 1} className="relative group aspect-square">
-                                                <img
-                                                  src={image}
-                                                  alt={`Photo ${imageIndex + 2}`}
-                                                  className="w-full h-full object-cover rounded-lg border-2 border-gray-200"
-                                                  onError={(e) => {
-                                                    e.currentTarget.style.display = 'none'
-                                                  }}
-                                                />
-                                                <button
-                                                  type="button"
-                                                  onClick={() => removeListingImage(imageIndex + 1)}
-                                                  className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                                                >
-                                                  <XMarkIcon className="w-4 h-4 text-white" />
-                                                </button>
-                                              </div>
-                                            ))}
+                                            {listingFormData.images.slice(1).map((image, i) => {
+                                              const imageIndex = i + 1;
+                                              return (
+                                                <div key={imageIndex} className="relative group aspect-square cursor-pointer" onClick={() => setIsManagePhotosOpen(true)}>
+                                                  <img
+                                                    src={image}
+                                                    alt={`Photo ${imageIndex + 1}`}
+                                                    className="w-full h-full object-cover rounded-lg border-2 border-gray-200 group-hover:border-primary-500 transition-colors"
+                                                    onError={(e) => {
+                                                      e.currentTarget.style.display = 'none'
+                                                    }}
+                                                  />
+                                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
+                                                </div>
+                                              )
+                                            })}
+
                                             {listingFormData.images.length < 10 && (
                                               <button
                                                 type="button"
@@ -5125,45 +5141,37 @@ export default function ProfilePage() {
                               e.currentTarget.style.display = 'none'
                             }}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="absolute bottom-3 right-3">
-                              <button
-                                type="button"
-                                onClick={() => removeListingImage(0)}
-                                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-lg transition-all transform hover:scale-105 flex items-center gap-1.5"
-                              >
-                                <XMarkIcon className="w-4 h-4" />
-                                Remove
-                              </button>
-                            </div>
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={() => setIsManagePhotosOpen(true)}
+                              className="opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 transition-all px-4 py-2 bg-white text-gray-900 rounded-lg shadow-lg font-semibold flex items-center gap-2"
+                            >
+                              <PhotoIcon className="w-5 h-5" />
+                              Manage Photos
+                            </button>
                           </div>
                         </div>
 
                         {/* Thumbnail Grid */}
                         {listingFormData.images.length > 1 && (
-                          <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
-                            {listingFormData.images.slice(1, 6).map((image, imageIndex) => (
-                              <div key={imageIndex + 1} className="relative group aspect-square">
-                                <img
-                                  src={image}
-                                  alt={`${listingFormData.name || 'Listing'} - Photo ${imageIndex + 2}`}
-                                  className="w-full h-full object-cover rounded-lg border-2 border-gray-200 shadow-sm group-hover:border-primary-400 group-hover:shadow-md transition-all cursor-pointer"
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = 'none'
-                                  }}
-                                />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-lg transition-all flex items-center justify-center">
-                                  <button
-                                    type="button"
-                                    onClick={() => removeListingImage(imageIndex + 1)}
-                                    className="p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-lg transform hover:scale-110"
-                                    title="Remove image"
-                                  >
-                                    <XMarkIcon className="w-3.5 h-3.5" />
-                                  </button>
+                          <div className="grid grid-cols-4 gap-2">
+                            {listingFormData.images.slice(1).map((image, i) => {
+                              const imageIndex = i + 1;
+                              return (
+                                <div key={imageIndex} className="relative group aspect-square cursor-pointer" onClick={() => setIsManagePhotosOpen(true)}>
+                                  <img
+                                    src={image}
+                                    alt={`Photo ${imageIndex + 1}`}
+                                    className="w-full h-full object-cover rounded-lg border-2 border-gray-200 group-hover:border-primary-500 transition-colors"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none'
+                                    }}
+                                  />
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg" />
                                 </div>
-                              </div>
-                            ))}
+                              )
+                            })}
 
                             {/* Add More Button */}
                             {listingFormData.images.length < 10 && (
@@ -5175,13 +5183,6 @@ export default function ProfilePage() {
                                 <PlusIcon className="w-5 h-5 mb-1" />
                                 <span className="text-[10px] font-medium">Add</span>
                               </button>
-                            )}
-
-                            {/* Show remaining count if more than 6 images */}
-                            {listingFormData.images.length > 6 && (
-                              <div className="aspect-square rounded-lg bg-gray-800/80 flex items-center justify-center text-white text-xs font-semibold">
-                                +{listingFormData.images.length - 6}
-                              </div>
                             )}
                           </div>
                         )}
@@ -5842,7 +5843,121 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      {/* Manage Photos Modal */}
+      {isManagePhotosOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setIsManagePhotosOpen(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <PhotoIcon className="w-6 h-6 text-primary-600" />
+                Manage Gallery
+              </h3>
+              <button
+                onClick={() => setIsManagePhotosOpen(false)}
+                className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {listingFormData.images.map((image, i) => {
+                  const isMain = i === 0;
+                  return (
+                    <div key={i} className={`relative group aspect-square rounded-xl overflow-hidden shadow-sm border-2 transition-all ${isMain ? 'border-primary-500 ring-2 ring-primary-100' : 'border-gray-200 hover:border-primary-300'}`}>
+                      <img
+                        src={image}
+                        alt={`Photo ${i + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+
+                      {/* Overlay Controls */}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => removeListingImage(i)}
+                            className="p-1.5 bg-red-500 text-white rounded-lg shadow-sm hover:bg-red-600 transition-colors"
+                            title="Delete photo"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center justify-center gap-2">
+                          {i > 0 && (
+                            <button
+                              type="button"
+                              className="p-2 bg-white text-gray-700 rounded-full shadow hover:bg-gray-100"
+                              title="Move Backward"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                moveListingImage(i, 'left')
+                              }}
+                            >
+                              <ChevronLeftIcon className="w-5 h-5" />
+                            </button>
+                          )}
+
+                          {i < listingFormData.images.length - 1 && (
+                            <button
+                              type="button"
+                              className="p-2 bg-white text-gray-700 rounded-full shadow hover:bg-gray-100"
+                              title="Move Forward"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                moveListingImage(i, 'right')
+                              }}
+                            >
+                              <ChevronRightIcon className="w-5 h-5" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="flex justify-start">
+                          {isMain && (
+                            <span className="bg-primary-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                              MAIN
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {/* Add Photo Card */}
+                {listingFormData.images.length < 10 && (
+                  <button
+                    onClick={() => listingImageInputRef.current?.click()}
+                    className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl hover:border-primary-500 hover:bg-primary-50 transition-all group"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-gray-100 group-hover:bg-white flex items-center justify-center mb-2 transition-colors">
+                      <PlusIcon className="w-6 h-6 text-gray-400 group-hover:text-primary-600" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-600 group-hover:text-primary-700">Add Photo</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end bg-gray-50 rounded-b-2xl">
+              <Button
+                variant="primary"
+                onClick={() => setIsManagePhotosOpen(false)}
+                className="w-full sm:w-auto"
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </main>
   )
 }
-

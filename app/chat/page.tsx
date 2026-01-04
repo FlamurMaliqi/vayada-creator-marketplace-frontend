@@ -168,7 +168,7 @@ function ChatPageContent() {
     const [detailCollaboration, setDetailCollaboration] = useState<(Collaboration & { hotel?: Hotel; creator?: Creator }) | null>(null)
 
     // State for pending applications and conversations
-    const [userType, setUserType] = useState<string>('hotel')
+    const [userType, setUserType] = useState<string | null>(null)
     const [pendingRequests, setPendingRequests] = useState<any[]>([])
     const [applicationsTab, setApplicationsTab] = useState<'received' | 'sent'>('received')
     const [conversations, setConversations] = useState<any[]>([])
@@ -196,19 +196,21 @@ function ChatPageContent() {
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            const storedUserType = localStorage.getItem('userType')
-            if (storedUserType) setUserType(storedUserType)
+            const storedUserType = localStorage.getItem('userType') || 'hotel' // Default to hotel if nothing stored, but after mount
+            setUserType(storedUserType)
         }
     }, [])
 
     const fetchData = async () => {
+        if (!userType) return // Wait for userType to be determined
+
         try {
             // Fetch pending collaborations based on user type
             const requestsData = userType === 'hotel'
                 ? await collaborationService.getHotelCollaborations({ status: 'pending' })
                 : await collaborationService.getCreatorCollaborations() // Get all collaborations for creators
 
-            // Map API response to UI format
+            // Map API response to UI format (rest of the function...)
             const formattedRequests = requestsData
                 .filter(collab => collab.status === 'pending') // Only show pending collaborations
                 .map(collab => {
