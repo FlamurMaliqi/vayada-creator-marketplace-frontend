@@ -2175,7 +2175,7 @@ export default function ProfileCompletePage() {
                       label="About"
                       value={hotelForm.about}
                       onChange={(e) => setHotelForm(prev => ({ ...prev, about: e.target.value }))}
-                      placeholder="Tell potential creators aobut your properties"
+                      placeholder="Tell potential creators about your properties"
                       rows={4}
                       maxLength={5000}
                       required
