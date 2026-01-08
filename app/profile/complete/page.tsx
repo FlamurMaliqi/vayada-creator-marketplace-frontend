@@ -640,7 +640,7 @@ export default function ProfileCompletePage() {
           setError(`Listing ${i + 1}: Free Stay requires minimum nights greater than 0`)
           return false
         }
-        if (!listing.freeStayMaxNights || listing.freeStayMaxNights <= listing.freeStayMinNights) {
+        if (!listing.freeStayMaxNights || listing.freeStayMaxNights < listing.freeStayMinNights) {
           setError(`Listing ${i + 1}: Free Stay max nights must be greater than min nights`)
           return false
         }
