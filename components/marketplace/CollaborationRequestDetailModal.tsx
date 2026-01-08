@@ -17,6 +17,7 @@ interface CollaborationRequestDetailModalProps {
   onAccept?: (id: string) => void
   onDecline?: (id: string) => void
   onApprove?: (id: string) => void
+  onRequestCancel?: () => void
 }
 
 // Platform icons mapping
@@ -96,6 +97,7 @@ export function CollaborationRequestDetailModal({
   onAccept,
   onDecline,
   onApprove,
+  onRequestCancel,
 }: CollaborationRequestDetailModalProps) {
   if (!isOpen || !collaboration) return null
 
@@ -656,8 +658,19 @@ export function CollaborationRequestDetailModal({
                       </Button>
                     </>
                   ) : (
-                    <div className="text-gray-400 text-sm font-medium flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-100 italic">
-                      Waiting for {collaboration.initiator_type === 'hotel' ? 'Creator' : 'Hotel'} response...
+                    <div className="flex items-center gap-3">
+                      <div className="text-gray-400 text-sm font-medium flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-100 italic">
+                        Waiting for {collaboration.initiator_type === 'hotel' ? 'Creator' : 'Hotel'} response...
+                      </div>
+                      {onRequestCancel && (
+                        <Button
+                          variant="ghost"
+                          onClick={onRequestCancel}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 border-transparent font-medium"
+                        >
+                          Withdraw Application
+                        </Button>
+                      )}
                     </div>
                   )}
                 </>

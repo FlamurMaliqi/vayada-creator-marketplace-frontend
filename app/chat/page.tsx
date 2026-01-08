@@ -25,7 +25,9 @@ import {
     HandThumbUpIcon,
     ExclamationCircleIcon,
     BanknotesIcon,
-    TagIcon
+    TagIcon,
+    EllipsisVerticalIcon,
+    ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
 import { CollaborationRequestDetailModal } from '@/components/marketplace/CollaborationRequestDetailModal'
 import type { Collaboration, Hotel, Creator } from '@/lib/types'
@@ -182,6 +184,10 @@ function ChatPageContent() {
     const [isLoadingDetails, setIsLoadingDetails] = useState(false)
     const [isEditingSidebar, setIsEditingSidebar] = useState(false)
     const [localCollaboration, setLocalCollaboration] = useState<DetailedCollaboration | null>(null)
+    const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+    const [cancelReason, setCancelReason] = useState('')
+    const [cancellationTargetId, setCancellationTargetId] = useState<string | null>(null)
     const messagesEndRef = React.useRef<HTMLDivElement>(null)
 
     const scrollToBottom = () => {
@@ -322,6 +328,7 @@ function ChatPageContent() {
                 setIsLoadingMessages(false)
                 setIsLoadingDetails(false)
             }
+            setIsMenuOpen(false) // Close menu when switching chats
         }
     }
 
@@ -443,7 +450,8 @@ function ChatPageContent() {
         if (s === 'accepted') return 'bg-emerald-100 text-emerald-700'
         if (s === 'staying') return 'bg-purple-100 text-purple-700'
         if (s === 'completed') return 'bg-green-100 text-green-700'
-        if (s === 'declined' || s === 'cancelled') return 'bg-red-100 text-red-700'
+        if (s === 'declined') return 'bg-red-100 text-red-700'
+        if (s === 'cancelled') return 'bg-gray-100 text-gray-500' // Grey for cancelled
         return 'bg-gray-100 text-gray-600'
     }
 
@@ -493,6 +501,32 @@ function ChatPageContent() {
             fetchMessages(true)
         } catch (error) {
             console.error('Failed to approve terms:', error)
+        }
+    }
+
+    const handleCancelCollaboration = async () => {
+        if (!cancellationTargetId) return
+
+        try {
+            const response = await collaborationService.cancelCollaboration(cancellationTargetId, cancelReason)
+
+            // If it was the active chat, update the specific details
+            if (cancellationTargetId === selectedChatId) {
+                const detailedCollaboration = transformCollaborationResponse(response)
+                setActiveCollaboration(detailedCollaboration)
+                fetchMessages(true)
+            }
+
+            // Refresh global lists (conversations and pending requests)
+            fetchData()
+
+            // Reset UI
+            setIsCancelModalOpen(false)
+            setCancelReason('')
+            setCancellationTargetId(null)
+            setIsMenuOpen(false)
+        } catch (error) {
+            console.error('Failed to cancel collaboration:', error)
         }
     }
 
@@ -719,61 +753,67 @@ function ChatPageContent() {
 
                         {/* Chats List */}
                         <div className="divide-y divide-gray-50">
-                            {activeTab === 'Active' && (
-                                isLoadingConversations ? (
-                                    <div className="p-8 text-center">
-                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto"></div>
-                                    </div>
-                                ) : conversations.length > 0 ? (
-                                    conversations.map((chat) => (
-                                        <div
-                                            key={chat.collaboration_id}
-                                            onClick={() => setSelectedChatId(chat.collaboration_id)}
-                                            className={`p-4 hover:bg-blue-50/50 cursor-pointer transition-colors relative ${selectedChatId === chat.collaboration_id ? 'bg-blue-50/80 border-r-2 border-blue-600' : ''}`}
-                                        >
-                                            <div className="flex gap-3">
-                                                <div className="relative">
-                                                    {chat.partner_avatar ? (
-                                                        <img src={chat.partner_avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
-                                                    ) : (
-                                                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
-                                                            {getInitials(chat.partner_name)}
-                                                        </div>
+                            {(() => {
+                                const archivedStatuses = ['completed', 'cancelled', 'declined', 'rejected']
+                                const filteredConversations = conversations.filter(chat => {
+                                    const isArchived = archivedStatuses.includes(chat.collaboration_status.toLowerCase())
+                                    return activeTab === 'Archived' ? isArchived : !isArchived
+                                })
+
+                                if (isLoadingConversations) {
+                                    return (
+                                        <div className="p-8 text-center">
+                                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto"></div>
+                                        </div>
+                                    )
+                                }
+
+                                if (filteredConversations.length === 0) {
+                                    return (
+                                        <div className="p-8 text-center text-sm text-gray-500">
+                                            {activeTab === 'Active' ? 'No active conversations.' : 'No archived conversations.'}
+                                        </div>
+                                    )
+                                }
+
+                                return filteredConversations.map((chat) => (
+                                    <div
+                                        key={chat.collaboration_id}
+                                        onClick={() => setSelectedChatId(chat.collaboration_id)}
+                                        className={`p-4 hover:bg-blue-50/50 cursor-pointer transition-colors relative ${selectedChatId === chat.collaboration_id ? 'bg-blue-50/80 border-r-2 border-blue-600' : ''}`}
+                                    >
+                                        <div className="flex gap-3">
+                                            <div className="relative">
+                                                {chat.partner_avatar ? (
+                                                    <img src={chat.partner_avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
+                                                        {getInitials(chat.partner_name)}
+                                                    </div>
+                                                )}
+                                                {chat.unread_count > 0 && <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">{chat.unread_count}</div>}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between mb-0.5">
+                                                    <h4 className="text-sm font-semibold text-gray-900 truncate">{chat.partner_name}</h4>
+                                                    <span className="text-[10px] text-gray-400 flex-shrink-0">{formatTime(chat.last_message_at)}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium capitalize ${getStatusColor(chat.collaboration_status)}`}>
+                                                        {chat.collaboration_status}
+                                                    </span>
+                                                    {chat.my_role && (
+                                                        <span className="text-[10px] text-gray-400 capitalize">{chat.my_role}</span>
                                                     )}
-                                                    {chat.unread_count > 0 && <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">{chat.unread_count}</div>}
                                                 </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center justify-between mb-0.5">
-                                                        <h4 className="text-sm font-semibold text-gray-900 truncate">{chat.partner_name}</h4>
-                                                        <span className="text-[10px] text-gray-400 flex-shrink-0">{formatTime(chat.last_message_at)}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium capitalize ${getStatusColor(chat.collaboration_status)}`}>
-                                                            {chat.collaboration_status}
-                                                        </span>
-                                                        {chat.my_role && (
-                                                            <span className="text-[10px] text-gray-400 capitalize">{chat.my_role}</span>
-                                                        )}
-                                                    </div>
-                                                    <p className={`text-sm truncate ${chat.unread_count > 0 ? 'font-medium text-gray-900' : 'text-gray-500'}`}>
-                                                        {chat.last_message_content || 'No messages yet'}
-                                                    </p>
-                                                </div>
+                                                <p className={`text-sm truncate ${chat.unread_count > 0 ? 'font-medium text-gray-900' : 'text-gray-500'}`}>
+                                                    {chat.last_message_content || 'No messages yet'}
+                                                </p>
                                             </div>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="p-8 text-center text-sm text-gray-500">
-                                        No active conversations.
                                     </div>
-                                )
-                            )}
-
-                            {activeTab === 'Archived' && (
-                                <div className="p-8 text-center text-sm text-gray-500">
-                                    No archived conversations.
-                                </div>
-                            )}
+                                ))
+                            })()}
                         </div>
                     </div>
                 </div>
@@ -812,12 +852,54 @@ function ChatPageContent() {
                                         )}
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => setDetailCollaboration(activeCollaboration)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-                                >
-                                    Details <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setDetailCollaboration(activeCollaboration)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                                    >
+                                        Details <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
+                                    </button>
+
+                                    {/* More Options Menu */}
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+                                        >
+                                            <EllipsisVerticalIcon className="w-5 h-5" />
+                                        </button>
+
+                                        {isMenuOpen && (
+                                            <>
+                                                <div
+                                                    className="fixed inset-0 z-10"
+                                                    onClick={() => setIsMenuOpen(false)}
+                                                />
+                                                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-lg z-20 py-1 overflow-hidden">
+                                                    {['pending', 'negotiating', 'accepted'].includes(activeChat.collaboration_status.toLowerCase()) && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setCancellationTargetId(selectedChatId)
+                                                                setIsCancelModalOpen(true)
+                                                                setIsMenuOpen(false)
+                                                            }}
+                                                            className="w-full px-4 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                                        >
+                                                            <ExclamationTriangleIcon className="w-4 h-4" />
+                                                            {activeChat.collaboration_status.toLowerCase() === 'pending' ? 'Withdraw Request' : 'Cancel Collaboration'}
+                                                        </button>
+                                                    )}
+                                                    {/* Add more menu items here if needed */}
+                                                    {!['pending', 'negotiating', 'accepted'].includes(activeChat.collaboration_status.toLowerCase()) && (
+                                                        <div className="px-4 py-3 text-xs text-gray-400 italic text-center">
+                                                            No actions available
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Messages */}
@@ -1295,6 +1377,56 @@ function ChatPageContent() {
                 />
             )}
 
+            {/* Cancel/Withdraw Confirmation Modal */}
+            {isCancelModalOpen && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6">
+                            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4 mx-auto">
+                                <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+                            </div>
+                            <h3 className="text-xl font-bold text-center text-gray-900 mb-2">
+                                {(cancellationTargetId === selectedChatId ? activeChat?.collaboration_status : detailCollaboration?.status)?.toLowerCase() === 'pending' ? 'Withdraw Request?' : 'Cancel Collaboration?'}
+                            </h3>
+                            <p className="text-center text-gray-500 text-sm mb-6">
+                                Are you sure you want to {(cancellationTargetId === selectedChatId ? activeChat?.collaboration_status : detailCollaboration?.status)?.toLowerCase() === 'pending' ? 'withdraw your application' : 'cancel this collaboration'}? This action cannot be undone.
+                            </p>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label htmlFor="reason" className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
+                                        Reason (Optional)
+                                    </label>
+                                    <textarea
+                                        id="reason"
+                                        rows={3}
+                                        value={cancelReason}
+                                        onChange={(e) => setCancelReason(e.target.value)}
+                                        placeholder="Briefly explain why..."
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all resize-none"
+                                    />
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setIsCancelModalOpen(false)}
+                                        className="flex-1 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors"
+                                    >
+                                        Keep It
+                                    </button>
+                                    <button
+                                        onClick={handleCancelCollaboration}
+                                        className="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-sm"
+                                    >
+                                        Yes, {(cancellationTargetId === selectedChatId ? activeChat?.collaboration_status : detailCollaboration?.status)?.toLowerCase() === 'pending' ? 'Withdraw' : 'Cancel'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <CollaborationRequestDetailModal
                 isOpen={!!detailCollaboration}
                 onClose={() => setDetailCollaboration(null)}
@@ -1303,6 +1435,13 @@ function ChatPageContent() {
                 onAccept={handleAccept}
                 onDecline={handleDecline}
                 onApprove={handleApproveTerms}
+                onRequestCancel={() => {
+                    if (detailCollaboration) {
+                        setCancellationTargetId(detailCollaboration.id)
+                        setDetailCollaboration(null)
+                        setIsCancelModalOpen(true)
+                    }
+                }}
             />
         </main>
     )

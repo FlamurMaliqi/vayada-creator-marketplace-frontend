@@ -400,8 +400,18 @@ export const collaborationService = {
   /**
    * Accept or Decline a collaboration request
    */
+  /**
+   * Respond to a collaboration request (Accept/Decline)
+   */
   respondToCollaboration: async (collaborationId: string, data: CollaborationResponseRequest): Promise<CollaborationResponse> => {
     return apiClient.post<CollaborationResponse>(`/collaborations/${collaborationId}/respond`, data)
+  },
+
+  /**
+   * Cancel or withdraw from a collaboration
+   */
+  cancelCollaboration: async (collaborationId: string, reason?: string): Promise<CollaborationResponse> => {
+    return apiClient.post<CollaborationResponse>(`/collaborations/${collaborationId}/cancel`, { reason })
   },
 }
 
