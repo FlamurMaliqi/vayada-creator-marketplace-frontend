@@ -11,6 +11,7 @@ export interface PlatformDeliverable {
   id: string
   type: string
   quantity: number
+  status?: 'pending' | 'completed'
   completed?: boolean
   completed_at?: string | null
 }

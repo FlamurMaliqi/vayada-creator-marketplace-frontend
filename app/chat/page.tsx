@@ -279,16 +279,18 @@ function ChatPageContent() {
         fetchData()
     }, [userType])
 
-    const fetchMessages = async (silent = false) => {
+    const fetchMessages = async (silent = false, skipDetails = false) => {
         if (!selectedChatId) return
 
         // Reset edit state when switching or refreshing chats
-        setIsEditingSidebar(false)
-        setLocalCollaboration(null)
+        if (!skipDetails) {
+            setIsEditingSidebar(false)
+            setLocalCollaboration(null)
+        }
 
         if (!silent) {
             setIsLoadingMessages(true)
-            setIsLoadingDetails(true)
+            if (!skipDetails) setIsLoadingDetails(true)
         }
 
         setHasMoreMessages(true)
@@ -314,19 +316,21 @@ function ChatPageContent() {
                 console.error('Failed to mark as read:', err)
             )
 
-            // Fetch collaboration details for the right panel
-            const detailResponse = userType === 'hotel'
-                ? await collaborationService.getHotelCollaborationDetails(selectedChatId)
-                : await collaborationService.getCreatorCollaborationDetails(selectedChatId)
+            // Fetch collaboration details for the right panel (skip if we already have updated data)
+            if (!skipDetails) {
+                const detailResponse = userType === 'hotel'
+                    ? await collaborationService.getHotelCollaborationDetails(selectedChatId)
+                    : await collaborationService.getCreatorCollaborationDetails(selectedChatId)
 
-            const detailedCollaboration = transformCollaborationResponse(detailResponse)
-            setActiveCollaboration(detailedCollaboration)
+                const detailedCollaboration = transformCollaborationResponse(detailResponse)
+                setActiveCollaboration(detailedCollaboration)
+            }
         } catch (error) {
             console.error('Failed to fetch chat details:', error)
         } finally {
             if (!silent) {
                 setIsLoadingMessages(false)
-                setIsLoadingDetails(false)
+                if (!skipDetails) setIsLoadingDetails(false)
             }
             setIsMenuOpen(false) // Close menu when switching chats
         }
@@ -417,7 +421,7 @@ function ChatPageContent() {
                 id: d.id,
                 type: displayType,
                 count: d.quantity,
-                completed: d.completed
+                completed: d.status === 'completed'
             }
         })
     ) || []
@@ -468,7 +472,8 @@ function ChatPageContent() {
             const detailedCollaboration = transformCollaborationResponse(updatedResponse)
             setActiveCollaboration(detailedCollaboration)
             // Refresh messages silently to show the system notification without flickering
-            fetchMessages(true)
+            // Skip details since we already have updated data from the toggle response
+            fetchMessages(true, true)
         } catch (error) {
             console.error('Failed to toggle deliverable:', error)
         }
@@ -483,7 +488,8 @@ function ChatPageContent() {
             setActiveCollaboration(detailedCollaboration)
             setIsSuggestModalOpen(false)
             // Refresh messages silently to show the system notification without flickering
-            fetchMessages(true)
+            // Skip details since we already have updated data from the update response
+            fetchMessages(true, true)
         } catch (error) {
             console.error('Failed to suggest changes:', error)
         }
@@ -498,7 +504,8 @@ function ChatPageContent() {
             const detailedCollaboration = transformCollaborationResponse(updatedResponse)
             setActiveCollaboration(detailedCollaboration)
             // Refresh messages silently to show the system notification without flickering
-            fetchMessages(true)
+            // Skip details since we already have updated data from the approve response
+            fetchMessages(true, true)
         } catch (error) {
             console.error('Failed to approve terms:', error)
         }
@@ -514,7 +521,8 @@ function ChatPageContent() {
             if (cancellationTargetId === selectedChatId) {
                 const detailedCollaboration = transformCollaborationResponse(response)
                 setActiveCollaboration(detailedCollaboration)
-                fetchMessages(true)
+                // Skip details since we already have updated data from the cancel response
+                fetchMessages(true, true)
             }
 
             // Refresh global lists (conversations and pending requests)
