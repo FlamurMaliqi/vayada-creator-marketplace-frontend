@@ -38,7 +38,7 @@ export default function ContactPage() {
     setIsSubmitting(true)
 
     try {
-      // TODO: Implement API call to submit contact form
+      // See tickets/TICKET-001-contact-form-api.md for implementation
       await new Promise(resolve => setTimeout(resolve, 1000))
 
       setSubmitSuccess(true)

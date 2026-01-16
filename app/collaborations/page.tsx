@@ -150,13 +150,13 @@ function CollaborationsPageContent() {
   const handleRatingSubmit = async (id: string, rating: number, comment: string) => {
     // Simulate rating submission (frontend design only)
     // In production, this would call an API to submit the rating
+    // See tickets/TICKET-002-collaboration-rating-api.md for implementation
     setTimeout(() => {
       setCollaborations(prev =>
         prev.map(collab =>
           collab.id === id ? { ...collab, hasRated: true } : collab
         )
       )
-      // TODO: In production, submit rating to API
     }, 500)
   }
 
