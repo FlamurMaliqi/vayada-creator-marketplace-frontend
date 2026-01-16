@@ -9,6 +9,7 @@ import { Button, Input } from '@/components/ui'
 import { ROUTES } from '@/lib/constants/routes'
 import type { Collaboration, CollaborationStatus, Hotel, Creator, UserType } from '@/lib/types'
 import { collaborationService, transformCollaborationResponse } from '@/services/api/collaborations'
+import { toBackendStatus } from '@/lib/utils/statusMapping'
 import { ApiErrorResponse } from '@/services/api/client'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
@@ -74,14 +75,7 @@ function CollaborationsPageContent() {
     setLoading(true)
     try {
       // Map frontend status filter to backend status
-      const statusMap: Record<StatusFilter, string | undefined> = {
-        all: undefined,
-        pending: 'pending',
-        accepted: 'accepted',
-        rejected: 'declined', // Backend uses 'declined', frontend uses 'rejected'
-      }
-
-      const backendStatus = statusMap[statusFilter]
+      const backendStatus = statusFilter === 'all' ? undefined : toBackendStatus(statusFilter)
 
       // Use new endpoints based on user type
       let response
@@ -116,21 +110,10 @@ function CollaborationsPageContent() {
   const handleStatusUpdate = async (id: string, newStatus: CollaborationStatus) => {
     setUpdatingId(id)
     try {
+      const backendStatus = toBackendStatus(newStatus)
       if (newStatus === 'accepted' || newStatus === 'rejected') {
-        const backendStatus = newStatus === 'accepted' ? 'accepted' : 'declined'
         await collaborationService.respondToCollaboration(id, { status: backendStatus as 'accepted' | 'declined' })
       } else {
-        // Map frontend status to backend status
-        const statusMap: Record<CollaborationStatus, string> = {
-          pending: 'pending',
-          accepted: 'accepted',
-          rejected: 'declined', // Backend uses 'declined', frontend uses 'rejected'
-          negotiating: 'negotiating',
-          completed: 'completed',
-          cancelled: 'cancelled',
-        }
-
-        const backendStatus = statusMap[newStatus]
         await collaborationService.updateStatus(id, backendStatus)
       }
       // Reload collaborations after status update

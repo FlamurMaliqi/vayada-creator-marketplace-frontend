@@ -5,6 +5,7 @@
 import { apiClient } from './client'
 import type { Collaboration, PaginatedResponse } from '@/lib/types'
 import type { Hotel, Creator } from '@/lib/types'
+import { BACKEND_TO_FRONTEND_STATUS } from '@/lib/utils/statusMapping'
 
 // Platform deliverable types
 export interface PlatformDeliverable {
@@ -422,14 +423,6 @@ export const collaborationService = {
 export function transformCollaborationResponse(
   response: any
 ): DetailedCollaboration {
-  // Map status: backend uses 'declined', frontend uses 'rejected'
-  const statusMap: Record<string, Collaboration['status']> = {
-    pending: 'pending',
-    accepted: 'accepted',
-    declined: 'rejected',
-    completed: 'completed',
-    cancelled: 'cancelled',
-  }
 
   const hotel: Hotel | undefined = response.hotel_name
     ? {
@@ -494,7 +487,7 @@ export function transformCollaborationResponse(
     id: response.id,
     hotelId: response.hotel_id,
     creatorId: response.creator_id,
-    status: statusMap[response.status] || 'pending',
+    status: BACKEND_TO_FRONTEND_STATUS[response.status] || 'pending',
     createdAt: new Date(response.created_at),
     updatedAt: new Date(response.updated_at),
     hotel,
