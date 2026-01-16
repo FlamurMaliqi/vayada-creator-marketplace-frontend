@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button, Textarea } from '@/components/ui'
+import { MONTHS_ABBR, PLATFORM_OPTIONS_WITH_CONTENT, PLATFORM_DELIVERABLES } from '@/lib/constants'
 import { XMarkIcon, CalendarIcon, PlusSmallIcon, MinusSmallIcon, CheckIcon, PhotoIcon } from '@heroicons/react/24/outline'
 
 const getPlatformIcon = (platform: string, className: string = "w-5 h-5") => {
@@ -83,17 +84,6 @@ export interface HotelInvitationData {
   message?: string
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const PLATFORM_OPTIONS = ['Instagram', 'Facebook', 'TikTok', 'YouTube', 'Content Package']
-
-// Map platforms to their available deliverables
-const PLATFORM_DELIVERABLES: Record<string, string[]> = {
-  'Instagram': ['Instagram Post', 'Instagram Stories', 'Instagram Reel'],
-  'Facebook': ['Facebook Post', 'Facebook Stories', 'Facebook Reel'],
-  'TikTok': ['TikTok Video'],
-  'YouTube': ['YouTube Video', 'YouTube Shorts'],
-  'Content Package': ['Photos', 'Videos'],
-}
 // Helper for month abbreviations
 const getMonthAbbr = (month: string): string => {
   const monthMap: { [key: string]: string } = {
@@ -521,7 +511,7 @@ export function HotelInvitationModal({
             <div>
               <p className="text-sm text-gray-600 mb-3">Or select preferred months</p>
               <div className="grid grid-cols-4 gap-2">
-                {MONTHS.map((month) => {
+                {MONTHS_ABBR.map((month) => {
                   const selectedListing = listings.find(l => l.id === listingId);
 
                   // Filter by specific collaboration type if selected, otherwise show combined availability
@@ -565,7 +555,7 @@ export function HotelInvitationModal({
               Expected Platforms & Deliverables <span className="text-red-500">*</span>
             </label>
             <div className="space-y-3">
-              {PLATFORM_OPTIONS.filter(p => {
+              {PLATFORM_OPTIONS_WITH_CONTENT.filter(p => {
                 // Content Package is always shown
                 if (p === 'Content Package') return true
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button, Input, Textarea } from '@/components/ui'
 import { ROUTES } from '@/lib/constants/routes'
+import { MONTHS_FULL, PLATFORM_OPTIONS, COLLABORATION_TYPES } from '@/lib/constants'
 import { checkProfileStatus, isProfileComplete } from '@/lib/utils'
 import type { UserType, CreatorProfileStatus, HotelProfileStatus } from '@/lib/types'
 import { creatorService } from '@/services/api/creators'
@@ -48,9 +49,6 @@ const HOTEL_CATEGORIES = [
   'Lodge',
 ]
 
-const PLATFORM_OPTIONS = ['Instagram', 'TikTok', 'YouTube', 'Facebook']
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-const COLLABORATION_TYPES = ['Free Stay', 'Paid', 'Discount'] as const
 const AGE_GROUP_OPTIONS = ['18-24', '25-34', '35-44', '45-54', '55+']
 const COUNTRIES = Object.values(countries).map(country => country.name).sort()
 
@@ -2650,28 +2648,28 @@ export default function ProfileCompletePage() {
                                       <button
                                         type="button"
                                         onClick={() => {
-                                          const allMonthsSelected = MONTHS.every(month => listing.availability.includes(month))
+                                          const allMonthsSelected = MONTHS_FULL.every(month => listing.availability.includes(month))
                                           if (allMonthsSelected) {
                                             // If all selected, deselect all
                                             updateListing(index, 'availability', [])
                                           } else {
                                             // Select all months
-                                            updateListing(index, 'availability', [...MONTHS])
+                                            updateListing(index, 'availability', [...MONTHS_FULL])
                                           }
                                         }}
-                                        className={`w-full px-4 py-3 rounded-xl border-2 text-base font-bold transition-all shadow-sm ${MONTHS.every(month => listing.availability.includes(month))
+                                        className={`w-full px-4 py-3 rounded-xl border-2 text-base font-bold transition-all shadow-sm ${MONTHS_FULL.every(month => listing.availability.includes(month))
                                           ? 'bg-gradient-to-r from-[#2F54EB] to-[#1e3a8a] border-[#2F54EB] text-white shadow-md'
                                           : 'bg-gradient-to-r from-primary-50 to-primary-100 border-primary-300 text-primary-700 hover:from-primary-100 hover:to-primary-200 hover:border-primary-400 hover:shadow-md'
                                           }`}
                                       >
                                         <span className="flex items-center justify-center gap-2">
                                           <CalendarDaysIcon className="w-5 h-5" />
-                                          {MONTHS.every(month => listing.availability.includes(month)) ? 'All Year Selected' : 'Select All Year'}
+                                          {MONTHS_FULL.every(month => listing.availability.includes(month)) ? 'All Year Selected' : 'Select All Year'}
                                         </span>
                                       </button>
                                     </div>
                                     <div className="grid grid-cols-6 gap-2">
-                                      {MONTHS.map((month) => {
+                                      {MONTHS_FULL.map((month) => {
                                         const isSelected = listing.availability.includes(month)
                                         const monthAbbr = month.substring(0, 3)
 

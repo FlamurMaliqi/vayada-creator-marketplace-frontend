@@ -9,6 +9,7 @@ import {
     BanknotesIcon,
     TagIcon
 } from '@heroicons/react/24/outline'
+import { PLATFORM_OPTIONS_ALL } from '@/lib/constants'
 
 interface Deliverable {
     id?: string
@@ -42,7 +43,6 @@ interface SuggestChangesModalProps {
     }) => void
 }
 
-const PLATFORMS = ['Instagram', 'TikTok', 'YouTube', 'Facebook', 'Content Package', 'Custom'] as const
 
 export default function SuggestChangesModal({
     isOpen,
@@ -245,7 +245,7 @@ export default function SuggestChangesModal({
                                                 onChange={(e) => handlePlatformChange(pIndex, e.target.value)}
                                                 className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-xs font-bold text-gray-900 focus:outline-none focus:border-blue-500"
                                             >
-                                                {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
+                                                {PLATFORM_OPTIONS_ALL.map(p => <option key={p} value={p}>{p}</option>)}
                                             </select>
                                         </div>
                                         <div className="flex items-center gap-2">

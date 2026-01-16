@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Textarea } from '@/components/ui'
+import { MONTHS_ABBR, PLATFORM_OPTIONS_WITH_CONTENT, PLATFORM_DELIVERABLES } from '@/lib/constants'
 import { XMarkIcon, CalendarIcon, PlusSmallIcon, MinusSmallIcon, CheckIcon, PhotoIcon } from '@heroicons/react/24/outline'
 
 const getPlatformIcon = (platform: string, className: string = "w-5 h-5") => {
@@ -69,17 +70,6 @@ export interface CollaborationApplicationData {
   consent: boolean
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const PLATFORM_OPTIONS = ['Instagram', 'Facebook', 'TikTok', 'YouTube', 'Content Package']
-
-// Map platforms to their available deliverables
-const PLATFORM_DELIVERABLES: Record<string, string[]> = {
-  'Instagram': ['Instagram Post', 'Instagram Stories', 'Instagram Reel'],
-  'Facebook': ['Facebook Post', 'Facebook Stories', 'Facebook Reel'],
-  'TikTok': ['TikTok Video'],
-  'YouTube': ['YouTube Video', 'YouTube Shorts'],
-  'Content Package': ['Photos', 'Videos'],
-}
 
 // Helper for month abbreviations
 const getMonthAbbr = (month: string): string => {
@@ -111,7 +101,7 @@ const getMonthsInRange = (fromStr: string, toStr: string): string[] => {
   // Use a limit to prevent infinite loops if dates are somehow broken
   let safetyCounter = 0
   while (current <= to && safetyCounter < 24) {
-    months.push(MONTHS[current.getMonth()])
+    months.push(MONTHS_ABBR[current.getMonth()])
     current.setMonth(current.getMonth() + 1)
     safetyCounter++
   }
@@ -410,7 +400,7 @@ export function CollaborationApplicationModal({
             <div>
               <p className="text-sm text-gray-600 mb-3">Or select preferred months</p>
               <div className="grid grid-cols-4 gap-2">
-                {MONTHS.map((month) => {
+                {MONTHS_ABBR.map((month) => {
                   const isAvailable =
                     availableMonths.length === 0 ||
                     normalizedAvailable.includes(month);
@@ -442,7 +432,7 @@ export function CollaborationApplicationModal({
               Platforms & Expected Deliverables <span className="text-red-500">*</span>
             </label>
             <div className="space-y-3">
-              {PLATFORM_OPTIONS.filter(p => {
+              {PLATFORM_OPTIONS_WITH_CONTENT.filter(p => {
                 // Content Package and Custom are always shown
                 if (p === 'Content Package') return true
 

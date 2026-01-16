@@ -6,19 +6,7 @@ import type { CollaborationResponse } from '@/services/api/collaborations'
 import { CalendarEventModal } from './CalendarEventModal'
 import { AddCollaborationModal } from './AddCollaborationModal'
 import { AddTripModal } from './AddTripModal'
-
-const MONTHS = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-]
-
-const MONTH_NAMES_FULL = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-]
-
-const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+import { MONTHS_ABBR, MONTHS_FULL, DAYS_IN_MONTH, WEEKDAYS } from '@/lib/constants'
 
 interface YearlyCalendarProps {
     collaborations?: CollaborationResponse[]
@@ -128,7 +116,7 @@ export function YearlyCalendar({ collaborations = [], onViewDetails, userType = 
                             <ChevronLeftIcon className="w-5 h-5" />
                         </button>
                         <span className="font-bold text-gray-900 min-w-[3rem] text-center whitespace-nowrap px-2">
-                            {view === 'year' ? year : `${MONTHS[month]} ${year}`}
+                            {view === 'year' ? year : `${MONTHS_ABBR[month]} ${year}`}
                         </span>
                         <button
                             onClick={handleNext}
@@ -196,7 +184,7 @@ export function YearlyCalendar({ collaborations = [], onViewDetails, userType = 
                         <div className="grid grid-cols-[80px_1fr] border-b border-gray-100">
                             <div className="p-3"></div>
                             <div className="grid" style={{ gridTemplateColumns: 'repeat(31, minmax(0, 1fr))' }}>
-                                {DAYS.map(day => (
+                                {DAYS_IN_MONTH.map(day => (
                                     <div key={day} className="text-[10px] text-gray-400 text-center py-2 font-medium">
                                         {day}
                                     </div>
@@ -206,7 +194,7 @@ export function YearlyCalendar({ collaborations = [], onViewDetails, userType = 
 
                         {/* Months Rows */}
                         <div className="divide-y divide-gray-50">
-                            {MONTHS.map((monthName, monthIndex) => {
+                            {MONTHS_ABBR.map((monthName, monthIndex) => {
                                 const daysInMonth = getDaysInMonth(monthIndex, year)
                                 return (
                                     <div key={monthName} className="grid grid-cols-[80px_1fr] group hover:bg-gray-50/50 transition-colors">
@@ -214,7 +202,7 @@ export function YearlyCalendar({ collaborations = [], onViewDetails, userType = 
                                             {monthName}
                                         </div>
                                         <div className="grid divide-x divide-gray-50 border-r border-gray-50" style={{ gridTemplateColumns: 'repeat(31, minmax(0, 1fr))' }}>
-                                            {DAYS.map(day => {
+                                            {DAYS_IN_MONTH.map(day => {
                                                 const isValidDate = day <= daysInMonth
 
                                                 // Create date for this cell (local time)
@@ -342,7 +330,7 @@ export function YearlyCalendar({ collaborations = [], onViewDetails, userType = 
 
             {!collaborations.length && (
                 <div className="text-center py-8 text-xs text-gray-300 border-t border-gray-100 mt-4">
-                    No collaborations found for {view === 'year' ? year : `${MONTHS[month]} ${year}`}
+                    No collaborations found for {view === 'year' ? year : `${MONTHS_ABBR[month]} ${year}`}
                 </div>
             )}
 
