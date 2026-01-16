@@ -48,7 +48,7 @@ export default function Navigation() {
         <div className="absolute right-[10vw] hidden md:flex items-center gap-4">
           <a
             href={ROUTES.CONTACT}
-            className="text-gray-500 hover:text-primary-600 transition-colors font-medium border-[0.2px] border-black-300David Matthaei rounded-2xl px-4 py-2"
+            className="text-gray-500 hover:text-primary-600 transition-colors font-medium border-[0.2px] border-gray-300 rounded-2xl px-4 py-2"
           >
             Contact us
           </a>

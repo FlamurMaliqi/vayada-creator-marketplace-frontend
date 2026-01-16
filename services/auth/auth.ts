@@ -183,7 +183,7 @@ export const authService = {
     try {
       const response = await apiClient.post<{ message: string; token: string | null }>('/auth/forgot-password', { email })
       return { message: response.message }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // For security, always show success message even if email doesn't exist
       // This prevents email enumeration attacks
       if (error instanceof ApiErrorResponse) {
@@ -215,7 +215,7 @@ export const authService = {
       })
       
       return response
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof ApiErrorResponse) {
         // Handle backend validation errors
         if (error.status === 400 || error.status === 422) {
@@ -241,7 +241,10 @@ export const authService = {
         }
         throw new Error('Failed to reset password. Please try again.')
       }
-      throw new Error(error.message || 'Failed to reset password. Please try again.')
+      if (error instanceof Error) {
+        throw new Error(error.message || 'Failed to reset password. Please try again.')
+      }
+      throw new Error('Failed to reset password. Please try again.')
     }
   },
 
@@ -254,7 +257,7 @@ export const authService = {
     try {
       const response = await apiClient.post<{ message: string; code: string | null }>('/auth/send-verification-code', { email })
       return response
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof ApiErrorResponse) {
         const detail = error.data.detail
         if (typeof detail === 'string') {
@@ -279,7 +282,7 @@ export const authService = {
         code,
       })
       return response
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof ApiErrorResponse) {
         const detail = error.data.detail
         if (typeof detail === 'string') {
@@ -308,7 +311,7 @@ export const authService = {
 
       const response = await apiClient.get<{ message: string; verified: boolean; email: string | null }>(`/auth/verify-email?token=${encodeURIComponent(token)}`)
       return response
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof ApiErrorResponse) {
         const detail = error.data.detail
         if (typeof detail === 'string') {

@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from 'react'
 import { Input } from '@/components/ui'
 import { MagnifyingGlassIcon, ChevronDownIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { MONTH_ABBREVIATIONS } from '@/lib/utils/months'
 
 interface MarketplaceFiltersProps {
   searchQuery: string
@@ -63,21 +64,6 @@ const AVAILABILITY_OPTIONS = [
   'November',
   'December',
 ]
-
-const MONTH_ABBREVIATIONS: Record<string, string> = {
-  'January': 'Jan',
-  'February': 'Feb',
-  'March': 'Mar',
-  'April': 'Apr',
-  'May': 'May',
-  'June': 'Jun',
-  'July': 'Jul',
-  'August': 'Aug',
-  'September': 'Sep',
-  'October': 'Oct',
-  'November': 'Nov',
-  'December': 'Dec',
-}
 
 const BUDGET_OPTIONS = [
   'All Budgets',

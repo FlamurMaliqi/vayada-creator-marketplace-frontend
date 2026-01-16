@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button, Textarea } from '@/components/ui'
 import { MONTHS_ABBR, PLATFORM_OPTIONS_WITH_CONTENT, PLATFORM_DELIVERABLES } from '@/lib/constants'
 import { XMarkIcon, CalendarIcon, PlusSmallIcon, MinusSmallIcon, CheckIcon, PhotoIcon } from '@heroicons/react/24/outline'
+import { getMonthAbbr } from '@/lib/utils/months'
 
 const getPlatformIcon = (platform: string, className: string = "w-5 h-5") => {
   const platformLower = platform.toLowerCase()
@@ -70,25 +71,6 @@ export interface CollaborationApplicationData {
   consent: boolean
 }
 
-
-// Helper for month abbreviations
-const getMonthAbbr = (month: string): string => {
-  const monthMap: { [key: string]: string } = {
-    'Januar': 'Jan',
-    'Februar': 'Feb',
-    'März': 'Mar',
-    'April': 'Apr',
-    'Mai': 'May',
-    'Juni': 'Jun',
-    'Juli': 'Jul',
-    'August': 'Aug',
-    'September': 'Sep',
-    'Oktober': 'Oct',
-    'November': 'Nov',
-    'Dezember': 'Dec',
-  }
-  return monthMap[month] || month.substring(0, 3)
-}
 
 const getMonthsInRange = (fromStr: string, toStr: string): string[] => {
   const from = new Date(fromStr)

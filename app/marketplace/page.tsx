@@ -1,14 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useState, useEffect, useMemo } from 'react'
 import { AuthenticatedNavigation, ProfileWarningBanner } from '@/components/layout'
 import { useSidebar } from '@/components/layout/AuthenticatedNavigation'
 import { MarketplaceFilters } from '@/components/marketplace/MarketplaceFilters'
 import { HotelCard } from '@/components/marketplace/HotelCard'
 import { CreatorCard } from '@/components/marketplace/CreatorCard'
-import { Button } from '@/components/ui'
-import { ROUTES, STORAGE_KEYS } from '@/lib/constants'
+import { STORAGE_KEYS } from '@/lib/constants'
 import type { Hotel, Creator, UserType } from '@/lib/types'
 import { hotelService } from '@/services/api/hotels'
 import { creatorService } from '@/services/api/creators'
@@ -21,6 +19,7 @@ export default function MarketplacePage() {
   const [creators, setCreators] = useState<Creator[]>([])
   const [currentCreator, setCurrentCreator] = useState<Creator | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortOption, setSortOption] = useState<string>('relevance')
   const [filters, setFilters] = useState<{
@@ -51,6 +50,7 @@ export default function MarketplacePage() {
     if (!userType) return
 
     setLoading(true)
+    setError(null)
     try {
       // Load hotels if user is creator
       if (userType === 'creator') {
@@ -72,9 +72,12 @@ export default function MarketplacePage() {
       } else {
         setCreators([])
       }
-    } catch (error) {
-      console.error('Error loading marketplace data:', error)
-      // Set empty arrays on error
+    } catch (err) {
+      console.error('Error loading marketplace data:', err)
+      const errorMessage = err instanceof ApiErrorResponse
+        ? 'Failed to load marketplace data. Please try again.'
+        : 'An unexpected error occurred. Please refresh the page.'
+      setError(errorMessage)
       setHotels([])
       setCreators([])
     } finally {
@@ -82,7 +85,7 @@ export default function MarketplacePage() {
     }
   }
 
-  const filteredHotels = hotels.filter((hotel) => {
+  const filteredHotels = useMemo(() => hotels.filter((hotel) => {
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
@@ -145,15 +148,10 @@ export default function MarketplacePage() {
       if (!hasAvailability) return false
     }
 
-    // Budget filter (placeholder - will be implemented based on discussion)
-    // if (filters.budget) {
-    //   // Budget filtering logic to be added
-    // }
-
     return true
-  })
+  }), [hotels, searchQuery, filters.hotelType, filters.offering, filters.availability])
 
-  const filteredCreators = creators.filter((creator) => {
+  const filteredCreators = useMemo(() => creators.filter((creator) => {
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
@@ -212,11 +210,11 @@ export default function MarketplacePage() {
     }
 
     return true
-  })
+  }), [creators, searchQuery, filters.minFollowers, filters.minEngagementRate, filters.creatorPlatforms, filters.topCountries])
 
-  // Sort function
-  const sortItems = <T extends Hotel | Creator>(items: T[]): T[] => {
-    const sorted = [...items]
+  // Memoized sorted results
+  const sortedHotels = useMemo(() => {
+    const sorted = [...filteredHotels]
     switch (sortOption) {
       case 'name-asc':
         return sorted.sort((a, b) => a.name.localeCompare(b.name))
@@ -228,12 +226,26 @@ export default function MarketplacePage() {
         return sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
       case 'relevance':
       default:
-        return sorted // Keep original order for relevance
+        return sorted
     }
-  }
+  }, [filteredHotels, sortOption])
 
-  const sortedHotels = sortItems(filteredHotels)
-  const sortedCreators = sortItems(filteredCreators)
+  const sortedCreators = useMemo(() => {
+    const sorted = [...filteredCreators]
+    switch (sortOption) {
+      case 'name-asc':
+        return sorted.sort((a, b) => a.name.localeCompare(b.name))
+      case 'name-desc':
+        return sorted.sort((a, b) => b.name.localeCompare(a.name))
+      case 'newest':
+        return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      case 'oldest':
+        return sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      case 'relevance':
+      default:
+        return sorted
+    }
+  }, [filteredCreators, sortOption])
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: '#f9f8f6' }}>
@@ -267,6 +279,20 @@ export default function MarketplacePage() {
             onFiltersChange={setFilters}
             viewType={userType === 'creator' ? 'hotels' : userType === 'hotel' ? 'creators' : 'all'}
           />
+
+          {/* Error notification */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+              <p className="text-red-700">{error}</p>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-500 hover:text-red-700"
+              >
+                <span className="sr-only">Dismiss</span>
+                ✕
+              </button>
+            </div>
+          )}
 
           {/* Results */}
           {loading ? (

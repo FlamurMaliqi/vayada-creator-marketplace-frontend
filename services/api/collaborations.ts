@@ -171,6 +171,16 @@ export interface CollaborationResponse {
     targetAgeMin: number
     targetAgeMax: number
   }
+  // Additional properties that may come from backend
+  updated_at?: string
+  responded_at?: string
+  creator_requirements?: {
+    platforms: string[]
+    min_followers: number
+    target_countries: string[]
+    target_age_min: number
+    target_age_max: number
+  }
 }
 
 export type DetailedCollaboration = Collaboration & {
@@ -222,6 +232,13 @@ export interface ConversationResponse {
   my_role: 'creator' | 'hotel'
 }
 
+export interface MessageMetadata {
+  imageUrl?: string
+  fileName?: string
+  fileSize?: number
+  [key: string]: unknown
+}
+
 export interface MessageResponse {
   id: string
   collaboration_id: string
@@ -230,7 +247,7 @@ export interface MessageResponse {
   sender_avatar: string | null
   content: string
   content_type: 'text' | 'image' | 'system'
-  metadata: any | null
+  metadata: MessageMetadata | null
   created_at: string
 }
 
@@ -405,8 +422,9 @@ export const collaborationService = {
  * Transforms a backend collaboration response into a Frontend-friendly Collaboration object with simplified structure
  */
 export function transformCollaborationResponse(
-  response: any
+  response: CollaborationResponse
 ): DetailedCollaboration {
+  const updatedAt = response.updated_at || response.created_at
 
   const hotel: Hotel | undefined = response.hotel_name
     ? {
@@ -419,7 +437,7 @@ export function transformCollaborationResponse(
       images: [response.hotelProfilePicture || response.hotel_picture].filter(Boolean) as string[],
       status: 'verified',
       createdAt: new Date(response.created_at),
-      updatedAt: new Date(response.updated_at),
+      updatedAt: new Date(updatedAt),
     }
     : undefined
 
@@ -429,8 +447,8 @@ export function transformCollaborationResponse(
       email: '', // Not provided
       name: response.creator_name,
       location: response.creator_location || '',
-      platforms: response.platforms?.map((p: any) => ({
-        name: p.platform || p.name || 'platform',
+      platforms: response.platforms?.map((p) => ({
+        name: p.name || 'platform',
         handle: p.handle,
         followers: p.followers,
         engagementRate: p.engagement_rate,
@@ -444,7 +462,7 @@ export function transformCollaborationResponse(
         ? {
           averageRating: response.reputation.average_rating,
           totalReviews: response.reputation.total_reviews,
-          reviews: response.reputation.reviews.map((r: any) => ({
+          reviews: response.reputation.reviews.map((r) => ({
             id: r.id,
             hotelId: '', // Not provided in simplified response, likely not needed for display
             hotelName: r.hotel_name,
@@ -463,7 +481,7 @@ export function transformCollaborationResponse(
       profilePicture: response.creator_profile_picture || undefined,
       status: 'verified' as const,
       createdAt: new Date(response.created_at),
-      updatedAt: new Date(response.updated_at),
+      updatedAt: new Date(updatedAt),
     }
     : undefined
 
@@ -473,7 +491,7 @@ export function transformCollaborationResponse(
     creatorId: response.creator_id,
     status: response.status || 'pending',
     createdAt: new Date(response.created_at),
-    updatedAt: new Date(response.updated_at),
+    updatedAt: new Date(updatedAt),
     hotel,
     creator,
     is_initiator: response.is_initiator,

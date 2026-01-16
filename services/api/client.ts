@@ -120,7 +120,7 @@ export class ApiClient {
       const contentType = response.headers.get('content-type')
       const hasJsonContent = contentType && contentType.includes('application/json')
       
-      let data: any
+      let data: unknown
       if (hasJsonContent) {
         const text = await response.text()
         // Only parse JSON if there's actual content
