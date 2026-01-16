@@ -31,7 +31,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { CollaborationRequestDetailModal } from '@/components/marketplace/CollaborationRequestDetailModal'
 import type { Collaboration, Hotel, Creator } from '@/lib/types'
-import { STORAGE_KEYS } from '@/lib/constants'
+import { STORAGE_KEYS, getStatusClasses } from '@/lib/constants'
 
 // Helper for formatting numbers (e.g. 125000 -> 125.0K)
 const formatNumber = (num: number | undefined) => {
@@ -470,18 +470,6 @@ function ChatPageContent() {
         return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
     }
 
-    const getStatusColor = (status: string) => {
-        const s = status.toLowerCase()
-        if (s === 'pending') return 'bg-yellow-100 text-yellow-700'
-        if (s === 'negotiating') return 'bg-blue-100 text-blue-700'
-        if (s === 'accepted') return 'bg-emerald-100 text-emerald-700'
-        if (s === 'staying') return 'bg-purple-100 text-purple-700'
-        if (s === 'completed') return 'bg-green-100 text-green-700'
-        if (s === 'declined') return 'bg-red-100 text-red-700'
-        if (s === 'cancelled') return 'bg-gray-100 text-gray-500' // Grey for cancelled
-        return 'bg-gray-100 text-gray-600'
-    }
-
     // Calculate progress
     const totalDeliverables = flatDeliverables.length
     const completedCount = flatDeliverables.filter(d => d.completed).length
@@ -830,7 +818,7 @@ function ChatPageContent() {
                                                     <span className="text-[10px] text-gray-400 flex-shrink-0">{formatTime(chat.last_message_at)}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium capitalize ${getStatusColor(chat.collaboration_status)}`}>
+                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium capitalize ${getStatusClasses(chat.collaboration_status)}`}>
                                                         {chat.collaboration_status}
                                                     </span>
                                                     {chat.my_role && (
@@ -868,7 +856,7 @@ function ChatPageContent() {
                                         <div className="flex items-center gap-2">
                                             <h3 className="text-lg font-bold text-gray-900 leading-none">{activeChat.partner_name}</h3>
                                             <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-extrabold">
-                                                <span className={getStatusColor(activeChat.collaboration_status).split(' ')[1] + " " + getStatusColor(activeChat.collaboration_status).split(' ')[0] + " px-1.5 py-0.5 rounded-full border border-current opacity-80"}>
+                                                <span className={getStatusClasses(activeChat.collaboration_status).split(' ')[1] + " " + getStatusClasses(activeChat.collaboration_status).split(' ')[0] + " px-1.5 py-0.5 rounded-full border border-current opacity-80"}>
                                                     {activeChat.collaboration_status}
                                                 </span>
                                             </div>
@@ -1097,7 +1085,7 @@ function ChatPageContent() {
                                                 <p className="text-[10px] text-gray-400 font-medium">Applied to: <span className="text-blue-600">{activeCollaboration.listingName}</span></p>
                                             )}
                                         </div>
-                                        <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full font-medium capitalize ${getStatusColor(activeChat.collaboration_status)}`}>
+                                        <span className={`ml-auto text-[10px] px-2 py-0.5 rounded-full font-medium capitalize ${getStatusClasses(activeChat.collaboration_status)}`}>
                                             {activeChat.collaboration_status}
                                         </span>
                                     </div>

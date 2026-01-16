@@ -1,37 +1,14 @@
 /**
  * CSS Variables for theming
+ *
+ * Note: Colors, spacing, typography, and breakpoints are now handled by Tailwind.
+ * See tailwind.config.js for color definitions.
+ *
+ * Use Tailwind classes:
+ * - Colors: primary-500, success-500, warning-500, error-500, info-500
+ * - Status: Use getStatusClasses() from @/lib/constants/colors
  */
 
 :root {
-  /* Colors */
-  --color-primary-50: #EFF2FF;
-  --color-primary-100: #DFE5FF;
-  --color-primary-200: #BFCBFF;
-  --color-primary-300: #9FB1FF;
-  --color-primary-400: #5F7FFF;
-  --color-primary-500: #2F52F5;
-  --color-primary-600: #1E3EDB;
-  --color-primary-700: #162FB8;
-  --color-primary-800: #0F2095;
-  --color-primary-900: #081172;
-
-  /* Spacing */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
-
-  /* Typography */
-  --font-sans: system-ui, -apple-system, sans-serif;
-  --font-mono: 'Courier New', monospace;
-
-  /* Breakpoints */
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
+  /* Add any CSS-specific variables here that can't be handled by Tailwind */
 }
-

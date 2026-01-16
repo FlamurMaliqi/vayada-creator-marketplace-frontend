@@ -10,6 +10,7 @@ import {
   ArrowPathIcon
 } from '@heroicons/react/24/outline'
 import { formatNumber } from '@/lib/utils'
+import { getStatusClasses } from '@/lib/constants'
 import { CollaborationRatingModal } from './CollaborationRatingModal'
 
 interface CollaborationCardProps {
@@ -23,13 +24,13 @@ interface CollaborationCardProps {
   currentUserType?: UserType
 }
 
-const statusConfig: Record<CollaborationStatus, { label: string; color: string; icon: any }> = {
-  pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: ClockIcon },
-  negotiating: { label: 'Negotiating', color: 'bg-blue-100 text-blue-800', icon: ArrowPathIcon },
-  accepted: { label: 'Accepted', color: 'bg-blue-100 text-blue-800', icon: CheckCircleIcon },
-  declined: { label: 'Declined', color: 'bg-red-100 text-red-800', icon: XCircleIcon },
-  completed: { label: 'Completed', color: 'bg-green-100 text-green-800', icon: CheckCircleIcon },
-  cancelled: { label: 'Cancelled', color: 'bg-gray-100 text-gray-800', icon: XCircleIcon },
+const statusIcons: Record<CollaborationStatus, any> = {
+  pending: ClockIcon,
+  negotiating: ArrowPathIcon,
+  accepted: CheckCircleIcon,
+  declined: XCircleIcon,
+  completed: CheckCircleIcon,
+  cancelled: XCircleIcon,
 }
 
 export function CollaborationCard({
@@ -40,8 +41,8 @@ export function CollaborationCard({
   currentUserType
 }: CollaborationCardProps) {
   const [showRatingModal, setShowRatingModal] = useState(false)
-  const statusInfo = statusConfig[collaboration.status]
-  const StatusIcon = statusInfo.icon
+  const statusColor = getStatusClasses(collaboration.status)
+  const StatusIcon = statusIcons[collaboration.status]
 
   const handleRatingSubmit = (rating: number, comment: string) => {
     if (onRatingSubmit) {
@@ -273,9 +274,9 @@ export function CollaborationCard({
 
         {/* Status badge for non-pending (when not showing rating prompt) */}
         {collaboration.status !== 'pending' && !shouldShowRatingPrompt && (
-          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color} flex-shrink-0`}>
+          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${statusColor} flex-shrink-0`}>
             <StatusIcon className="w-4 h-4" />
-            <span>{statusInfo.label}</span>
+            <span className="capitalize">{collaboration.status}</span>
           </div>
         )}
       </div>
