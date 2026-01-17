@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Creator } from '@/lib/types'
 import { Button, StarRating, SuccessModal, ErrorModal, PlatformIcon } from '@/components/ui'
 import { formatNumber } from '@/lib/utils'
@@ -93,6 +94,7 @@ const getTimeAgo = (date: Date): string => {
 export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailModalProps) {
   const [showInvitationModal, setShowInvitationModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [imageError, setImageError] = useState(false)
   const [errorState, setErrorState] = useState<{ isOpen: boolean, message: string, title?: string }>({
     isOpen: false,
     message: ''
@@ -252,27 +254,17 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
           {/* Profile Header Section - Profile Picture, Name, Platform Badges, Reviews */}
           <div className="flex items-start gap-6">
             {/* Profile Picture */}
-            <div className="w-24 h-24 rounded-full flex-shrink-0 overflow-hidden">
-              {creator.profilePicture ? (
-                <img
+            <div className="w-24 h-24 rounded-full flex-shrink-0 overflow-hidden relative">
+              {creator.profilePicture && !imageError ? (
+                <Image
                   src={creator.profilePicture}
                   alt={creator.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback to gradient placeholder if image fails to load
-                    const target = e.target as HTMLImageElement
-                    target.style.display = 'none'
-                    const parent = target.parentElement
-                    if (parent && !parent.querySelector('.fallback-placeholder')) {
-                      const fallback = document.createElement('div')
-                      fallback.className = 'fallback-placeholder w-full h-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-3xl'
-                      fallback.textContent = creator.name.charAt(0)
-                      parent.appendChild(fallback)
-                    }
-                  }}
+                  fill
+                  className="object-cover"
+                  onError={() => setImageError(true)}
+                  unoptimized
                 />
-              ) : null}
-              {(!creator.profilePicture || !creator.profilePicture.trim()) && (
+              ) : (
                 <div className="w-full h-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-3xl">
                   {creator.name.charAt(0)}
                 </div>

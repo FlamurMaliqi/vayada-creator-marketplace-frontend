@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Image from 'next/image'
 import { Creator } from '@/lib/types'
 import { Button, StarRating, PlatformIcon } from '@/components/ui'
 import { MapPinIcon, CheckBadgeIcon, UserGroupIcon } from '@heroicons/react/24/outline'
@@ -11,6 +12,7 @@ interface CreatorCardProps {
 
 export function CreatorCard({ creator }: CreatorCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [imageError, setImageError] = useState(false)
   const totalFollowers = creator.platforms.reduce(
     (sum, platform) => sum + platform.followers,
     0
@@ -52,27 +54,17 @@ export function CreatorCard({ creator }: CreatorCardProps) {
               )}
             </div>
             {/* Profile Picture */}
-            <div className="w-16 h-16 rounded-full flex-shrink-0 overflow-hidden">
-              {creator.profilePicture ? (
-                <img
+            <div className="w-16 h-16 rounded-full flex-shrink-0 overflow-hidden relative">
+              {creator.profilePicture && !imageError ? (
+                <Image
                   src={creator.profilePicture}
                   alt={creator.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback to gradient placeholder if image fails to load
-                    const target = e.target as HTMLImageElement
-                    target.style.display = 'none'
-                    const parent = target.parentElement
-                    if (parent && !parent.querySelector('.fallback-placeholder')) {
-                      const fallback = document.createElement('div')
-                      fallback.className = 'fallback-placeholder w-full h-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-xl'
-                      fallback.textContent = creator.name.charAt(0)
-                      parent.appendChild(fallback)
-                    }
-                  }}
+                  fill
+                  className="object-cover"
+                  onError={() => setImageError(true)}
+                  unoptimized
                 />
-              ) : null}
-              {(!creator.profilePicture || !creator.profilePicture.trim()) && (
+              ) : (
                 <div className="w-full h-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-xl">
                   {creator.name.charAt(0)}
                 </div>

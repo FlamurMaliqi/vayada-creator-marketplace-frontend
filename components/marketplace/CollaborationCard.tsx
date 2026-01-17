@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Image from 'next/image'
 import { Collaboration, Hotel, Creator, CollaborationStatus, UserType } from '@/lib/types'
 import { Button } from '@/components/ui'
 import {
@@ -41,6 +42,7 @@ export function CollaborationCard({
   currentUserType
 }: CollaborationCardProps) {
   const [showRatingModal, setShowRatingModal] = useState(false)
+  const [imageError, setImageError] = useState(false)
   const statusColor = getStatusClasses(collaboration.status)
   const StatusIcon = statusIcons[collaboration.status]
 
@@ -134,23 +136,15 @@ export function CollaborationCard({
     >
       <div className="flex items-start gap-4">
         {/* Profile Picture */}
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex-shrink-0 overflow-hidden">
-          {(currentUserType === 'hotel' ? collaboration.creator?.profilePicture : (collaboration.hotel as any)?.picture) ? (
-            <img
-              src={currentUserType === 'hotel' ? collaboration.creator?.profilePicture : (collaboration.hotel as any)?.picture}
-              alt={currentUserType === 'hotel' ? collaboration.creator?.name : collaboration.hotel?.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none'
-                e.currentTarget.parentElement?.classList.add('flex', 'items-center', 'justify-center', 'text-white', 'font-bold', 'text-2xl')
-                if (e.currentTarget.parentElement) {
-                  const fallbackContent = document.createElement('span')
-                  fallbackContent.textContent = (currentUserType === 'hotel'
-                    ? collaboration.creator?.name.charAt(0)
-                    : collaboration.hotel?.name.charAt(0)) || ''
-                  e.currentTarget.parentElement.appendChild(fallbackContent)
-                }
-              }}
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex-shrink-0 overflow-hidden relative">
+          {(currentUserType === 'hotel' ? collaboration.creator?.profilePicture : (collaboration.hotel as any)?.picture) && !imageError ? (
+            <Image
+              src={currentUserType === 'hotel' ? collaboration.creator?.profilePicture! : (collaboration.hotel as any)?.picture}
+              alt={currentUserType === 'hotel' ? collaboration.creator?.name || '' : collaboration.hotel?.name || ''}
+              fill
+              className="object-cover"
+              onError={() => setImageError(true)}
+              unoptimized
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-white font-bold text-2xl">

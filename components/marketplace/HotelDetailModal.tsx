@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Hotel } from '@/lib/types'
 import { Button, PlatformIcon } from '@/components/ui'
 import {
@@ -51,6 +52,7 @@ const formatNumber = (num: number): string => {
 export function HotelDetailModal({ hotel, isOpen, onClose }: HotelDetailModalProps) {
   const [showApplicationModal, setShowApplicationModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [imageError, setImageError] = useState(false)
   const [errorState, setErrorState] = useState<{ isOpen: boolean, message: string, title?: string }>({
     isOpen: false,
     message: ''
@@ -181,16 +183,16 @@ export function HotelDetailModal({ hotel, isOpen, onClose }: HotelDetailModalPro
           </div>
 
           {/* Image Gallery */}
-          {images.length > 0 && (
+          {images.length > 0 && !imageError && (
             <div className="relative h-80 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl overflow-hidden">
               {/* Current Image */}
-              <img
+              <Image
                 src={images[currentImageIndex]}
                 alt={`${hotel.name} - Image ${currentImageIndex + 1}`}
-                className="w-full h-full object-cover transition-opacity duration-300"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                }}
+                fill
+                className="object-cover transition-opacity duration-300"
+                onError={() => setImageError(true)}
+                unoptimized
               />
 
               {/* Navigation Arrows */}

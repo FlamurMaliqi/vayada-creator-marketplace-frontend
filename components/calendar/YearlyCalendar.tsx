@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import type { CollaborationResponse } from '@/services/api/collaborations'
 import { CalendarEventModal } from './CalendarEventModal'
@@ -279,11 +280,15 @@ export function YearlyCalendar({ collaborations = [], onViewDetails, userType = 
                                                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-building2 h-4 w-4 text-white/80"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
                                                                         ) : (
                                                                             activeCollab.creator_profile_picture ? (
-                                                                                <img
-                                                                                    src={activeCollab.creator_profile_picture}
-                                                                                    alt=""
-                                                                                    className="w-5 h-5 rounded-full border border-white/30 object-cover"
-                                                                                />
+                                                                                <div className="w-5 h-5 rounded-full border border-white/30 overflow-hidden relative">
+                                                                                    <Image
+                                                                                        src={activeCollab.creator_profile_picture}
+                                                                                        alt=""
+                                                                                        fill
+                                                                                        className="object-cover"
+                                                                                        unoptimized
+                                                                                    />
+                                                                                </div>
                                                                             ) : (
                                                                                 <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[8px] font-bold">
                                                                                     {activeCollab.creator_name.charAt(0)}

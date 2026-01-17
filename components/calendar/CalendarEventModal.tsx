@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+import Image from 'next/image'
 import { XMarkIcon, ArrowTopRightOnSquareIcon, UsersIcon, MapPinIcon } from '@heroicons/react/24/outline'
 import type { CollaborationResponse } from '@/services/api/collaborations'
 import { useRouter } from 'next/navigation'
@@ -14,6 +16,8 @@ interface CalendarEventModalProps {
 
 export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetails, userType = 'hotel' }: CalendarEventModalProps) {
     const router = useRouter()
+    const [imageError, setImageError] = useState(false)
+
     if (!isOpen || !collaboration) return null
 
     // Format dates
@@ -97,12 +101,17 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                                     {/* Property Card */}
                                     <div className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between mb-6 shadow-sm">
                                         <div className="flex items-center gap-4">
-                                            {(collaboration.listing_images?.[0] || collaboration.listingImages?.[0] || collaboration.hotel_picture) ? (
-                                                <img
-                                                    src={collaboration.listing_images?.[0] || collaboration.listingImages?.[0] || collaboration.hotel_picture || ''}
-                                                    alt={collaboration.listing_name || collaboration.hotel_name}
-                                                    className="w-16 h-16 rounded-xl object-cover border border-gray-50 shadow-sm"
-                                                />
+                                            {(collaboration.listing_images?.[0] || collaboration.listingImages?.[0] || collaboration.hotel_picture) && !imageError ? (
+                                                <div className="w-16 h-16 rounded-xl overflow-hidden border border-gray-50 shadow-sm relative">
+                                                    <Image
+                                                        src={collaboration.listing_images?.[0] || collaboration.listingImages?.[0] || collaboration.hotel_picture || ''}
+                                                        alt={collaboration.listing_name || collaboration.hotel_name}
+                                                        fill
+                                                        className="object-cover"
+                                                        onError={() => setImageError(true)}
+                                                        unoptimized
+                                                    />
+                                                </div>
                                             ) : (
                                                 <div className="w-16 h-16 rounded-xl bg-gray-50 flex items-center justify-center text-xl font-bold text-gray-300">
                                                     {(collaboration.listing_name || collaboration.hotel_name).charAt(0)}
@@ -223,12 +232,17 @@ export function CalendarEventModal({ isOpen, onClose, collaboration, onViewDetai
                                     {/* Profile Section */}
                                     <div className="flex items-start justify-between mb-6 text-left">
                                         <div className="flex items-center gap-4">
-                                            {collaboration.creator_profile_picture ? (
-                                                <img
-                                                    src={collaboration.creator_profile_picture}
-                                                    alt={collaboration.creator_name}
-                                                    className="w-16 h-16 rounded-full object-cover"
-                                                />
+                                            {collaboration.creator_profile_picture && !imageError ? (
+                                                <div className="w-16 h-16 rounded-full overflow-hidden relative">
+                                                    <Image
+                                                        src={collaboration.creator_profile_picture}
+                                                        alt={collaboration.creator_name}
+                                                        fill
+                                                        className="object-cover"
+                                                        onError={() => setImageError(true)}
+                                                        unoptimized
+                                                    />
+                                                </div>
                                             ) : (
                                                 <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-xl font-bold text-gray-400">
                                                     {collaboration.creator_name.charAt(0)}

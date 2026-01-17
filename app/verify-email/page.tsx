@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ROUTES } from '@/lib/constants/routes'
 import { authService } from '@/services/auth'
 import { ApiErrorResponse } from '@/services/api/client'
@@ -73,10 +74,12 @@ function VerifyEmailForm() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
           {/* Logo */}
           <div className="mb-6 text-center">
-            <img
+            <Image
               src="/vayada-logo.png"
               alt="Vayada"
-              className="h-10 mx-auto mb-4"
+              width={40}
+              height={40}
+              className="h-10 w-auto mx-auto mb-4"
             />
           </div>
 

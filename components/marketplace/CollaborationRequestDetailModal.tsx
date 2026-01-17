@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 import { Collaboration, Hotel, Creator, UserType } from '@/lib/types'
 import { DetailedCollaboration } from '@/services/api/collaborations'
@@ -100,6 +101,7 @@ export function CollaborationRequestDetailModal({
   onRequestCancel,
 }: CollaborationRequestDetailModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [imageError, setImageError] = useState(false)
 
   if (!isOpen || !collaboration) return null
 
@@ -212,11 +214,13 @@ export function CollaborationRequestDetailModal({
                 }}
               >
                 {listingImages.map((img, idx) => (
-                  <div key={idx} className="flex-none w-full snap-center">
-                    <img
+                  <div key={idx} className="flex-none w-full snap-center relative">
+                    <Image
                       src={img}
                       alt={`Listing ${idx + 1}`}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      unoptimized
                     />
                   </div>
                 ))}
@@ -242,12 +246,15 @@ export function CollaborationRequestDetailModal({
           <div className="p-6 space-y-6">
             {/* Profile Section */}
             <div className="flex items-start gap-4 pb-6 border-b border-gray-200">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex-shrink-0 overflow-hidden">
-                {(currentUserType === 'hotel' ? collaboration.creator?.profilePicture : collaboration.hotel?.picture) ? (
-                  <img
-                    src={(currentUserType === 'hotel' ? collaboration.creator?.profilePicture : collaboration.hotel?.picture) || undefined}
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex-shrink-0 overflow-hidden relative">
+                {(currentUserType === 'hotel' ? collaboration.creator?.profilePicture : collaboration.hotel?.picture) && !imageError ? (
+                  <Image
+                    src={(currentUserType === 'hotel' ? collaboration.creator?.profilePicture : collaboration.hotel?.picture)!}
                     alt={otherPartyName}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    onError={() => setImageError(true)}
+                    unoptimized
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white font-bold text-2xl">

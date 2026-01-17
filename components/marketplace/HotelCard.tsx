@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Image from 'next/image'
 import { Hotel } from '@/lib/types'
 import { Button, SuccessModal, ErrorModal, PlatformIcon } from '@/components/ui'
 import { MapPinIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
@@ -17,6 +18,7 @@ export function HotelCard({ hotel, creatorPlatforms = [] }: HotelCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showApplicationModal, setShowApplicationModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [imageError, setImageError] = useState(false)
   const [errorState, setErrorState] = useState<{ isOpen: boolean, message: string, title?: string }>({
     isOpen: false,
     message: ''
@@ -99,17 +101,16 @@ export function HotelCard({ hotel, creatorPlatforms = [] }: HotelCardProps) {
       <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow overflow-hidden border border-gray-200 flex flex-col h-full">
         {/* Image Gallery */}
         <div className="relative h-48 bg-gradient-to-br from-primary-100 to-primary-200 flex-shrink-0 overflow-hidden">
-          {images.length > 0 ? (
+          {images.length > 0 && !imageError ? (
             <>
               {/* Current Image */}
-              <img
+              <Image
                 src={images[currentImageIndex]}
                 alt={`${hotel.name} - Image ${currentImageIndex + 1}`}
-                className="w-full h-full object-cover transition-opacity duration-300"
-                onError={(e) => {
-                  // Fallback to gradient if image fails
-                  e.currentTarget.style.display = 'none'
-                }}
+                fill
+                className="object-cover transition-opacity duration-300"
+                onError={() => setImageError(true)}
+                unoptimized
               />
 
               {/* Navigation Arrows */}
