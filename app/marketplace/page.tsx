@@ -319,7 +319,7 @@ export default function MarketplacePage() {
                     </div>
                   ) : (
                     <div className="text-center py-16 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/50">
-                      <p className="text-gray-500 text-lg">Keine Hotels gefunden, die Ihren Kriterien entsprechen.</p>
+                      <p className="text-gray-500 text-lg">No hotels found that match your criteria.</p>
                     </div>
                   )}
                 </div>
@@ -336,7 +336,7 @@ export default function MarketplacePage() {
                     </div>
                   ) : (
                     <div className="text-center py-16 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/50">
-                      <p className="text-gray-500 text-lg">Keine Creator gefunden, die Ihren Kriterien entsprechen.</p>
+                      <p className="text-gray-500 text-lg">No creators found that match your criteria.</p>
                     </div>
                   )}
                 </div>
