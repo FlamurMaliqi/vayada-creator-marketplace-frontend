@@ -20,6 +20,13 @@ import { checkProfileStatus } from '@/lib/utils'
 import {
   ProfilePictureModal,
   DeleteConfirmModal,
+  CreatorOverviewTab,
+  CreatorPlatformsTab,
+  CreatorReviewsTab,
+  HotelOverviewTab,
+  ListingCardHeader,
+  formatFollowersDE,
+  getCountryFlag,
 } from '@/components/profile'
 import type {
   UserType,
@@ -2529,95 +2536,7 @@ export default function ProfilePage() {
 
                     {/* Reviews & Ratings Tab */}
                     {activeCreatorTab === 'reviews' && (
-                      <div>
-                        <div className="flex items-center gap-3 mb-6">
-                          <div className="w-1 h-8 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
-                          <h2 className="text-2xl font-bold text-gray-900">Reviews & Ratings</h2>
-                        </div>
-
-                        {creatorProfile.rating && creatorProfile.rating.totalReviews > 0 ? (
-                          <div className="space-y-6">
-                            {/* Rating Summary */}
-                            <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6 border border-primary-200">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Overall Rating</h3>
-                                  <StarRating
-                                    rating={creatorProfile.rating.averageRating ?? 0}
-                                    totalReviews={creatorProfile.rating.totalReviews ?? 0}
-                                    size="lg"
-                                  />
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-4xl font-bold text-gray-900">
-                                    {(creatorProfile.rating?.averageRating ?? 0).toFixed(1)}
-                                  </div>
-                                  <div className="text-sm text-gray-600">out of 5.0</div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Reviews List */}
-                            {creatorProfile.rating.reviews && creatorProfile.rating.reviews.length > 0 ? (
-                              <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                  All Reviews ({creatorProfile.rating.reviews.length})
-                                </h3>
-                                <div className="space-y-4">
-                                  {creatorProfile.rating.reviews.map((review) => (
-                                    <div
-                                      key={review.id}
-                                      className="p-6 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
-                                    >
-                                      <div className="flex items-start justify-between mb-3">
-                                        <div className="flex-1">
-                                          <h4 className="font-semibold text-gray-900 mb-1">
-                                            {review.hotelName}
-                                          </h4>
-                                          <p className="text-sm text-gray-500">
-                                            {new Date(review.createdAt).toLocaleDateString('en-US', {
-                                              year: 'numeric',
-                                              month: 'long',
-                                              day: 'numeric',
-                                            })}
-                                          </p>
-                                        </div>
-                                        <StarRating
-                                          rating={review.rating}
-                                          size="sm"
-                                          showNumber={false}
-                                          showReviews={false}
-                                        />
-                                      </div>
-                                      {review.comment && (
-                                        <p className="text-gray-700 leading-relaxed mt-3">
-                                          {review.comment}
-                                        </p>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-                                <StarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                <p className="text-gray-600 font-medium">No reviews yet</p>
-                                <p className="text-sm text-gray-500 mt-2">
-                                  Reviews from hotels will appear here after collaborations
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-                            <StarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-600 font-medium">No reviews yet</p>
-                            <p className="text-sm text-gray-500 mt-2">
-                              Reviews from hotels will appear here after collaborations
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                      <CreatorReviewsTab rating={creatorProfile.rating} />
                     )}
                   </div>
                 </>
@@ -2685,102 +2604,20 @@ export default function ProfilePage() {
                   {/* Tab Content */}
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
                     {activeHotelTab === 'overview' && (
-                      <div>
-                        <div className="flex items-start gap-3 mb-6">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#fafafa' }}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-primary-600">
-                              <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
-                              <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
-                              <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
-                              <path d="M10 6h4"></path>
-                              <path d="M10 10h4"></path>
-                              <path d="M10 14h4"></path>
-                              <path d="M10 18h4"></path>
-                            </svg>
-                          </div>
-                          <div>
-                            <h2 className="text-2xl font-bold text-gray-900">Basic Information</h2>
-                            <p className="text-sm text-gray-500">Your hotel details</p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-8">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Input
-                              label="Hotel Name"
-                              value={hotelEditFormData.name}
-                              onChange={(e) => setHotelEditFormData({ ...hotelEditFormData, name: e.target.value })}
-                              required
-                              placeholder="Hotel name"
-                              disabled={!isEditingHotelProfile}
-                              leadingIcon={
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-gray-400">
-                                  <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
-                                  <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
-                                  <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
-                                  <path d="M10 6h4"></path>
-                                  <path d="M10 10h4"></path>
-                                  <path d="M10 14h4"></path>
-                                  <path d="M10 18h4"></path>
-                                </svg>
-                              }
-                            />
-                            <Input
-                              label="Location"
-                              value={hotelEditFormData.location}
-                              onChange={(e) => setHotelEditFormData({ ...hotelEditFormData, location: e.target.value })}
-                              required
-                              placeholder="City, Country"
-                              disabled={!isEditingHotelProfile}
-                              leadingIcon={<MapPinIcon className="w-5 h-5 text-gray-400" />}
-                            />
-                          </div>
-
-                          {/* Full-width About */}
-                          <div>
-                            <Textarea
-                              label="About"
-                              value={hotelEditFormData.about}
-                              onChange={(e) => setHotelEditFormData({ ...hotelEditFormData, about: e.target.value })}
-                              required
-                              rows={5}
-                              placeholder="Describe your hotel..."
-                              disabled={!isEditingHotelProfile}
-                            />
-                          </div>
-
-                          {/* Contact Information Section */}
-                          <div className="mt-8 pt-8 border-t border-gray-200">
-                            <div className="flex items-center gap-2 mb-4">
-                              <div className="w-1 h-6 bg-gradient-to-b from-primary-600 to-primary-400 rounded-full"></div>
-                              <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <Input
-                                label="Website"
-                                required
-                                type="url"
-                                value={hotelEditFormData.website}
-                                onChange={(e) => setHotelEditFormData({ ...hotelEditFormData, website: e.target.value })}
-                                placeholder="https://example.com"
-                                disabled={!isEditingHotelProfile}
-                                leadingIcon={<GlobeAltIcon className="w-5 h-5 text-gray-400" />}
-                              />
-                              <Input
-                                label="Phone"
-                                required
-                                type="tel"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                placeholder="+1 (555) 123-4567"
-                                helperText=""
-                                disabled={!isEditingHotelProfile}
-                                leadingIcon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <HotelOverviewTab
+                        profile={hotelProfile}
+                        isEditing={isEditingHotelProfile}
+                        editFormData={{
+                          name: hotelEditFormData.name,
+                          picture: hotelEditFormData.picture,
+                          location: hotelEditFormData.location,
+                          website: hotelEditFormData.website,
+                          about: hotelEditFormData.about,
+                        }}
+                        phone={phone}
+                        onEditFormChange={(data) => setHotelEditFormData(prev => ({ ...prev, ...data }))}
+                        onPhoneChange={setPhone}
+                      />
                     )}
                     {activeHotelTab === 'listings' && (
                       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
