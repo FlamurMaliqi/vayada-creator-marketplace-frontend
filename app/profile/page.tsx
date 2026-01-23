@@ -23,6 +23,7 @@ import {
   CreatorOverviewTab,
   CreatorPlatformsTab,
   CreatorReviewsTab,
+  PlatformCardView,
   HotelOverviewTab,
   ListingCardHeader,
   formatFollowersDE,
@@ -1867,120 +1868,9 @@ export default function ProfilePage() {
                         {!isEditingProfile ? (
                           <div className="space-y-4">
                             {creatorProfile.platforms && creatorProfile.platforms.length > 0 ? (
-                              creatorProfile.platforms.map((platform, index) => {
-                                const platformColors: Record<string, string> = {
-                                  Instagram: 'from-yellow-400 via-pink-500 to-purple-600',
-                                  TikTok: 'from-gray-900 to-gray-800',
-                                  YouTube: 'from-red-600 to-red-500',
-                                  Facebook: 'from-blue-600 to-blue-500',
-                                }
-
-                                const renderPlatformIcon = () => {
-                                  if (platform.name === 'Instagram') {
-                                    return (
-                                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zM5.838 12a6.162 6.162 0 1 1 12.324 0 6.162 6.162 0 0 1-12.324 0zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm4.965-10.322a1.44 1.44 0 1 1 2.881.001 1.44 1.44 0 0 1-2.881-.001z" />
-                                      </svg>
-                                    )
-                                  }
-                                  if (platform.name === 'TikTok') {
-                                    return (
-                                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.1 1.75 2.9 2.9 0 0 1 2.31-4.64 2.88 2.88 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-.96-.1z" />
-                                      </svg>
-                                    )
-                                  }
-                                  if (platform.name === 'YouTube') {
-                                    return (
-                                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                                      </svg>
-                                    )
-                                  }
-                                  return (
-                                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                                    </svg>
-                                  )
-                                }
-
-                                return (
-                                  <div
-                                    key={index}
-                                    className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
-                                  >
-                                    {/* Platform Header */}
-                                    <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-200">
-                                      <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm text-white bg-gradient-to-br ${platformColors[platform.name] || 'from-gray-500 to-gray-400'}`}>
-                                        {renderPlatformIcon()}
-                                      </div>
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                          <h3 className="font-semibold text-gray-900 text-lg">{platform.name}</h3>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-gray-700">
-                                          <span className="font-medium">{platform.handle}</span>
-                                          <span className="text-gray-400">•</span>
-                                          <span>{formatFollowersDE(platform.followers ?? 0)} Follower</span>
-                                          <span className="text-gray-400">•</span>
-                                          <span>{(platform.engagementRate ?? 0).toFixed(1).replace('.', ',')}% Engagement</span>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Platform Metrics */}
-                                    {(platform.topCountries && platform.topCountries.length > 0) ||
-                                      (platform.topAgeGroups && platform.topAgeGroups.length > 0) ||
-                                      platform.genderSplit ? (
-                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        {/* Top Countries */}
-                                        {platform.topCountries && platform.topCountries.length > 0 && (
-                                          <div>
-                                            <div className="text-sm font-semibold text-gray-700 mb-2">Top Countries</div>
-                                            <ul className="space-y-2">
-                                              {platform.topCountries.map((country, idx) => (
-                                                <li key={idx} className="flex items-center gap-2">
-                                                  <span className="text-lg">{getCountryFlag(country.country)}</span>
-                                                  <span className="text-sm text-gray-700">{country.country}: <span className="font-semibold text-gray-900">{country.percentage}%</span></span>
-                                                </li>
-                                              ))}
-                                            </ul>
-                                          </div>
-                                        )}
-
-                                        {/* Top Age Groups */}
-                                        {platform.topAgeGroups && platform.topAgeGroups.length > 0 && (
-                                          <div>
-                                            <div className="text-sm font-semibold text-gray-700 mb-2">Top Age Groups</div>
-                                            <ul className="space-y-2">
-                                              {platform.topAgeGroups.map((ageGroup, idx) => (
-                                                <li key={idx} className="text-sm text-gray-700">
-                                                  {ageGroup.ageRange}
-                                                </li>
-                                              ))}
-                                            </ul>
-                                          </div>
-                                        )}
-
-                                        {/* Gender Split */}
-                                        {platform.genderSplit && (
-                                          <div>
-                                            <div className="text-sm font-semibold text-gray-700 mb-2">Gender Split</div>
-                                            <div className="space-y-2">
-                                              <div className="text-sm text-gray-700">Male: <span className="font-semibold text-gray-900">{platform.genderSplit.male}%</span></div>
-                                              <div className="text-sm text-gray-700">Female: <span className="font-semibold text-gray-900">{platform.genderSplit.female}%</span></div>
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <div className="text-sm text-gray-500 italic">
-                                        No additional metrics available. Edit your profile to add platform metrics.
-                                      </div>
-                                    )}
-                                  </div>
-                                )
-                              })
+                              creatorProfile.platforms.map((platform, index) => (
+                                <PlatformCardView key={index} platform={platform} />
+                              ))
                             ) : (
                               <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
                                 <p className="text-gray-500">No platforms added yet. Edit your profile to add social media platforms.</p>
