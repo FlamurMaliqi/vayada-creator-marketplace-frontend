@@ -309,3 +309,54 @@ export interface LoginResponse {
   expires_in: number
   message: string
 }
+
+// Profile Completion Form Types
+export interface PlatformFormData {
+  name: string
+  handle: string
+  followers: number | ''
+  engagement_rate: number | ''
+  top_countries?: Array<{ country: string; percentage: number }>
+  top_age_groups?: Array<{ ageRange: string; percentage: number }>
+  gender_split?: { male: number; female: number }
+}
+
+export interface ListingFormData {
+  name: string
+  location: string
+  description: string
+  accommodation_type: string
+  images: string[]
+  imageFiles: File[]
+  collaborationTypes: ('Free Stay' | 'Paid' | 'Discount')[]
+  availability: string[]
+  platforms: string[]
+  freeStayMinNights?: number
+  freeStayMaxNights?: number
+  paidMaxAmount?: number
+  discountPercentage?: number
+  lookingForPlatforms: string[]
+  lookingForMinFollowers?: number
+  targetGroupCountries: string[]
+  targetGroupAgeMin?: number
+  targetGroupAgeMax?: number
+  targetGroupAgeGroups?: string[]
+}
+
+export interface CreatorFormState {
+  name: string
+  location: string
+  short_description: string
+  portfolio_link: string
+  phone: string
+  profile_image: string
+}
+
+export interface HotelFormState {
+  name: string
+  location: string
+  about: string
+  website: string
+  phone: string
+  picture: string
+}
