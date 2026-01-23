@@ -6,175 +6,52 @@ import { useRouter } from 'next/navigation'
 import { AuthenticatedNavigation, ProfileWarningBanner } from '@/components/layout'
 import { useSidebar } from '@/components/layout/AuthenticatedNavigation'
 import { ROUTES } from '@/lib/constants/routes'
-import { MONTHS_FULL, PLATFORM_OPTIONS, COLLABORATION_TYPES, STORAGE_KEYS } from '@/lib/constants'
+import { MONTHS_FULL, PLATFORM_OPTIONS, COLLABORATION_TYPES, STORAGE_KEYS, HOTEL_TYPES, AGE_GROUP_OPTIONS } from '@/lib/constants'
 import { Button, Input, Textarea, StarRating, ErrorModal, HotelBadgeIcon } from '@/components/ui'
 import { MapPinIcon, CheckBadgeIcon, StarIcon, PencilIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import { TrashIcon, ChevronDownIcon, ChevronUpIcon, ChevronLeftIcon, ChevronRightIcon, InformationCircleIcon, EnvelopeIcon, PhoneIcon, LinkIcon, UserIcon, BuildingOfficeIcon, BuildingOffice2Icon, GlobeAltIcon, GiftIcon, CurrencyDollarIcon, TagIcon, CalendarDaysIcon, CheckCircleIcon, PhotoIcon } from '@heroicons/react/24/outline'
 import { StarIcon as StarIconOutline } from '@heroicons/react/24/outline'
 import { formatNumber } from '@/lib/utils'
-import type { CreatorRating, CollaborationReview, HotelProfile as ApiHotelProfile, HotelListing as ApiHotelListing, Creator as ApiCreator } from '@/lib/types'
+import type { HotelProfile as ApiHotelProfile, HotelListing as ApiHotelListing, Creator as ApiCreator, CreatorProfileStatus, HotelProfileStatus } from '@/lib/types'
 import { hotelService } from '@/services/api/hotels'
 import { creatorService } from '@/services/api/creators'
 import { ApiErrorResponse } from '@/services/api/client'
 import { checkProfileStatus } from '@/lib/utils'
-import type { CreatorProfileStatus, HotelProfileStatus } from '@/lib/types'
+import {
+  ProfilePictureModal,
+  DeleteConfirmModal,
+} from '@/components/profile'
+import type {
+  UserType,
+  CreatorTab,
+  HotelTab,
+  ProfilePlatform,
+  PlatformCountry,
+  PlatformAgeGroup,
+  PlatformGenderSplit,
+  ApiAgeGroup,
+  ApiPlatformResponse,
+  ApiRatingResponse,
+  ApiCreatorResponse,
+  CreatorUpdatePayload,
+  CreatorProfile,
+  ProfileHotelListing,
+  ProfileHotelProfile,
+  CreatorEditFormData,
+  HotelEditFormData,
+  ListingFormData,
+  ErrorModalState,
+  DeleteConfirmModalState,
+} from '@/components/profile/types'
 
-type UserType = 'hotel' | 'creator'
-
-interface PlatformCountry {
-  country: string
-  percentage: number
-}
-
-interface PlatformAgeGroup {
-  ageRange: string
-  percentage: number
-}
-
-interface PlatformGenderSplit {
-  male: number
-  female: number
-}
-
-interface Platform {
-  id?: string
-  name: string
-  handle: string
-  followers: number
-  engagementRate: number
-  topCountries?: PlatformCountry[]
-  topAgeGroups?: PlatformAgeGroup[]
-  genderSplit?: PlatformGenderSplit
-}
-
-// API response types that may have snake_case or camelCase fields
-interface ApiAgeGroup {
-  ageRange?: string | null
-  age_range?: string | null
-  percentage?: number
-}
-
-interface ApiPlatformResponse {
-  id?: string
-  name: string
-  handle?: string
-  followers?: number
-  engagementRate?: number
-  engagement_rate?: number
-  topCountries?: PlatformCountry[]
-  top_countries?: PlatformCountry[]
-  topAgeGroups?: ApiAgeGroup[]
-  top_age_groups?: ApiAgeGroup[]
-  genderSplit?: PlatformGenderSplit | string
-  gender_split?: PlatformGenderSplit | string
-}
-
-// API rating response might be snake_case or camelCase
-interface ApiRatingResponse {
-  averageRating?: number
-  average_rating?: number
-  totalReviews?: number
-  total_reviews?: number
-  reviews?: CollaborationReview[]
-}
-
-// Update payload for creator profile (uses snake_case for backend compatibility)
-interface CreatorUpdatePayload {
-  name?: string
-  location?: string
-  short_description?: string
-  portfolio_link?: string
-  phone?: string
-  profilePicture?: string
-  audience_size?: number
-  platforms?: Array<{
-    name: 'Instagram' | 'TikTok' | 'YouTube' | 'Facebook'
-    handle: string
-    followers: number
-    engagement_rate: number
-    top_countries?: Array<{ country: string; percentage: number }>
-    topAgeGroups?: Array<{ ageRange: string; percentage: number }>
-    gender_split?: { male: number; female: number }
-  }>
-}
-
-interface ApiCreatorResponse {
-  id?: string
-  name?: string
-  email?: string
-  phone?: string | null
-  location?: string
-  status?: 'verified' | 'pending' | 'rejected'
-  profilePicture?: string
-  profile_picture?: string
-  shortDescription?: string
-  short_description?: string
-  portfolioLink?: string
-  portfolio_link?: string
-  platforms?: ApiPlatformResponse[]
-  rating?: ApiRatingResponse
-}
-
-// Mock data for Creator Profile
-interface CreatorProfile {
-  id: string
-  name: string
-  profilePicture?: string
-  shortDescription: string
-  location: string
-  status: 'verified' | 'pending' | 'rejected'
-  rating?: CreatorRating
-  platforms: Platform[]
-  portfolioLink?: string
-  email: string
-  phone?: string
-}
-
-// Mock data for Hotel Profile
-interface HotelListing {
-  id: string
-  name: string
-  location: string
-  description: string
-  images: string[]
-  accommodationType?: string
-  // Offerings per listing
-  collaborationTypes: ('Free Stay' | 'Paid' | 'Discount')[]
-  availability: string[] // months
-  platforms: string[] // Instagram, TikTok, YouTube, Facebook
-  freeStayMinNights?: number
-  freeStayMaxNights?: number
-  paidMaxAmount?: number
-  discountPercentage?: number
-  // Looking for per listing
-  lookingForPlatforms: string[]
-  lookingForMinFollowers?: number
-  targetGroupCountries: string[]
-  targetGroupAgeMin?: number
-  targetGroupAgeMax?: number
-  targetGroupAgeGroups?: string[]
-  status: 'verified' | 'pending' | 'rejected'
-}
-
-interface HotelProfile {
-  id: string
-  name: string
-  picture?: string
-  location: string
-  status: 'verified' | 'pending' | 'rejected'
-  website?: string
-  about?: string
-  email: string
-  phone?: string
-  listings: HotelListing[]
-}
-
-type CreatorTab = 'overview' | 'platforms' | 'reviews'
-type HotelTab = 'overview' | 'listings'
-
-const HOTEL_CATEGORIES = ['Hotel', 'Boutiques Hotel', 'City Hotel', 'Luxury Hotel', 'Apartment', 'Villa', 'Lodge']
-const AGE_GROUP_OPTIONS = ['18-24', '25-34', '35-44', '45-54', '55+']
+// Use HOTEL_TYPES from constants (aliased for compatibility)
+const HOTEL_CATEGORIES = HOTEL_TYPES
 const COUNTRIES = Object.values(countries).map(country => country.name).sort()
+
+// Alias types for compatibility with existing code
+type Platform = ProfilePlatform
+type HotelListing = ProfileHotelListing
+type HotelProfile = ProfileHotelProfile
 
 
 export default function ProfilePage() {
@@ -4805,229 +4682,50 @@ export default function ProfilePage() {
       </div>
 
       {/* Hotel Picture Modal */}
-      {showHotelPictureModal && hotelProfile && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-          onClick={() => setShowHotelPictureModal(false)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-xl font-bold text-gray-900">Hotel Picture</h3>
-              <button
-                onClick={() => setShowHotelPictureModal(false)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <XMarkIcon className="w-6 h-6 text-gray-600" />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6 space-y-6">
-              {/* Large Picture Preview */}
-              <div className="flex justify-center">
-                {hotelProfile.picture ? (
-                  <img
-                    src={hotelProfile.picture}
-                    alt={hotelProfile.name}
-                    className="w-64 h-64 rounded-2xl object-cover border-4 border-gray-100 shadow-lg"
-                  />
-                ) : (
-                  <div className="w-64 h-64 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-8xl shadow-lg border-4 border-gray-100">
-                    {hotelProfile.name.charAt(0)}
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 justify-center">
-                <input
-                  ref={hotelFileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      if (!file.type.startsWith('image/')) {
-                        showError('Invalid File Type', 'Please select an image file')
-                        return
-                      }
-
-                      // Validate file size (5MB max)
-                      if (file.size > 5 * 1024 * 1024) {
-                        showError('File Too Large', 'Image must be less than 5MB')
-                        return
-                      }
-
-                      // Store the File object for upload
-                      setHotelProfilePictureFile(file)
-
-                      // Show preview immediately
-                      const reader = new FileReader()
-                      reader.onloadend = () => {
-                        const result = reader.result as string
-                        setHotelPicturePreview(result)
-                        setHotelEditFormData({ ...hotelEditFormData, picture: result })
-                      }
-                      reader.readAsDataURL(file)
-                      // Reset preview
-                      setHotelPicturePreview(null)
-                      setHotelEditFormData({ ...hotelEditFormData, picture: hotelProfile?.picture || '' })
-                    }
-                  }}
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    hotelFileInputRef.current?.click()
-                  }}
-                >
-                  <PencilIcon className="w-5 h-5 mr-2" />
-                  Change Picture
-                </Button>
-                {hotelProfile.picture && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      if (hotelProfile) {
-                        setHotelProfile({
-                          ...hotelProfile,
-                          picture: undefined,
-                        })
-                        setHotelEditFormData({
-                          ...hotelEditFormData,
-                          picture: '',
-                        })
-                        setHotelPicturePreview(null)
-                        if (hotelFileInputRef.current) {
-                          hotelFileInputRef.current.value = ''
-                        }
-                      }
-                      setShowHotelPictureModal(false)
-                    }}
-                    className="text-red-600 hover:text-red-700 hover:border-red-300"
-                  >
-                    <TrashIcon className="w-5 h-5 mr-2" />
-                    Delete Picture
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+      {hotelProfile && (
+        <ProfilePictureModal
+          isOpen={showHotelPictureModal}
+          onClose={() => setShowHotelPictureModal(false)}
+          title="Hotel Picture"
+          name={hotelProfile.name}
+          picture={hotelProfile.picture}
+          onChangePicture={(file, preview) => {
+            setHotelProfilePictureFile(file)
+            setHotelPicturePreview(preview)
+            setHotelEditFormData({ ...hotelEditFormData, picture: preview })
+            setShowHotelPictureModal(false)
+            setIsEditingHotelProfile(true)
+          }}
+          onDeletePicture={() => {
+            setHotelProfile({ ...hotelProfile, picture: undefined })
+            setHotelEditFormData({ ...hotelEditFormData, picture: '' })
+            setHotelPicturePreview(null)
+          }}
+          showDeleteButton={!!hotelProfile.picture}
+        />
       )}
 
       {/* Profile Picture Modal */}
-      {showPictureModal && creatorProfile && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-          onClick={() => setShowPictureModal(false)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-xl font-bold text-gray-900">Profile Picture</h3>
-              <button
-                onClick={() => setShowPictureModal(false)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <XMarkIcon className="w-6 h-6 text-gray-600" />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6 space-y-6">
-              {/* Large Picture Preview */}
-              <div className="flex justify-center">
-                {creatorProfile.profilePicture && creatorProfile.profilePicture.trim() !== '' ? (
-                  <img
-                    src={creatorProfile.profilePicture}
-                    alt={creatorProfile.name}
-                    className="w-64 h-64 rounded-2xl object-cover border-4 border-gray-100 shadow-lg"
-                    onError={(e) => {
-                      // If image fails to load, show fallback
-                      const target = e.target as HTMLImageElement
-                      target.style.display = 'none'
-                      // Show the fallback div instead
-                      const fallback = target.nextElementSibling as HTMLElement
-                      if (fallback) fallback.style.display = 'flex'
-                    }}
-                  />
-                ) : (
-                  <div className="w-64 h-64 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-8xl shadow-lg border-4 border-gray-100">
-                    {creatorProfile.name.charAt(0)}
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 justify-center">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      const reader = new FileReader()
-                      reader.onloadend = () => {
-                        const result = reader.result as string
-                        setProfilePicturePreview(result)
-                        setEditFormData({ ...editFormData, profilePicture: result })
-                        setShowPictureModal(false)
-                        setIsEditingProfile(true)
-                      }
-                      reader.readAsDataURL(file)
-                    }
-                  }}
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    fileInputRef.current?.click()
-                  }}
-                >
-                  <PencilIcon className="w-5 h-5 mr-2" />
-                  Change Picture
-                </Button>
-                {creatorProfile.profilePicture && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      if (creatorProfile) {
-                        setCreatorProfile({
-                          ...creatorProfile,
-                          profilePicture: undefined,
-                        })
-                        setEditFormData({
-                          ...editFormData,
-                          profilePicture: '',
-                        })
-                        setProfilePicturePreview(null)
-                        if (fileInputRef.current) {
-                          fileInputRef.current.value = ''
-                        }
-                      }
-                      setShowPictureModal(false)
-                    }}
-                    className="text-red-600 hover:text-red-700 hover:border-red-300"
-                  >
-                    <TrashIcon className="w-5 h-5 mr-2" />
-                    Delete Picture
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+      {creatorProfile && (
+        <ProfilePictureModal
+          isOpen={showPictureModal}
+          onClose={() => setShowPictureModal(false)}
+          title="Profile Picture"
+          name={creatorProfile.name}
+          picture={creatorProfile.profilePicture}
+          onChangePicture={(_file, preview) => {
+            setProfilePicturePreview(preview)
+            setEditFormData({ ...editFormData, profilePicture: preview })
+            setShowPictureModal(false)
+            setIsEditingProfile(true)
+          }}
+          onDeletePicture={() => {
+            setCreatorProfile({ ...creatorProfile, profilePicture: undefined })
+            setEditFormData({ ...editFormData, profilePicture: '' })
+            setProfilePicturePreview(null)
+          }}
+          showDeleteButton={!!creatorProfile.profilePicture}
+        />
       )}
 
       {/* Modal removed - form is now inline in listing cards */}
@@ -5763,69 +5461,13 @@ export default function ProfilePage() {
       />
 
       {/* Delete Confirmation Modal */}
-      {deleteConfirmModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setDeleteConfirmModal({ isOpen: false, listingId: null, listingName: '' })}
-          />
-
-          {/* Modal */}
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8 animate-in fade-in zoom-in duration-200">
-            {/* Close Button */}
-            <button
-              onClick={() => setDeleteConfirmModal({ isOpen: false, listingId: null, listingName: '' })}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Close"
-            >
-              <XMarkIcon className="w-5 h-5" />
-            </button>
-
-            {/* Content */}
-            <div className="text-center">
-              {/* Icon */}
-              <div className="mx-auto w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
-                <TrashIcon className="w-8 h-8 text-red-600" />
-              </div>
-
-              {/* Title */}
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Delete Listing?
-              </h3>
-
-              {/* Message */}
-              <p className="text-gray-700 mb-1">
-                Are you sure you want to delete
-              </p>
-              <p className="text-gray-900 font-semibold mb-4">
-                "{deleteConfirmModal.listingName}"?
-              </p>
-              <p className="text-sm text-gray-600 mb-6">
-                This action cannot be undone. All data associated with this listing will be permanently deleted.
-              </p>
-
-              {/* Buttons */}
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setDeleteConfirmModal({ isOpen: false, listingId: null, listingName: '' })}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={handleDeleteListing}
-                  className="flex-1 bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700"
-                >
-                  Delete Listing
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmModal
+        isOpen={deleteConfirmModal.isOpen}
+        onClose={() => setDeleteConfirmModal({ isOpen: false, listingId: null, listingName: '' })}
+        onConfirm={handleDeleteListing}
+        itemName={deleteConfirmModal.listingName}
+        itemType="listing"
+      />
 
       {/* Manage Photos Modal */}
       {isManagePhotosOpen && (

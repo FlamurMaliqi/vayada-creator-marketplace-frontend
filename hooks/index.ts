@@ -9,5 +9,7 @@ export { useClickOutside } from './useClickOutside'
 export { useImageUpload, useMultipleImageUpload } from './useImageUpload'
 export { useCreatorProfileForm } from './useCreatorProfileForm'
 export { useHotelProfileForm } from './useHotelProfileForm'
+export { useCreatorProfileEdit } from './useCreatorProfileEdit'
+export { useHotelProfileEdit } from './useHotelProfileEdit'
 export type { AuthState, UseAuthReturn } from './useAuth'
 
