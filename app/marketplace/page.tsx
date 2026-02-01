@@ -168,10 +168,11 @@ export default function MarketplacePage() {
       }
     }
 
-    // Minimum Engagement Rate filter
+    // Minimum Engagement Rate filter (weighted average proportional to follower count)
     if (filters.minEngagementRate) {
-      const avgEngagementRate = creator.platforms.length > 0
-        ? creator.platforms.reduce((sum, platform) => sum + (platform.engagementRate || 0), 0) / creator.platforms.length
+      const totalFollowers = creator.platforms.reduce((sum, platform) => sum + platform.followers, 0)
+      const avgEngagementRate = totalFollowers > 0
+        ? creator.platforms.reduce((sum, platform) => sum + (platform.followers * (platform.engagementRate || 0)), 0) / totalFollowers
         : 0
       if (avgEngagementRate < filters.minEngagementRate) {
         return false

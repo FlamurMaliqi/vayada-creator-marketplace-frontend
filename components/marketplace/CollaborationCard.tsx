@@ -92,10 +92,13 @@ export function CollaborationCard({
     if (currentUserType === 'hotel' && collaboration.creator?.avgEngagementRate !== undefined) {
       return collaboration.creator.avgEngagementRate.toFixed(1)
     }
-    // Fallback to platform average
+    // Fallback to weighted average (proportional to follower count)
     if (currentUserType === 'hotel' && collaboration.creator?.platforms && collaboration.creator.platforms.length > 0) {
-      const total = collaboration.creator.platforms.reduce((sum, p) => sum + p.engagementRate, 0)
-      return (total / collaboration.creator.platforms.length).toFixed(1)
+      const totalFollowers = collaboration.creator.platforms.reduce((sum, p) => sum + p.followers, 0)
+      if (totalFollowers > 0) {
+        const weightedEngagement = collaboration.creator.platforms.reduce((sum, p) => sum + (p.followers * p.engagementRate), 0) / totalFollowers
+        return weightedEngagement.toFixed(1)
+      }
     }
     return '-'
   }

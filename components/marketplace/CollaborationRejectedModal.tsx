@@ -29,9 +29,13 @@ export function CollaborationRejectedModal({
   }
 
   const getAvgEngagement = () => {
-    if (currentUserType === 'hotel' && collaboration.creator?.platforms) {
-      const total = collaboration.creator.platforms.reduce((sum, p) => sum + p.engagementRate, 0)
-      return (total / collaboration.creator.platforms.length).toFixed(1)
+    if (currentUserType === 'hotel' && collaboration.creator?.platforms && collaboration.creator.platforms.length > 0) {
+      // Weighted average (proportional to follower count)
+      const totalFollowers = collaboration.creator.platforms.reduce((sum, p) => sum + p.followers, 0)
+      if (totalFollowers > 0) {
+        const weightedEngagement = collaboration.creator.platforms.reduce((sum, p) => sum + (p.followers * p.engagementRate), 0) / totalFollowers
+        return weightedEngagement.toFixed(1)
+      }
     }
     return '0.0'
   }

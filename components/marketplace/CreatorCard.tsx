@@ -17,9 +17,10 @@ export function CreatorCard({ creator }: CreatorCardProps) {
     (sum, platform) => sum + platform.followers,
     0
   )
-  const avgEngagementRate =
-    creator.platforms.reduce((sum, platform) => sum + (typeof platform.engagementRate === 'number' ? platform.engagementRate : 0), 0) /
-    creator.platforms.length
+  // Weighted average engagement rate (proportional to follower count)
+  const avgEngagementRate = totalFollowers > 0
+    ? creator.platforms.reduce((sum, platform) => sum + (platform.followers * (typeof platform.engagementRate === 'number' ? platform.engagementRate : 0)), 0) / totalFollowers
+    : 0
 
   return (
     <>

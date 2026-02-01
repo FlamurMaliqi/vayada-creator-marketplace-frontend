@@ -185,10 +185,10 @@ export function CreatorDetailModal({ creator, isOpen, onClose }: CreatorDetailMo
     }
   }
 
-  // Calculate total followers and average engagement
+  // Calculate total followers and weighted average engagement (proportional to follower count)
   const totalFollowers = creator.platforms.reduce((sum, platform) => sum + platform.followers, 0)
-  const avgEngagementRate = creator.platforms.length > 0
-    ? creator.platforms.reduce((sum, platform) => sum + (typeof platform.engagementRate === 'number' ? platform.engagementRate : 0), 0) / creator.platforms.length
+  const avgEngagementRate = totalFollowers > 0
+    ? creator.platforms.reduce((sum, platform) => sum + (platform.followers * (typeof platform.engagementRate === 'number' ? platform.engagementRate : 0)), 0) / totalFollowers
     : 0
 
   // Get primary platform handle (first platform's handle)
