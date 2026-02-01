@@ -148,16 +148,18 @@ function CollaborationsPageContent() {
   }
 
   const handleRatingSubmit = async (id: string, rating: number, comment: string) => {
-    // Simulate rating submission (frontend design only)
-    // In production, this would call an API to submit the rating
-    // See tickets/TICKET-002-collaboration-rating-api.md for implementation
-    setTimeout(() => {
+    try {
+      await collaborationService.rateCollaboration(id, rating, comment || undefined)
       setCollaborations(prev =>
         prev.map(collab =>
           collab.id === id ? { ...collab, hasRated: true } : collab
         )
       )
-    }, 500)
+    } catch (error) {
+      console.error('Failed to submit rating:', error)
+      const apiError = error as ApiErrorResponse
+      alert(apiError.message || 'Failed to submit rating')
+    }
   }
 
   const statusFilters: { value: StatusFilter; label: string }[] = [

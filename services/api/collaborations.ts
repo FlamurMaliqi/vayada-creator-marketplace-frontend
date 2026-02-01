@@ -416,6 +416,20 @@ export const collaborationService = {
   cancelCollaboration: async (collaborationId: string, reason?: string): Promise<CollaborationResponse> => {
     return apiClient.post<CollaborationResponse>(`/collaborations/${collaborationId}/cancel`, { reason })
   },
+
+  /**
+   * Rate a creator after completing a collaboration (hotels only)
+   */
+  rateCollaboration: async (
+    collaborationId: string,
+    rating: number,
+    comment?: string
+  ): Promise<{ message: string; rating_id: string; created_at: string }> => {
+    return apiClient.post(`/collaborations/${collaborationId}/rate`, {
+      rating,
+      comment
+    })
+  },
 }
 
 /**
