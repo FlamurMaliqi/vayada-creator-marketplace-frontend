@@ -29,6 +29,8 @@ function SignUpForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [privacyAccepted, setPrivacyAccepted] = useState(false)
+  const [marketingConsent, setMarketingConsent] = useState(false)
 
   // Set user type from URL query parameter if present
   useEffect(() => {
@@ -81,7 +83,13 @@ function SignUpForm() {
 
     // Validate terms acceptance
     if (!termsAccepted) {
-      setSubmitError('You must agree to the Terms & Privacy to continue')
+      setSubmitError('You must agree to the Terms of Service to continue')
+      return
+    }
+
+    // Validate privacy acceptance
+    if (!privacyAccepted) {
+      setSubmitError('You must agree to the Privacy Policy to continue')
       return
     }
 
@@ -106,12 +114,16 @@ function SignUpForm() {
     setIsSubmitting(true)
 
     try {
-      // Prepare registration data
+      // Prepare registration data with consent fields
       const registrationData = {
         email: formData.email,
         password: formData.password,
         type: formData.userType as 'creator' | 'hotel',
         ...(formData.name.trim() && { name: formData.name.trim() }),
+        // GDPR consent fields
+        terms_accepted: termsAccepted,
+        privacy_accepted: privacyAccepted,
+        marketing_consent: marketingConsent,
       }
 
       // Call registration API (token is automatically stored by authService)
@@ -359,7 +371,7 @@ function SignUpForm() {
               )}
             </div>
 
-            {/* Terms & Privacy Checkbox */}
+            {/* Terms of Service Checkbox */}
             <div className="flex items-start">
               <div className="flex items-center h-5">
                 <input
@@ -369,19 +381,59 @@ function SignUpForm() {
                   checked={termsAccepted}
                   onChange={(e) => setTermsAccepted(e.target.checked)}
                   required
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded-full"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
               </div>
               <div className="ml-3 text-sm">
                 <label htmlFor="terms" className="text-gray-700">
                   I agree to the{' '}
                   <Link href={ROUTES.TERMS} className="text-primary-600 hover:text-primary-700 font-medium">
-                    Terms
+                    Terms of Service
                   </Link>
-                  {' '}&{' '}
+                  {' '}<span className="text-red-500">*</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Privacy Policy Checkbox */}
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="privacy"
+                  name="privacy"
+                  type="checkbox"
+                  checked={privacyAccepted}
+                  onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                  required
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="privacy" className="text-gray-700">
+                  I agree to the{' '}
                   <Link href={ROUTES.PRIVACY} className="text-primary-600 hover:text-primary-700 font-medium">
-                    Privacy
+                    Privacy Policy
                   </Link>
+                  {' '}<span className="text-red-500">*</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Marketing Consent Checkbox (Optional) */}
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="marketing"
+                  name="marketing"
+                  type="checkbox"
+                  checked={marketingConsent}
+                  onChange={(e) => setMarketingConsent(e.target.checked)}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="marketing" className="text-gray-700">
+                  I would like to receive marketing emails and updates (optional)
                 </label>
               </div>
             </div>
@@ -396,10 +448,10 @@ function SignUpForm() {
             {/* Create Account Button */}
             <button
               type="submit"
-              disabled={isSubmitting || !termsAccepted}
+              disabled={isSubmitting || !termsAccepted || !privacyAccepted}
               className={`
                 w-full px-4 py-3 rounded-lg font-medium text-sm transition-all
-                ${isSubmitting || !termsAccepted
+                ${isSubmitting || !termsAccepted || !privacyAccepted
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-primary-600 text-white hover:bg-primary-700'
                 }

@@ -17,6 +17,10 @@ export const STORAGE_KEYS = {
 
   // UI state
   SIDEBAR_COLLAPSED: 'sidebarCollapsed',
+
+  // Cookie consent
+  COOKIE_CONSENT: 'vayada_cookie_consent',
+  VISITOR_ID: 'vayada_visitor_id',
 } as const
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS]

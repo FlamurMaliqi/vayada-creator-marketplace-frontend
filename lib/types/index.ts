@@ -279,6 +279,12 @@ export interface RegisterRequest {
   password: string
   type: 'creator' | 'hotel'
   name?: string
+  // GDPR consent fields
+  terms_accepted: boolean
+  privacy_accepted: boolean
+  marketing_consent?: boolean
+  terms_version?: string
+  privacy_version?: string
 }
 
 export interface RegisterResponse {

@@ -51,5 +51,11 @@ export const ROUTES = {
   PRIVACY: '/privacy',
   TERMS: '/terms',
   IMPRINT: '/imprint',
+
+  // Settings routes
+  SETTINGS: '/settings',
+  SETTINGS_PRIVACY: '/settings/privacy',
+  SETTINGS_DATA_EXPORT: '/settings/data-export',
+  SETTINGS_DELETE_ACCOUNT: '/settings/delete-account',
 } as const
 
