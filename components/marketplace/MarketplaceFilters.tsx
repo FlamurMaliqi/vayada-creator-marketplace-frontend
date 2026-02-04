@@ -39,12 +39,12 @@ export function MarketplaceFilters({
 
   const handleHotelFiltersChange = (hotelFilters: HotelFiltersState) => {
     // Create new filters, explicitly handling removed keys
-    const newFilters = { ...filters }
+    const newFilters: MarketplaceFiltersState = { ...filters }
     // Update or remove hotel filter keys
     const hotelKeys: (keyof HotelFiltersState)[] = ['hotelType', 'offering', 'availability', 'budget']
     hotelKeys.forEach(key => {
       if (key in hotelFilters) {
-        newFilters[key] = hotelFilters[key]
+        (newFilters as Record<string, unknown>)[key] = hotelFilters[key]
       } else {
         delete newFilters[key]
       }
@@ -54,12 +54,12 @@ export function MarketplaceFilters({
 
   const handleCreatorFiltersChange = (creatorFilters: CreatorFiltersState) => {
     // Create new filters, explicitly handling removed keys
-    const newFilters = { ...filters }
+    const newFilters: MarketplaceFiltersState = { ...filters }
     // Update or remove creator filter keys
     const creatorKeys: (keyof CreatorFiltersState)[] = ['minFollowers', 'minEngagementRate', 'creatorPlatforms', 'topCountries', 'creatorTypes']
     creatorKeys.forEach(key => {
       if (key in creatorFilters) {
-        newFilters[key] = creatorFilters[key]
+        (newFilters as Record<string, unknown>)[key] = creatorFilters[key]
       } else {
         delete newFilters[key]
       }
