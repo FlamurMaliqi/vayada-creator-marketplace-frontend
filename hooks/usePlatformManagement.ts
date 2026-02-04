@@ -8,16 +8,15 @@ import type {
 
 const COUNTRIES = Object.values(countries).map(country => country.name).sort()
 
-export function usePlatformManagement(
-  editFormData: { platforms: ProfilePlatform[] },
-  setEditFormData: React.Dispatch<React.SetStateAction<{
-    name: string
-    profilePicture: string
-    shortDescription: string
-    location: string
-    portfolioLink: string
-    platforms: ProfilePlatform[]
-  }>>,
+// Generic type for form data that includes platforms
+type FormDataWithPlatforms = {
+  platforms: ProfilePlatform[]
+  [key: string]: unknown
+}
+
+export function usePlatformManagement<T extends FormDataWithPlatforms>(
+  editFormData: T,
+  setEditFormData: React.Dispatch<React.SetStateAction<T>>,
   expandedPlatforms: Set<number>,
   setExpandedPlatforms: React.Dispatch<React.SetStateAction<Set<number>>>,
   platformCountryInputs: Record<number, string>,
