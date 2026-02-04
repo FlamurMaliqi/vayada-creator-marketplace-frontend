@@ -108,6 +108,7 @@ export interface CollaborationResponse {
 
   creator_portfolio_link?: string | null
   portfolio_link?: string | null
+  creator_type?: 'Lifestyle' | 'Travel' | null
   platforms?: Array<{
     name: "Instagram" | "TikTok" | "YouTube" | "Facebook" | string
     handle: string
