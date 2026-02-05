@@ -27,7 +27,7 @@ export default function Hero() {
               backgroundImage: 'url(/hotel-hero.JPG)'
             }}
           >
-            <div className="absolute inset-0 bg-blue-900/70"></div>
+            <div className="absolute inset-0 bg-black/70"></div>
           </div>
           <div className="relative z-10 w-full text-center">
             <div className="max-w-2xl mx-auto">
@@ -112,7 +112,7 @@ export default function Hero() {
               backgroundImage: 'url(/creator-hero.jpg)'
             }}
           >
-            <div className="absolute inset-0 bg-blue-900/70"></div>
+            <div className="absolute inset-0 bg-black/70"></div>
           </div>
           <div className="relative z-10 w-full text-center">
             <div className="max-w-2xl mx-auto">
